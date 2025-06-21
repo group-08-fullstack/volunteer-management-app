@@ -10,7 +10,7 @@ export default function Login({ users, setLoggedInUser }) {
   const handleLogin = (e) => {
     e.preventDefault();
 
-     // Check if the user exists with matching email, password, and role
+     // Check if the user exists with matching email, password,role
     const user = users.find(u => u.email === email && u.password === password && u.role === role);
     if (user) {
       setLoggedInUser(user);
