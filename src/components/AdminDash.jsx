@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bell, User, LogOut, Calendar, Clock, MapPin, Users, Settings, UserCheck, History, ChevronDown } from 'lucide-react';
 
 export default function AdminDashboard() {
   const [adminName, setAdminName] = useState('Admin Manager');
   const [notifications, setNotifications] = useState(5);
   const [sortBy, setSortBy] = useState('events'); // 'events' or 'rating'
+  const navigate = useNavigate();
 
   // Sample data for top volunteers
   const topVolunteers = [
@@ -74,9 +76,11 @@ export default function AdminDashboard() {
     // Clear any authentication tokens or user data
     // localStorage.removeItem('authToken');
     // localStorage.removeItem('userData');
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userData');
     
     // Navigate to login page
-    alert('Logout functionality - would navigate to login page');
+    navigate('/login');
   };
 
   const handleNotificationClick = () => {
