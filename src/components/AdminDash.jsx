@@ -96,7 +96,7 @@ export default function AdminDashboard() {
   };
 
   const handleVolunteerMatching = () => {
-    alert('Volunteer Matching - Navigate to volunteer matching page');
+    navigate('/volunteermatch');
   };
 
   const handleEventHistory = () => {
