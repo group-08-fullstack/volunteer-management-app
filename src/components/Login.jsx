@@ -17,7 +17,7 @@ export default function Login({ users, setLoggedInUser }) {
       if (role === 'volunteer') {
         navigate('/profile');   // Navigate to profile role-volunteers
       } else {
-        alert('Admin login successful!');
+        navigate('/admindash');
         // Future navigation can be added here for admin, e.g., navigate('/EventForm');
       }
     } else {
