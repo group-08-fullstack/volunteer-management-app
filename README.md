@@ -49,4 +49,4 @@ It includes **npm**, the Node Package Manager.
 ![alt text](https://github.com/group-08-fullstack/volunteer-management-app/blob/main/tree-structure.png)
 
 
-![alt text](https://github.com/group-08-fullstack/volunteer-management-app/blob/main/project-structure.JPG)
+
