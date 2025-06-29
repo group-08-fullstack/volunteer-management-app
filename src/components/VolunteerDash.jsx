@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, User, LogOut, Calendar, Clock, MapPin, Users } from 'lucide-react';
+import NotificationButton from './Notification';
 import './VolunteerDash.css';
 
 export default function VolunteerDashboard() {
@@ -89,17 +90,8 @@ export default function VolunteerDashboard() {
             
             <div className="navbar-actions">
               {/* Notifications */}
-              <button
-                onClick={handleNotificationClick}
-                className="icon-button"
-              >
-                <Bell size={20} />
-                {notifications > 0 && (
-                  <span className="notification-badge">
-                    {notifications}
-                  </span>
-                )}
-              </button>
+              {/* Imported from Notification.jsx */}
+             <NotificationButton />
 
               {/* Account */}
               <button
