@@ -79,44 +79,64 @@ export default function ProfileForm() {
 
     localStorage.setItem('profiles', JSON.stringify(allProfiles));
 
-    // Show success popup and redirect
     alert('Profile saved successfully!');
     navigate('/volunteerdash');
+
   };
-  
   // styles layout
   const containerStyle = {
-    maxWidth: '600px',
-    margin: '40px auto',
+    maxWidth: '800px',
+    maxHeight:'3500px',
+   
     padding: '30px',
     borderRadius: '10px',
     backgroundColor: '#f9f9f9',
     boxShadow: '0 0 10px rgba(0,0,0,0.1)',
-    fontFamily: 'Segoe UI, sans-serif'
+    fontFamily: 'Segoe UI, sans-serif',
+    
+    display:'grid',
+    gridTemplateColumns: '1fr 1fr 1fr',
+    gridTemplateRows: 'auto auto 100px',
+    columnGap: '15px',
+    width: '90%',
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)'
   };
 
   const labelStyle = {
     marginTop: '15px',
     fontWeight: 'bold',
-    display: 'block'
+    display: 'block',
+    
   };
 
-  const inputStyle = {
-    width: '100%',
+  const inputStyle_name_city_zipcode = {
+    width: '200px',
     padding: '10px',
-    marginTop: '5px',
+    //marginTop: '5px',
     marginBottom: '10px',
     borderRadius: '5px',
     border: '1px solid #ccc'
   };
 
+  const inputStyle = {
+    width: '100%',
+    padding: '10px',
+   //marginTop: '5px',
+    //marginBottom: '10px',
+    borderRadius: '5px',
+    border: '1px solid #ccc'
+  };
+
   const buttonStyle = {
-    padding: '10px 20px',
+    //padding: '10px 20px',
     backgroundColor: '#4CAF50',
     color: 'white',
     border: 'none',
     borderRadius: '5px',
-    marginTop: '20px',
+    //marginTop: '20px',
     cursor: 'pointer'
   };
 
@@ -128,18 +148,31 @@ export default function ProfileForm() {
 
   return (
     <form onSubmit={handleSubmit} style={containerStyle}>
-      <h2 style={{ textAlign: 'left', marginBottom: '20px' }}>Volunteer Profile</h2>
+      <h2 style={{ gridColumn:'1/2', gridRow:'1/1', textAlign: 'left', marginBottom: '20px' }}>Volunteer Profile</h2>
 
-      <label style={labelStyle}>Full Name*</label>
-      <input
+      <div style={{gridColumn:'1/2', gridRow:'2/3'}}>
+       <label style={labelStyle }>Full Name*</label>
+       <input
         type="text"
-        maxLength="50"
+        maxLength="100"
         required
-        style={inputStyle}
+        style={inputStyle_name_city_zipcode}
         value={form.fullName}
         onChange={(e) => setForm({ ...form, fullName: e.target.value })}
-      />
+       />
+      </div>
 
+      <div style={{gridColumn:'2/4',gridRow:'2/3'}}>
+      <label style={labelStyle}>Skills*</label>
+      <Select
+        options={skillsOptions}
+        isMulti
+        placeholder="Select Skills"
+        onChange={(selected) => setForm({ ...form, skills: selected })}
+      />
+      </div>
+
+      <div style={{gridColumn:'1/4',gridRow:'3/4'}}>
       <label style={labelStyle}>Address 1*</label>
       <input
         type="text"
@@ -149,7 +182,9 @@ export default function ProfileForm() {
         value={form.address1}
         onChange={(e) => setForm({ ...form, address1: e.target.value })}
       />
+      </div>
 
+      <div style={{gridColumn:'1/4',gridRow:'4/5'}}>
       <label style={labelStyle}>Address 2</label>
       <input
         type="text"
@@ -158,43 +193,44 @@ export default function ProfileForm() {
         value={form.address2}
         onChange={(e) => setForm({ ...form, address2: e.target.value })}
       />
-
+      </div>
+      
+      <div style={{gridColumn:'1/2',gridRow:'5/6'}}>
       <label style={labelStyle}>City*</label>
       <input
         type="text"
         maxLength="100"
         required
-        style={inputStyle}
+        style={inputStyle_name_city_zipcode}
         value={form.city}
         onChange={(e) => setForm({ ...form, city: e.target.value })}
       />
+      </div>
 
+      <div style={{gridColumn:'2/3',gridRow:'5/6'}}>
       <label style={labelStyle}>State*</label>
       <Select
         options={stateOptions}
         onChange={(selected) => setForm({ ...form, state: selected.value })}
         placeholder="Select State"
       />
+      </div>
 
+      <div style={{gridColumn:'3/4',gridRow:'5/6'}}>
       <label style={labelStyle}>Zip Code*</label>
       <input
         type="text"
         required
-        style={inputStyle}
+        style={inputStyle_name_city_zipcode}
         pattern="^\d{5}(-\d{4})?$"
         placeholder="e.g., 12345 or 12345-6789"
         value={form.zip}
         onChange={(e) => setForm({ ...form, zip: e.target.value })}
       />
-
-      <label style={labelStyle}>Skills*</label>
-      <Select
-        options={skillsOptions}
-        isMulti
-        placeholder="Select Skills"
-        onChange={(selected) => setForm({ ...form, skills: selected })}
-      />
-
+      </div>
+      
+ 
+      <div style={{gridColumn:'1/4',gridRow:'6/7'}}>
       <label style={labelStyle}>Preferences</label>
       <textarea
         placeholder="Enter any preferences"
@@ -202,18 +238,20 @@ export default function ProfileForm() {
         value={form.preferences}
         onChange={(e) => setForm({ ...form, preferences: e.target.value })}
       ></textarea>
+      </div>
 
-      <label style={labelStyle}>Availability Dates* (Add multiple)</label>
-      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-        <input
+      <div style={{gridColumn:'1/4',gridRow:'7/8'}}>
+       <label style={labelStyle}>Availability Dates* (Add multiple)</label>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+         <input
           type="date"
-          style={{ ...inputStyle, flex: 1 }}
+          style={{ ...inputStyle, width:'200px' }}
           value={dateInput}
           onChange={(e) => setDateInput(e.target.value)}
-        />
+         />
         <button type="button" style={buttonStyle} onClick={handleAddDate}>Add</button>
-      </div>
-      <ul style={listStyle}>
+       </div>
+        <ul style={listStyle}>
         {form.availability.map((date, index) => (
           <li key={index}>
             {date}{' '}
@@ -233,8 +271,14 @@ export default function ProfileForm() {
           </li>
         ))}
       </ul>
+      </div>
 
+      
+ 
+      
+      <div style={{gridColumn:'1/-1',gridRow:'8/9',justifySelf: 'center', paddingTop:'10px'}}>
       <button type="submit" style={buttonStyle}>Save Profile</button>
+      </div>
     </form>
   );
 }
