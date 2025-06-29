@@ -101,4 +101,5 @@ export default function Login({ users, setLoggedInUser }) {
       <p style={listStyle}>Not registered yet? <Link to="/register">Register here</Link></p>
     </div>
   );
+
 }
