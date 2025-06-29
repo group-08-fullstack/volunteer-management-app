@@ -542,7 +542,7 @@ export default function AdminDashboard() {
               onMouseEnter={(e) => e.target.style.color = '#059669'}
               onMouseLeave={(e) => e.target.style.color = '#10b981'}
             >
-              View All Events →
+              Manage Events →
             </button>
           </div>
         </div>
@@ -585,9 +585,9 @@ export default function AdminDashboard() {
               marginBottom: '0.5rem',
               color: '#10b981'
             }}>
-              24
+              8
             </div>
-            <div style={{ color: '#6b7280' }}>Events Completed</div>
+            <div style={{ color: '#6b7280' }}>Upcoming Events</div>
           </div>
           
           <div style={{ 
@@ -603,9 +603,9 @@ export default function AdminDashboard() {
               marginBottom: '0.5rem',
               color: '#8b5cf6'
             }}>
-              8
+              5
             </div>
-            <div style={{ color: '#6b7280' }}>Upcoming Events</div>
+            <div style={{ color: '#6b7280' }}>Events to be Finalized</div>
           </div>
         </div>
       </div>
