@@ -79,8 +79,11 @@ export default function ProfileForm() {
 
     localStorage.setItem('profiles', JSON.stringify(allProfiles));
 
-    alert('Profile saved successfully.');
+    // Show success popup and redirect
+    alert('Profile saved successfully!');
+    navigate('/volunteerdash');
   };
+  
   // styles layout
   const containerStyle = {
     maxWidth: '600px',
