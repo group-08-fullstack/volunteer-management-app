@@ -11,6 +11,22 @@
   border-radius: 25px;           /* rounded corners */
 }
 
+.bell-button{
+    position: relative;
+    padding: 0.5rem;
+    color: #6b7280;
+    background: none;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.bell-button:hover {
+    color: #111827;
+    background-color: #f3f4f6;
+}
+
 .notification-div {
   overflow-y: auto;              /* vertical scroll if needed */
   overflow-x: hidden;            /* no side scroll */
@@ -18,4 +34,12 @@
   padding: 5px;
   white-space: normal;
   word-break: break-word;        /* fix for breaking long text */
+}
+
+.refresh-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  float: right;
 }
