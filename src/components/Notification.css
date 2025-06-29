@@ -1,0 +1,21 @@
+.dropdown-div {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid gray;
+  padding: 10px;
+  z-index: 1000;
+  width: 150px;                  /* fixed width */
+  box-shadow: 0 10px 8px rgba(0, 0, 0, 0.1);  /* light shadow effect */
+  border-radius: 25px;           /* rounded corners */
+}
+
+.notification-div {
+  overflow-y: auto;              /* vertical scroll if needed */
+  overflow-x: hidden;            /* no side scroll */
+  max-height: 100px;             /* triggers scrolling if too tall */
+  padding: 5px;
+  white-space: normal;
+  word-break: break-word;        /* fix for breaking long text */
+}
