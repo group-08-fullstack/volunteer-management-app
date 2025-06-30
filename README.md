@@ -33,7 +33,8 @@ It includes **npm**, the Node Package Manager.
 
 ## Step 5: Install Dependencies
    
-       npm install
+      npm install lucide-react && npm install
+
 
 ## Step 6: Start the Server
      
@@ -48,4 +49,4 @@ It includes **npm**, the Node Package Manager.
 ![alt text](https://github.com/group-08-fullstack/volunteer-management-app/blob/main/tree-structure.png)
 
 
-![alt text](https://github.com/group-08-fullstack/volunteer-management-app/blob/main/project-structure.JPG)
+
