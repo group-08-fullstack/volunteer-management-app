@@ -1,32 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+// Helper function to send notification
+function sendNotification(email, message) {
+  const notifications = JSON.parse(localStorage.getItem(`notifications_${email}`) || '[]');
+  notifications.push({ message, timestamp: new Date().toISOString() });
+  localStorage.setItem(`notifications_${email}`, JSON.stringify(notifications));
+}
+
 export default function VolunteerMatch() {
   const [volunteers, setVolunteers] = useState([]);
   const [events, setEvents] = useState([]);
   const [selectedVolunteer, setSelectedVolunteer] = useState(null);
-  const [matchedEvents, setMatchedEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
 
-  const navigate = useNavigate();
-
+  // Load volunteers and events
   useEffect(() => {
-    setVolunteers([]); // Empty until backend integration
-    setEvents([]);     // Empty until backend integration
+    const savedVolunteers = JSON.parse(localStorage.getItem('profiles') || '[]');
+    setVolunteers(savedVolunteers);
+
+    const savedEvents = JSON.parse(localStorage.getItem('events') || '[]');
+    setEvents(savedEvents);
   }, []);
 
-  useEffect(() => {
-    if (selectedVolunteer) {
-      const matched = events.filter(ev =>
-        ev.requiredSkills?.some(skill => selectedVolunteer.skills.includes(skill))
-      );
-      setMatchedEvents(matched);
-    } else {
-      setMatchedEvents([]);
-    }
-    setSelectedEvent(null);
-  }, [selectedVolunteer, events]);
-
+  // Match selected volunteer 
   const handleMatch = () => {
     if (!selectedVolunteer || !selectedEvent) {
       alert('Please select both a volunteer and an event.');
@@ -47,11 +44,20 @@ export default function VolunteerMatch() {
     });
 
     localStorage.setItem(participationKey, JSON.stringify(currentParticipation));
+    
+    // Notify volunteer of the match
+    sendNotification(
+      selectedVolunteer.email,
+      `You have been matched to the event: ${selectedEvent.name}`
+    );
 
-    alert('Volunteer matched successfully!');
-    navigate('/history');
+    alert('Volunteer matched and notified successfully!');
+
+    
+    
   };
 
+  // Styles
   const containerStyle = {
     maxWidth: '600px',
     margin: '40px auto',
@@ -91,13 +97,12 @@ export default function VolunteerMatch() {
     <div style={containerStyle}>
       <h2>Volunteer Match</h2>
 
-      {/* Volunteer dropdown */}
       <label style={labelStyle}>
         Select Volunteer:
         <select
           value={selectedVolunteer ? selectedVolunteer.email : ''}
           onChange={(e) =>
-            setSelectedVolunteer(volunteers.find(v => v.email === e.target.value) || null)
+            setSelectedVolunteer(volunteers.find(v => v.email === e.target.value))
           }
           style={inputStyle}
         >
@@ -110,35 +115,25 @@ export default function VolunteerMatch() {
         </select>
       </label>
 
-      {/* Matched Events dropdown (always enabled) */}
       <label style={labelStyle}>
-        Matched Event:
+        Select Event:
         <select
           value={selectedEvent ? selectedEvent.name : ''}
           onChange={(e) =>
-            setSelectedEvent(matchedEvents.find(ev => ev.name === e.target.value) || null)
+            setSelectedEvent(events.find(ev => ev.name === e.target.value))
           }
           style={inputStyle}
         >
           <option value="">--Select Event--</option>
-          {matchedEvents.length > 0 ? (
-            matchedEvents.map((ev) => (
-              <option key={ev.name} value={ev.name}>
-                {ev.name}
-              </option>
-            ))
-          ) : (
-            <option disabled>No matching events</option>
-          )}
+          {events.map((ev) => (
+            <option key={ev.name} value={ev.name}>
+              {ev.name}
+            </option>
+          ))}
         </select>
       </label>
 
-      {/* Match button */}
-      <button
-        onClick={handleMatch}
-        style={buttonStyle}
-        disabled={!selectedVolunteer || !selectedEvent}
-      >
+      <button onClick={handleMatch} style={buttonStyle}>
         Match Volunteer
       </button>
     </div>
