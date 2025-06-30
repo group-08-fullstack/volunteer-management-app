@@ -1,12 +1,10 @@
 import { useState,  useEffect } from 'react';
 import {Bell, RefreshCcw } from 'lucide-react';
 import './Notification.css';
-import { createNotification,
-    deleteNotification,
+import { deleteNotification,
     getUserNotifications,
     markNotificationAsRead,
-    markNotificationAsUnread,
-    getUnreadCount } from '../helpers/notificationHelpers.js';
+    markNotificationAsUnread} from '../helpers/notificationHelpers.js';
 
 
 export default function Notificationbutton() {
@@ -72,8 +70,14 @@ export default function Notificationbutton() {
 
 
     // function to delete a notification. Filter out the desired notification
-    function handleDelete(id) {
-        setNotifications(prev => prev.filter(n => n.id !== id));
+    async function handleDelete(id) {
+          try {
+            await deleteNotification(id);  // delete on backend
+            setNotifications(prev => prev.filter(n => n.id !== id)); // update UI
+            setUnreadCount(unreadCount - 1); // update unread count
+        } catch (error) {
+            console.error("Failed to delete notification", error);
+        }
     }
 
     // Arrow function to toggle the dropdown visibility/change the state of showDropDown
