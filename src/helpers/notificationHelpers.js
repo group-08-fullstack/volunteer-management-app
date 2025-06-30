@@ -13,7 +13,17 @@ export async function createNotification(senderId, receiverId, eventName, eventD
 
 // Get all notifications for a user
 export async function getUserNotifications(receiverId){
-    return null;
+    /* 
+        This is filler code. Once the backend is complete this will be
+        an API call to an endopoint. 
+    */
+
+    const exampleData = [
+        { id: 1, message: "New Event assigned", date: "6/29/2025", read: false },
+        { id: 2, message: "Event updated", date: "6/28/2025" , read: false },
+    ];
+
+    return exampleData;
 }
 
 

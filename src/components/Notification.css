@@ -43,3 +43,32 @@
   padding: 0;
   float: right;
 }
+
+
+.notification-item {
+  background-color: #f9f9f9;   /* Light background for contrast */
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+
+.notification-item:hover {
+  background-color: #f0f0f0;
+}
+
+.notification-item p {
+  margin: 0;
+  font-weight: 500;
+  color: #333;
+}
+
+.notification-item small {
+  display: block;
+  color: #888;
+  margin-top: 4px;
+  font-size: 12px;
+}
