@@ -154,7 +154,7 @@ export default function ProfileForm() {
        <label style={labelStyle }>Full Name*</label>
        <input
         type="text"
-        maxLength="100"
+        maxLength="50"
         required
         style={inputStyle_name_city_zipcode}
         value={form.fullName}

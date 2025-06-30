@@ -94,7 +94,7 @@ export default function AdminDashboard() {
   };
 
   const handleEventManagement = () => {
-    alert('Event Management - Navigate to event management page');
+    navigate('/createevent')
   };
 
   const handleVolunteerMatching = () => {
@@ -186,8 +186,9 @@ export default function AdminDashboard() {
                   >
                     <button
                       onClick={() => {
+                        handleEventManagement();
                         setEventDropdownOpen(false);
-                        navigate('/EventForm');
+                        
                       }}
                       style={{
                         display: 'block',

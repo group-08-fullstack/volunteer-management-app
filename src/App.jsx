@@ -6,6 +6,7 @@ import ProfileForm from './components/ProfileForm';
 import VolunteerDash from './components/VolunteerDash';
 import AdminDash from './components/AdminDash';
 import VolunteerMatch from './components/VolunteerMatch'; 
+import EventForm from './components/EventForm'; 
 
 function App() {
   const [users, setUsers] = useState([]); // Store registered users
@@ -20,6 +21,7 @@ function App() {
         <Route path="/profile" element={loggedInUser ? <ProfileForm user={loggedInUser} /> : <Navigate to="/login" />} />
         <Route path="/volunteerdash" element={<VolunteerDash />} />
         <Route path="/volunteermatch" element={<VolunteerMatch />} />
+        <Route path="/createevent" element={<EventForm />} />
         <Route path="/admindash" element={<AdminDash />} /> 
       </Routes>
     </Router>
