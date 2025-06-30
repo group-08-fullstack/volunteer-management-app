@@ -1,0 +1,123 @@
+.dropdown-div {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid gray;
+  padding: 10px;
+  z-index: 1000;
+  width: 150px;                  /* fixed width */
+  box-shadow: 0 10px 8px rgba(0, 0, 0, 0.1);  /* light shadow effect */
+  border-radius: 25px;           /* rounded corners */
+  box-sizing: border-box; 
+  
+}
+
+.bell-button{
+    position: relative;
+    padding: 0.5rem;
+    color: #6b7280;
+    background: none;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.bell-button:hover {
+    color: #111827;
+    background-color: #f3f4f6;
+}
+
+.notification-div {
+  overflow-y: auto;             
+  overflow-x: hidden;            
+  max-height: 120px;           
+  padding: 10px;
+  white-space: normal;
+  word-break: break-word;              
+}
+
+
+.refresh-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  float: right;
+}
+
+
+.notification-item {
+  background-color: #f9f9f9;   /* Light background for contrast */
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+
+.notification-item:hover {
+  background-color: #f0f0f0;
+}
+
+.notification-item p {
+  margin: 0;
+  font-weight: 500;
+  color: #333;
+}
+
+.notification-item small {
+  display: block;
+  color: #888;
+  margin-top: 4px;
+  font-size: 12px;
+}
+
+.notification-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* optional: pushes button to the right */
+  gap: 12px; /* spacing between read toggle and delete button */
+}
+
+.notification-delete {
+  font-size: 12px;        
+  padding: 2px 6px;       
+  background: transparent; 
+  border: none;          
+  color: #888;            
+  cursor: pointer;        
+  transition: color 0.2s ease;
+}
+
+.notification-delete:hover {
+  color: #f44336;         
+}
+
+
+.notification-label {
+  font-size: 12px;           
+  color: #333;             
+  margin-left: 8px;          
+  line-height: 1.4;          
+  word-wrap: break-word;    
+  user-select: text;        
+}
+
+.notification-checkbox {
+  width: 10px;
+  height: 10px;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.notification-read-toggle {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+
