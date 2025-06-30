@@ -78,6 +78,10 @@ export default function VolunteerDashboard() {
     alert('Account settings');
   };
 
+  const handleVolunteerMatching = () => {
+    navigate("/volunteerhistory");
+  }
+
   return (
     <div className="dashboard">
       {/* Navbar */}
@@ -155,7 +159,7 @@ export default function VolunteerDashboard() {
               </div>
             </div>
             
-            <button className="view-all-button">
+              <button className="view-all-button" onClick={handleVolunteerMatching}>
               View All History →
             </button>
           </div>
