@@ -29,6 +29,25 @@
     background-color: #f3f4f6;
 }
 
+.notification-badge {
+  position: absolute;
+  top: -0.25rem;
+  right: -0.25rem;
+  background-color: #ef4444;
+  color: white;
+  font-size: 0.75rem;
+  border-radius: 50%;
+  height: 1.25rem;
+  width: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification-badge:hover {
+  background-color: #2b2b2b; /* gray-400 */
+}
+
 .notification-div {
   overflow-y: auto;             
   overflow-x: hidden;            

@@ -69,16 +69,30 @@ export default function Notificationbutton() {
     }   
 
 
-    // function to delete a notification. Filter out the desired notification
+   // Function to delete a notification. Filter out the desired notification
     async function handleDelete(id) {
-          try {
-            await deleteNotification(id);  // delete on backend
-            setNotifications(prev => prev.filter(n => n.id !== id)); // update UI
-            setUnreadCount(unreadCount - 1); // update unread count
+        try {
+            await deleteNotification(id); // Delete on backend
+
+            setNotifications((prev) => {
+                // Grab notification the deleted notification
+                const notification = prev.find((n) => n.id === id);
+
+                // Update UI by filtering out the deleted notification
+                const updated = prev.filter((n) => n.id !== id);
+
+                // Update unread count only if the deleted notification was unread
+                if (notification && !notification.read) {
+                    setUnreadCount(unreadCount - 1);
+                }
+
+                return updated;
+            });
         } catch (error) {
             console.error("Failed to delete notification", error);
         }
     }
+
 
     // Arrow function to toggle the dropdown visibility/change the state of showDropDown
     const toggleDropdown = () => {

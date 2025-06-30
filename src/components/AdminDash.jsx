@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import NotificationButton from './Notification';
 import { Bell, User, LogOut, Calendar, Clock, MapPin, Users, Settings, UserCheck, History, ChevronDown } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -223,47 +224,8 @@ export default function AdminDashboard() {
               </button>
 
               {/* Notifications */}
-              <button
-                onClick={handleNotificationClick}
-                style={{
-                  position: 'relative',
-                  padding: '0.5rem',
-                  color: '#6b7280',
-                  background: 'none',
-                  border: 'none',
-                  borderRadius: '50%',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.color = '#111827';
-                  e.target.style.backgroundColor = '#f3f4f6';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.color = '#6b7280';
-                  e.target.style.backgroundColor = 'transparent';
-                }}
-              >
-                <Bell size={20} />
-                {notifications > 0 && (
-                  <span style={{
-                    position: 'absolute',
-                    top: '-0.25rem',
-                    right: '-0.25rem',
-                    backgroundColor: '#ef4444',
-                    color: 'white',
-                    fontSize: '0.75rem',
-                    borderRadius: '50%',
-                    height: '1.25rem',
-                    width: '1.25rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}>
-                    {notifications}
-                  </span>
-                )}
-              </button>
+              {/* Imported from Notification.jsx */}
+              <NotificationButton />
 
               {/* Account */}
               <button
