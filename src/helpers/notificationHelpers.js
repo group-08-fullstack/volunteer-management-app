@@ -21,6 +21,7 @@ export async function getUserNotifications(receiverId){
     const exampleData = [
         { id: 1, message: "New Event assigned", date: "6/29/2025", read: false },
         { id: 2, message: "Event updated", date: "6/28/2025" , read: false },
+        { id: 3, message: "Welcome!", date: "6/28/2025" , read: false },
     ];
 
     return exampleData;

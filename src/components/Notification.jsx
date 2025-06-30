@@ -22,7 +22,7 @@ export default function Notificationbutton() {
     // Function to fetch the latest notifications from the backend when the refresh button is clicked
     async function refreshFunction(){
 
-        // Make api call to backend endpoint
+        // Make api call to backend endpoint to retrieve all user notifications
         let data = await getUserNotifications();
         
         setNotifications(data); // update notification state
@@ -43,6 +43,7 @@ export default function Notificationbutton() {
     // Function to toggle the read/unread state of a notification and update unread count
     const toggleRead = (id) => {
         setNotifications(prev => {
+            // For each element determine if its the desired one
             const updated = prev.map(notification => {
                 if (notification.id === id) {
                     // Call the appropriate helper function based on current read status
@@ -56,7 +57,7 @@ export default function Notificationbutton() {
                     // In other words, return the notification with every attribute the same but the read attribute
                     return { ...notification, read: !notification.read };
                 }
-                
+
                 // If not the desired notification keep the same
                 return notification;
             });
@@ -110,20 +111,26 @@ export default function Notificationbutton() {
     );
 }
 
+// Function that returns a NotificationItem which represents a single notification and all its available user actions
 function NotificationItem({data, onToggleRead}){
    
     return(
-         <div key={data.id} className="notification-item">
+        <div key={data.id} className="notification-item">
             <p>{data.message}</p>
             <small>{data.date}</small>
-            <label>
+            <div className="notification-read-toggle">
+                <label className="notification-label">Read</label>
                 <input
-                type="checkbox"
-                checked={data.read}
-                onChange={onToggleRead}
+                    className="notification-checkbox"
+                    type="checkbox"
+                    checked={data.read}
+                    onChange={onToggleRead}
                 />
-                Read/Unread
-            </label>
+            </div>
+
+            
+            <button className="notification-delete">Delete</button>
+
         </div>
     )
 
