@@ -8,6 +8,7 @@ export default function AdminDashboard() {
   const [notifications, setNotifications] = useState(5);
   const [sortBy, setSortBy] = useState('events'); // 'events' or 'rating'
   const navigate = useNavigate();
+  const [eventDropdownOpen, setEventDropdownOpen] = useState(false);//xxx
 
   // Sample data for top volunteers
   const topVolunteers = [
@@ -79,7 +80,7 @@ export default function AdminDashboard() {
     // localStorage.removeItem('userData');
     localStorage.removeItem('authToken');
     localStorage.removeItem('userData');
-    
+
     // Navigate to login page
     navigate('/login');
   };
@@ -111,59 +112,127 @@ export default function AdminDashboard() {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
       {/* Navbar */}
-      <nav style={{ 
-        width: '100%', 
-        backgroundColor: 'white', 
-        boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)', 
-        borderBottom: '1px solid #e5e7eb' 
+      <nav style={{
+        width: '100%',
+        backgroundColor: 'white',
+        boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+        borderBottom: '1px solid #e5e7eb'
       }}>
         <div style={{ width: '100%', padding: '0 2rem' }}>
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center', 
-            height: '4rem' 
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            height: '4rem'
           }}>
             <div>
-              <h1 style={{ 
-                fontSize: '1.25rem', 
-                fontWeight: '600', 
-                color: '#111827' 
+              <h1 style={{
+                fontSize: '1.25rem',
+                fontWeight: '600',
+                color: '#111827'
               }}>
                 Admin Portal
               </h1>
             </div>
-            
+
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              {/* Admin Navigation Buttons */}
-              <button
-                onClick={handleEventManagement}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  padding: '0.5rem 1rem',
-                  color: '#6b7280',
-                  background: 'none',
-                  border: 'none',
-                  borderRadius: '0.375rem',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem',
-                  fontWeight: '500',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.color = '#111827';
-                  e.target.style.backgroundColor = '#f3f4f6';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.color = '#6b7280';
-                  e.target.style.backgroundColor = 'transparent';
-                }}
-              >
-                <Settings size={16} />
-                Event Management
-              </button>
+              <div style={{ position: 'relative' }}>
+                <button
+                  onClick={() => setEventDropdownOpen(!eventDropdownOpen)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    padding: '0.5rem 1rem',
+                    color: '#6b7280',
+                    background: 'none',
+                    border: 'none',
+                    borderRadius: '0.375rem',
+                    cursor: 'pointer',
+                    fontSize: '0.875rem',
+                    fontWeight: '500',
+                    transition: 'all 0.2s',
+                    width: '100%'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.color = '#111827';
+                    e.target.style.backgroundColor = '#f3f4f6';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.color = '#6b7280';
+                    e.target.style.backgroundColor = 'transparent';
+                  }}
+                >
+                  <Settings size={16} />
+                  Event Management
+                  <ChevronDown size={16} />
+                </button>
+
+                {/* Dropdown menu */}
+                {eventDropdownOpen && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      zIndex: 10,
+                      backgroundColor: 'white',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '0.375rem',
+                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                      padding: '0.5rem 0',
+                      minWidth: '100%'
+                    }}
+                  >
+                    <button
+                      onClick={() => {
+                        setEventDropdownOpen(false);
+                        navigate('/EventForm');
+                      }}
+                      style={{
+                        display: 'block',
+                        width: '100%',
+                        padding: '0.5rem 1rem',
+                        textAlign: 'left',
+                        background: 'none',
+                        border: 'none',
+                        color: '#374151',
+                        fontSize: '0.875rem',
+                        cursor: 'pointer',
+                      }}
+                      onMouseEnter={(e) => (e.target.style.backgroundColor = '#f3f4f6')}
+                      onMouseLeave={(e) => (e.target.style.backgroundColor = 'transparent')}
+                    >
+                      Create Event
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setEventDropdownOpen(false);
+                        navigate('/EventList');
+                      }}
+                      style={{
+                        display: 'block',
+                        width: '100%',
+                        padding: '0.5rem 1rem',
+                        textAlign: 'left',
+                        background: 'none',
+                        border: 'none',
+                        color: '#374151',
+                        fontSize: '0.875rem',
+                        cursor: 'pointer',
+                      }}
+                      onMouseEnter={(e) => (e.target.style.backgroundColor = '#f3f4f6')}
+                      onMouseLeave={(e) => (e.target.style.backgroundColor = 'transparent')}
+                    >
+                      Manage Events
+                    </button>
+                  </div>
+                )}
+              </div>
+
+
+
 
               <button
                 onClick={handleVolunteerMatching}
@@ -288,11 +357,11 @@ export default function AdminDashboard() {
       <div style={{ width: '100%', padding: '2rem' }}>
         {/* Welcome Message */}
         <div style={{ marginBottom: '2rem' }}>
-          <h2 style={{ 
-            fontSize: '1.875rem', 
-            fontWeight: 'bold', 
-            color: '#111827', 
-            marginBottom: '0.5rem' 
+          <h2 style={{
+            fontSize: '1.875rem',
+            fontWeight: 'bold',
+            color: '#111827',
+            marginBottom: '0.5rem'
           }}>
             Welcome, {adminName}!
           </h2>
@@ -302,38 +371,38 @@ export default function AdminDashboard() {
         </div>
 
         {/* Dashboard Tiles */}
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))', 
-          gap: '2rem' 
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))',
+          gap: '2rem'
         }}>
           {/* Top Volunteers Tile */}
-          <div style={{ 
-            backgroundColor: 'white', 
-            borderRadius: '0.5rem', 
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
-            padding: '1.5rem' 
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '0.5rem',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+            padding: '1.5rem'
           }}>
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
               justifyContent: 'space-between',
-              marginBottom: '1rem' 
+              marginBottom: '1rem'
             }}>
               <div style={{ display: 'flex', alignItems: 'center' }}>
                 <Users style={{ marginRight: '0.75rem' }} color="#3b82f6" size={24} />
-                <h3 style={{ 
-                  fontSize: '1.25rem', 
-                  fontWeight: '600', 
-                  color: '#111827' 
+                <h3 style={{
+                  fontSize: '1.25rem',
+                  fontWeight: '600',
+                  color: '#111827'
                 }}>
                   Top Volunteers
                 </h3>
               </div>
-              
+
               {/* Sort Dropdown */}
               <div style={{ position: 'relative' }}>
-                <select 
+                <select
                   value={sortBy}
                   onChange={(e) => handleSortChange(e.target.value)}
                   style={{
@@ -354,12 +423,12 @@ export default function AdminDashboard() {
                 </select>
               </div>
             </div>
-            
+
             <div style={{ marginBottom: '1rem' }}>
-              <div style={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
-                gap: '1rem' 
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1rem'
               }}>
                 {sortedVolunteers.map((volunteer) => (
                   <div key={volunteer.id} style={{
@@ -371,15 +440,15 @@ export default function AdminDashboard() {
                     <h4 style={{ fontWeight: '500', color: '#111827' }}>
                       {volunteer.name}
                     </h4>
-                    <div style={{ 
-                      fontSize: '0.875rem', 
-                      color: '#6b7280', 
-                      marginTop: '0.25rem' 
+                    <div style={{
+                      fontSize: '0.875rem',
+                      color: '#6b7280',
+                      marginTop: '0.25rem'
                     }}>
-                      <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '1rem' 
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '1rem'
                       }}>
                         <span>{volunteer.events} events</span>
                         <span>⭐ {volunteer.rating}</span>
@@ -395,8 +464,8 @@ export default function AdminDashboard() {
                 ))}
               </div>
             </div>
-            
-            <button 
+
+            <button
               onClick={() => alert('View all volunteers')}
               style={{
                 color: '#3b82f6',
@@ -415,32 +484,32 @@ export default function AdminDashboard() {
           </div>
 
           {/* Upcoming Events Tile */}
-          <div style={{ 
-            backgroundColor: 'white', 
-            borderRadius: '0.5rem', 
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
-            padding: '1.5rem' 
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '0.5rem',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+            padding: '1.5rem'
           }}>
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              marginBottom: '1rem' 
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              marginBottom: '1rem'
             }}>
               <Calendar style={{ marginRight: '0.75rem' }} color="#10b981" size={24} />
-              <h3 style={{ 
-                fontSize: '1.25rem', 
-                fontWeight: '600', 
-                color: '#111827' 
+              <h3 style={{
+                fontSize: '1.25rem',
+                fontWeight: '600',
+                color: '#111827'
               }}>
                 Upcoming Events
               </h3>
             </div>
-            
+
             <div style={{ marginBottom: '1rem' }}>
-              <div style={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
-                gap: '1rem' 
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1rem'
               }}>
                 {upcomingEvents.map((event) => (
                   <div key={event.id} style={{
@@ -452,37 +521,37 @@ export default function AdminDashboard() {
                     <h4 style={{ fontWeight: '500', color: '#111827' }}>
                       {event.event}
                     </h4>
-                    <div style={{ 
-                      fontSize: '0.875rem', 
-                      color: '#6b7280', 
-                      marginTop: '0.25rem' 
+                    <div style={{
+                      fontSize: '0.875rem',
+                      color: '#6b7280',
+                      marginTop: '0.25rem'
                     }}>
-                      <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '1rem' 
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '1rem'
                       }}>
                         <span>{event.date}</span>
                         <span>{event.time}</span>
                       </div>
-                      <div style={{ 
+                      <div style={{
                         marginTop: '0.25rem',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '1rem'
                       }}>
-                        <div style={{ 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          gap: '0.25rem' 
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.25rem'
                         }}>
                           <MapPin size={14} />
                           <span>{event.location}</span>
                         </div>
-                        <div style={{ 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          gap: '0.25rem' 
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.25rem'
                         }}>
                           <Users size={14} />
                           <span>{event.volunteers} volunteers</span>
@@ -493,8 +562,8 @@ export default function AdminDashboard() {
                 ))}
               </div>
             </div>
-            
-            <button 
+
+            <button
               onClick={() => alert('View all events')}
               style={{
                 color: '#10b981',
@@ -514,22 +583,22 @@ export default function AdminDashboard() {
         </div>
 
         {/* Quick Stats */}
-        <div style={{ 
-          marginTop: '2rem', 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-          gap: '1.5rem' 
+        <div style={{
+          marginTop: '2rem',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '1.5rem'
         }}>
-          <div style={{ 
-            backgroundColor: 'white', 
-            borderRadius: '0.5rem', 
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
-            padding: '1.5rem', 
-            textAlign: 'center' 
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '0.5rem',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+            padding: '1.5rem',
+            textAlign: 'center'
           }}>
-            <div style={{ 
-              fontSize: '1.875rem', 
-              fontWeight: 'bold', 
+            <div style={{
+              fontSize: '1.875rem',
+              fontWeight: 'bold',
               marginBottom: '0.5rem',
               color: '#3b82f6'
             }}>
@@ -537,17 +606,17 @@ export default function AdminDashboard() {
             </div>
             <div style={{ color: '#6b7280' }}>Total Volunteers</div>
           </div>
-          
-          <div style={{ 
-            backgroundColor: 'white', 
-            borderRadius: '0.5rem', 
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
-            padding: '1.5rem', 
-            textAlign: 'center' 
+
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '0.5rem',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+            padding: '1.5rem',
+            textAlign: 'center'
           }}>
-            <div style={{ 
-              fontSize: '1.875rem', 
-              fontWeight: 'bold', 
+            <div style={{
+              fontSize: '1.875rem',
+              fontWeight: 'bold',
               marginBottom: '0.5rem',
               color: '#10b981'
             }}>
@@ -555,17 +624,17 @@ export default function AdminDashboard() {
             </div>
             <div style={{ color: '#6b7280' }}>Upcoming Events</div>
           </div>
-          
-          <div style={{ 
-            backgroundColor: 'white', 
-            borderRadius: '0.5rem', 
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
-            padding: '1.5rem', 
-            textAlign: 'center' 
+
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '0.5rem',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+            padding: '1.5rem',
+            textAlign: 'center'
           }}>
-            <div style={{ 
-              fontSize: '1.875rem', 
-              fontWeight: 'bold', 
+            <div style={{
+              fontSize: '1.875rem',
+              fontWeight: 'bold',
               marginBottom: '0.5rem',
               color: '#8b5cf6'
             }}>
