@@ -209,7 +209,7 @@ export default function AdminDashboard() {
                     <button
                       onClick={() => {
                         setEventDropdownOpen(false);
-                        navigate('/EventList');
+                        alert('Event list');
                       }}
                       style={{
                         display: 'block',
