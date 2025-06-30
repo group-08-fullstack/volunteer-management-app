@@ -70,10 +70,17 @@ export default function Notificationbutton() {
 
     }   
 
+
+    // function to delete a notification. Filter out the desired notification
+    function handleDelete(id) {
+        setNotifications(prev => prev.filter(n => n.id !== id));
+    }
+
     // Arrow function to toggle the dropdown visibility/change the state of showDropDown
     const toggleDropdown = () => {
             setShowDropDown(!showDropDown);
         };
+    
 
     // Render the notification button and dropdown menu
     return (
@@ -100,7 +107,7 @@ export default function Notificationbutton() {
                 <div className='notification-div'>
                     {/* For each element with notifications create a NotificationItem component*/}
                     {notifications.map((notification) => (
-                        <NotificationItem key = {notification.id} data={notification}  onToggleRead={() => toggleRead(notification.id)}/>
+                        <NotificationItem key = {notification.id} data={notification}  onToggleRead={() => toggleRead(notification.id)} onDelete={() => handleDelete(notification.id)}/>
                     ))}
                 </div>
 
@@ -112,12 +119,13 @@ export default function Notificationbutton() {
 }
 
 // Function that returns a NotificationItem which represents a single notification and all its available user actions
-function NotificationItem({data, onToggleRead}){
+function NotificationItem({data, onToggleRead, onDelete}){
    
     return(
         <div key={data.id} className="notification-item">
             <p>{data.message}</p>
             <small>{data.date}</small>
+
             <div className="notification-read-toggle">
                 <label className="notification-label">Read</label>
                 <input
@@ -128,8 +136,7 @@ function NotificationItem({data, onToggleRead}){
                 />
             </div>
 
-            
-            <button className="notification-delete">Delete</button>
+            <button className="notification-delete" onClick={onDelete}>Delete</button>
 
         </div>
     )

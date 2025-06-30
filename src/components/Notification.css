@@ -9,6 +9,8 @@
   width: 150px;                  /* fixed width */
   box-shadow: 0 10px 8px rgba(0, 0, 0, 0.1);  /* light shadow effect */
   border-radius: 25px;           /* rounded corners */
+  box-sizing: border-box; 
+  
 }
 
 .bell-button{
@@ -28,13 +30,14 @@
 }
 
 .notification-div {
-  overflow-y: auto;              /* vertical scroll if needed */
-  overflow-x: hidden;            /* no side scroll */
-  max-height: 100px;             /* triggers scrolling if too tall */
-  padding: 5px;
+  overflow-y: auto;             
+  overflow-x: hidden;            
+  max-height: 120px;           
+  padding: 10px;
   white-space: normal;
-  word-break: break-word;        /* fix for breaking long text */
+  word-break: break-word;              
 }
+
 
 .refresh-button {
   background: none;
@@ -73,6 +76,12 @@
   font-size: 12px;
 }
 
+.notification-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* optional: pushes button to the right */
+  gap: 12px; /* spacing between read toggle and delete button */
+}
 
 .notification-delete {
   font-size: 12px;        
@@ -87,6 +96,7 @@
 .notification-delete:hover {
   color: #f44336;         
 }
+
 
 .notification-label {
   font-size: 12px;           
