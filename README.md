@@ -33,7 +33,7 @@ It includes **npm**, the Node Package Manager.
 
 ## Step 5: Install Dependencies
    
-       npm install && npm install lucide-react
+      npm install lucide-react && npm install
 
 
 ## Step 6: Start the Server
