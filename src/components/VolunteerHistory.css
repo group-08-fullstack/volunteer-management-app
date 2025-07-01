@@ -1,5 +1,12 @@
+.history-div {
+  display: flex;
+  justify-content: center; 
+  align-items: center;    
+}
+
+
 .history-table {
-  width: 100%;
+  width: 80%;
   border-collapse: collapse;
   margin: 20px 0;
   font-family: Arial, sans-serif;
@@ -32,4 +39,9 @@
 .history-table td:last-child {
   font-weight: bold;
   color: #0c5460;
+}
+
+.tfoot-div {
+  display: flex;
+  justify-content: space-between;
 }
