@@ -1,8 +1,7 @@
-import { useState,  useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, User, LogOut, Home  } from 'lucide-react';
 import NotificationButton from './Notification';
 import './Navigation.css';
+import {User, LogOut, Home  } from 'lucide-react';
 
 /* Instructions for setting up:
 
@@ -26,7 +25,7 @@ import './Navigation.css';
 
     - Note: pass extralink as [] if no addtional links are needed 
 
-    - Note: 'logo' should be a JSX element imported from lucide-react, 
+    - Note: 'logo' should be a JSX element imported from lucide-react within this file, 
     e.g., import { Home } from "lucide-react";
 
     - Note: logo and text fields can be null
@@ -37,11 +36,11 @@ import './Navigation.css';
 */
 
 
-
+// Component that returns a navigation bar
 export default function NavigationBar({extraLinks}){
     const navigate = useNavigate()
     
-    // Get the user data from localStorage
+    // Get the user data from localStorage to determine which dashboard to link to
     const userString = localStorage.getItem("currentUser");
     // Parse it
     const currentUser = userString ? JSON.parse(userString) : null;
@@ -66,7 +65,7 @@ export default function NavigationBar({extraLinks}){
                     </div>
 
                     <div className="navbar-actions">
-                        {/* Create additional links */}
+                        {/* Create additional links provided as props*/}
                         {
                         extraLinks.map(element => (
                             <button className={element.className} onClick={() => navigate(element.link)}>
