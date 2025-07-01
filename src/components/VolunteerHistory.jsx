@@ -1,10 +1,7 @@
 import { useState,  useEffect } from 'react';
 import './VolunteerHistory.css';
 import './VolunteerDash.css';
-import { Bell, User, LogOut, Calendar, Clock, MapPin, Users } from 'lucide-react';
 import {getVolunteerHistory} from '../helpers/volunteerHistoryHelpers.js';
-
-import { Bell, User, LogOut, Home  } from 'lucide-react';
 import NavigationBar from './Navigation';
 
 export default function VolunteerHistoryTable(){
