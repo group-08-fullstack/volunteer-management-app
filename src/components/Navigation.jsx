@@ -4,6 +4,12 @@ import { Bell, User, LogOut, Home  } from 'lucide-react';
 import NotificationButton from './Notification';
 import './Navigation.css';
 
+/* Instructions for setting up:
+
+    1. Import NavigationBar from './Navigation'
+    2. Place '<NavigationBar extraLinks={[]} />' into return body
+*/
+
 /* Instructions for providing extraLinks as a prop:
 
    - extraLinks must follow this format:
@@ -69,7 +75,7 @@ export default function NavigationBar({extraLinks}){
                             </button>
                             ))
                         }
-                        
+
                         {/* Home button */}
                         <button
                             onClick={() => currentUser.role == "volunteer" ? navigate("/volunteerdash") : navigate("/admindash") }
