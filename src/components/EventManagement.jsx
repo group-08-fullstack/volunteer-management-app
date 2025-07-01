@@ -71,16 +71,7 @@ export default function EventManagementPage() {
             Remove Event
           </button>
 
-          <button style={{
-            padding: '0.5rem 1rem',
-            backgroundColor: 'orange',
-            color: 'white',
-            border: 'none',
-            borderRadius: '0.375rem',
-            cursor: 'pointer'
-          }}>
-            Edit Event
-          </button>
+     
         </div>
       </div>
 
