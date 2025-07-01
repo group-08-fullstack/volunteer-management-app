@@ -14,6 +14,8 @@ export default function VolunteerMatch() {
   const [selectedVolunteer, setSelectedVolunteer] = useState(null);
   const [selectedEvent, setSelectedEvent] = useState(null);
 
+  const navigate = useNavigate();
+
   // Load volunteers and events
   useEffect(() => {
     const savedVolunteers = JSON.parse(localStorage.getItem('profiles') || '[]');
@@ -23,7 +25,7 @@ export default function VolunteerMatch() {
     setEvents(savedEvents);
   }, []);
 
-  // Match selected volunteer 
+  // Match selected volunteer
   const handleMatch = () => {
     if (!selectedVolunteer || !selectedEvent) {
       alert('Please select both a volunteer and an event.');
@@ -44,17 +46,16 @@ export default function VolunteerMatch() {
     });
 
     localStorage.setItem(participationKey, JSON.stringify(currentParticipation));
-    
-    // Notify volunteer of the match
+
+    // Notify the volunteer
     sendNotification(
       selectedVolunteer.email,
       `You have been matched to the event: ${selectedEvent.name}`
     );
 
     alert('Volunteer matched and notified successfully!');
-
-    
-    
+   
+    navigate('/adminDash');
   };
 
   // Styles
