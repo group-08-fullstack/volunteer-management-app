@@ -7,6 +7,7 @@ import VolunteerDash from './components/VolunteerDash';
 import AdminDash from './components/AdminDash';
 import VolunteerMatch from './components/VolunteerMatch'; 
 import EventForm from './components/EventForm'; 
+import VolunteerHistoryTable from './components/VolunteerHistory';
 
 function App() {
   const [users, setUsers] = useState([]); // Store registered users
@@ -23,6 +24,7 @@ function App() {
         <Route path="/volunteermatch" element={<VolunteerMatch />} />
         <Route path="/createevent" element={<EventForm />} />
         <Route path="/admindash" element={<AdminDash />} /> 
+        <Route path="/volunteerhistory" element={<VolunteerHistoryTable/>} />
       </Routes>
     </Router>
   );
