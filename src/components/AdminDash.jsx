@@ -93,9 +93,6 @@ export default function AdminDashboard() {
     alert('Account settings');
   };
 
-  const handleEventManagement = () => {
-    navigate('/createevent')
-  };
 
   const handleVolunteerMatching = () => {
     navigate('/volunteermatch');
@@ -108,6 +105,13 @@ export default function AdminDashboard() {
   const handleSortChange = (newSortBy) => {
     setSortBy(newSortBy);
   };
+
+  const handleEventManagement = () =>{
+    navigate('/eventmanagement')
+  }
+
+
+
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
@@ -138,7 +142,7 @@ export default function AdminDashboard() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
               <div style={{ position: 'relative' }}>
                 <button
-                  onClick={() => setEventDropdownOpen(!eventDropdownOpen)}
+                  onClick={handleEventManagement}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -165,74 +169,9 @@ export default function AdminDashboard() {
                 >
                   <Settings size={16} />
                   Event Management
-                  <ChevronDown size={16} />
-                </button>
-
-                {/* Dropdown menu */}
-                {eventDropdownOpen && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '100%',
-                      left: 0,
-                      zIndex: 10,
-                      backgroundColor: 'white',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '0.375rem',
-                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                      padding: '0.5rem 0',
-                      minWidth: '100%'
-                    }}
-                  >
-                    <button
-                      onClick={() => {
-                        handleEventManagement();
-                        setEventDropdownOpen(false);
-                        
-                      }}
-                      style={{
-                        display: 'block',
-                        width: '100%',
-                        padding: '0.5rem 1rem',
-                        textAlign: 'left',
-                        background: 'none',
-                        border: 'none',
-                        color: '#374151',
-                        fontSize: '0.875rem',
-                        cursor: 'pointer',
-                      }}
-                      onMouseEnter={(e) => (e.target.style.backgroundColor = '#f3f4f6')}
-                      onMouseLeave={(e) => (e.target.style.backgroundColor = 'transparent')}
-                    >
-                      Create Event
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setEventDropdownOpen(false);
-                        alert('Event list');
-                      }}
-                      style={{
-                        display: 'block',
-                        width: '100%',
-                        padding: '0.5rem 1rem',
-                        textAlign: 'left',
-                        background: 'none',
-                        border: 'none',
-                        color: '#374151',
-                        fontSize: '0.875rem',
-                        cursor: 'pointer',
-                      }}
-                      onMouseEnter={(e) => (e.target.style.backgroundColor = '#f3f4f6')}
-                      onMouseLeave={(e) => (e.target.style.backgroundColor = 'transparent')}
-                    >
-                      Manage Events
-                    </button>
-                  </div>
-                )}
+                
+                </button>         
               </div>
-
-
 
 
               <button

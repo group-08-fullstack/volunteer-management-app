@@ -81,7 +81,7 @@ export default function ProfileForm() {
     localStorage.setItem('profiles', JSON.stringify(allProfiles));
 
     alert('Profile saved successfully!');
-    navigate('/Admindash');
+    navigate('/EventManagement');
 
   };
   // styles layout
