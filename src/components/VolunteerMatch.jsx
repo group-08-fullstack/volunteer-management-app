@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// Simulated notification function
+// notification
 function sendNotification(email, message) {
   alert(`Notification to ${email}: ${message}`);
 }
