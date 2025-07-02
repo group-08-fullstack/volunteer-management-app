@@ -32,7 +32,7 @@ export default function VolunteerHistoryTable(){
     return(
     <div className="dashboard">
         {/* Navbar */}
-        <NavigationBar extraLinks={[]} />
+        <NavigationBar extraLinks={[]} title={"Volunteer History"}/>
 
         {/* Table*/}
         <div className='history-div'>
