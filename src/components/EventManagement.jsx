@@ -1,11 +1,22 @@
 import React, { useState } from 'react';
-import { Calendar, MapPin, Users, X } from 'lucide-react';
+import { Calendar, MapPin, Users, X, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import NavigationBar from './Navigation';
 
 export default function EventManagementPage() {
   const navigate = useNavigate();
 
   const [removeMode, setRemoveMode] = useState(false);
+
+  const extraLinks = [
+    {
+      className: "home-button",
+      link: "/home",
+      //logo: <Home size={18} />,
+      //text: "Home"
+    }
+  ];
+
   const [events, setEvents] = useState([
     {
       id: 1,
@@ -45,6 +56,8 @@ export default function EventManagementPage() {
   };
 
   return (
+   <>
+    <NavigationBar extraLinks={extraLinks} />
     <div style={{ padding: '2rem', maxWidth: '700px', margin: 'auto', backgroundColor: '#f9fafb' }}>
       {/* Header with icon, title and buttons aligned right */}
       <div style={{
@@ -92,7 +105,7 @@ export default function EventManagementPage() {
             <div
               key={event.id}
               onClick={() => {
-                if (!removeMode) alert(`You are entering ${event.event} event page`);
+                if (!removeMode) alert(`You are entering ${event.event} event editing page`);
               }}
               style={{
                 position: 'relative',
@@ -163,5 +176,7 @@ export default function EventManagementPage() {
         </div>
       </div>
     </div>
+    </>
   );
+
 }
