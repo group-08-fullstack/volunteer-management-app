@@ -3,6 +3,7 @@ import './VolunteerHistory.css';
 import './VolunteerDash.css';
 import * as VhHelpers from '../helpers/volunteerHistoryHelpers.js';
 import NavigationBar from './Navigation';
+import { ArrowUpDown } from 'lucide-react';
 
 export default function VolunteerHistoryTable(){
 
@@ -11,10 +12,38 @@ export default function VolunteerHistoryTable(){
     // State used to track current index within table
     const [currentPageIndex, setCurrentPageIndex] = useState(0);
 
+    // State to track which field is actively being sorted
+    const [activeSort, setActiveSort] = useState({
+        field: null,      
+        direction: null    
+    });
+
+    // Wrapper function for sortByField to simplify the process of passing parameters
+    function handleSort(field) {
+
+        // Check if field is already being sorted
+        const isSameField = activeSort.field === field;
+
+        // Update direction
+        // Note: if isSameField is false, we’re switching to a new field,
+        // so sorting should start in ascending order by default.
+        const newDirection = isSameField && activeSort.direction === "asc" ? "desc" : "asc";
+
+        // Update state of activeSort
+        setActiveSort({ field, direction: newDirection });
+
+        // Determine if ascending or not
+        const isAscending = newDirection === "asc"; // True or False
+
+        // Call sort field
+        VhHelpers.sortByField(paginatedData, setPaginatedData, field, isAscending);
+    }
+
+
     // Get volunteer history data once on mount
     useEffect(() => {
         async function fetchVolutneerHistory(){
-            const res = await getVolunteerHistory();
+            const res = await VhHelpers.getVolunteerHistory();
 
             // Paginate response
             const pageSize = 5;
@@ -39,13 +68,84 @@ export default function VolunteerHistoryTable(){
         <table className='history-table'> 
                 <thead>
                 <tr>
-                    <th>Event Name</th>
-                    <th>Event Description</th>
-                    <th>Location</th>
-                    <th>Required Skills</th>
-                    <th>Urgency</th>
-                    <th>Event Date</th>
-                    <th>Participation Status </th>
+                    <th>
+                        <div className="th-div">
+                            Event Name
+                            <button
+                            className={
+                                activeSort.field === "eventName" ? "active" : "not-sorted"
+                            }
+                            onClick={() => handleSort("eventName")}
+                            >
+                            <ArrowUpDown size={20} />
+                            </button>
+                        </div>
+                        </th>
+
+                        <th>
+                        <div className="th-div">
+                            Event Description
+                            {/* No sort button here */}
+                        </div>
+                        </th>
+
+                        <th>
+                        <div className="th-div">
+                            Location
+                            {/* No sort button here */}
+                        </div>
+                        </th>
+
+                        <th>
+                        <div className="th-div">
+                            Required Skills
+                            {/* No sort button here */}
+                        </div>
+                        </th>
+
+                        <th>
+                        <div className="th-div">
+                            Urgency
+                            <button
+                            className={
+                                activeSort.field === "urgency" ? "active" : "not-sorted"
+                            }
+                            onClick={() => handleSort("urgency")}
+                            >
+                            <ArrowUpDown size={20} />
+                            </button>
+                        </div>
+                        </th>
+
+                        <th>
+                        <div className="th-div">
+                            Event Date
+                            <button
+                            className={
+                                activeSort.field === "eventDate" ? "active" : "not-sorted"
+                            }
+                            onClick={() => handleSort("eventDate")}
+                            >
+                            <ArrowUpDown size={20} />
+                            </button>
+                        </div>
+                        </th>
+
+                        <th>
+                        <div className="th-div">
+                            Participation Status
+                            <button
+                            className={
+                                activeSort.field === "participationStatus" ? "active" : "not-sorted"
+                            }
+                            onClick={() => handleSort("participationStatus")}
+                            >
+                            <ArrowUpDown size={20} />
+                            </button>
+                        </div>
+                        </th>
+
+
                 </tr>
                 </thead>
                 <tbody>
@@ -56,9 +156,9 @@ export default function VolunteerHistoryTable(){
                         <td>{event.eventDescription}</td>
                         <td>{event.location}</td>
                         <td>{event.requiredSkills.join(", ")}</td>
-                        <td>{event.urgency}</td>
+                        <td>{event.urgency.text}</td>
                         <td>{event.eventDate}</td>
-                        <td>{event.participationStatus}</td>
+                        <td>{event.participationStatus.text}</td>
                         </tr>
                     ))}
                 </tbody>
