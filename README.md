@@ -1,7 +1,7 @@
 # Volunteer Management App
 This application is designed for a non-profit organization to efficiently manage and optimize volunteer activities. It helps coordinate volunteers by matching them to suitable events and tasks based on their skills, availability, and preferences.
 
-
+# Front-End Development
 ## Steps to set up ReactJS with Vite
 
 ## Install Visual studio code and Git 

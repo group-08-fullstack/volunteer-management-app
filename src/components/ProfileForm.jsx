@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Select from 'react-select';
+import { User, MapPin, Calendar, Award, FileText, Home } from 'lucide-react';
 
-// multi-select inputs
+// Multi-select options
 const skillsOptions = [
   { value: 'bilingual', label: 'Bilingual' },
   { value: 'animal_handling', label: 'Animal Handling' },
@@ -29,10 +29,11 @@ export default function ProfileForm() {
     availability: []
   });
 
-  const [dateInput, setDateInput] = useState('');
   const navigate = useNavigate();
 
-// Add a new availability date dropdown
+  const [dateInput, setDateInput] = useState('');
+
+  // Add a new availability date
   const handleAddDate = () => {
     if (dateInput && !form.availability.includes(dateInput)) {
       setForm((prev) => ({
@@ -43,15 +44,33 @@ export default function ProfileForm() {
     setDateInput('');
   };
 
- // Remove a date from the availability dropdown
+  // Remove a date from the availability
   const handleRemoveDate = (date) => {
     setForm((prev) => ({
       ...prev,
       availability: prev.availability.filter((d) => d !== date)
     }));
   };
-  
-// Handle form submission
+
+  // Handle skill selection
+  const handleSkillChange = (e) => {
+    const skill = e.target.value;
+    const isChecked = e.target.checked;
+    
+    if (isChecked) {
+      setForm(prev => ({
+        ...prev,
+        skills: [...prev.skills, { value: skill, label: skillsOptions.find(s => s.value === skill)?.label }]
+      }));
+    } else {
+      setForm(prev => ({
+        ...prev,
+        skills: prev.skills.filter(s => s.value !== skill)
+      }));
+    }
+  };
+
+  // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -65,220 +84,494 @@ export default function ProfileForm() {
       return;
     }
 
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-
-    localStorage.setItem(currentUser.email + '_profile', JSON.stringify(form));
-
-    const allProfiles = JSON.parse(localStorage.getItem('profiles')) || [];
-
-    allProfiles.push({
-      name: form.fullName,
-      skills: form.skills.map((s) => s.value),
-      email: currentUser.email
-    });
-
-    localStorage.setItem('profiles', JSON.stringify(allProfiles));
-
+    // Simulate saving profile
     alert('Profile saved successfully!');
     navigate('/volunteerdash');
-
-  };
-  // styles layout
-  const containerStyle = {
-    maxWidth: '800px',
-    maxHeight:'3500px',
-   
-    padding: '30px',
-    borderRadius: '10px',
-    backgroundColor: '#f9f9f9',
-    boxShadow: '0 0 10px rgba(0,0,0,0.1)',
-    fontFamily: 'Segoe UI, sans-serif',
-    
-    display:'grid',
-    gridTemplateColumns: '1fr 1fr 1fr',
-    gridTemplateRows: 'auto auto 100px',
-    columnGap: '15px',
-    width: '90%',
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)'
-  };
-
-  const labelStyle = {
-    marginTop: '15px',
-    fontWeight: 'bold',
-    display: 'block',
-    
-  };
-
-  const inputStyle_name_city_zipcode = {
-    width: '200px',
-    padding: '10px',
-    //marginTop: '5px',
-    marginBottom: '10px',
-    borderRadius: '5px',
-    border: '1px solid #ccc'
-  };
-
-  const inputStyle = {
-    width: '100%',
-    padding: '10px',
-   //marginTop: '5px',
-    //marginBottom: '10px',
-    borderRadius: '5px',
-    border: '1px solid #ccc'
-  };
-
-  const buttonStyle = {
-    //padding: '10px 20px',
-    backgroundColor: '#4CAF50',
-    color: 'white',
-    border: 'none',
-    borderRadius: '5px',
-    //marginTop: '20px',
-    cursor: 'pointer'
-  };
-
-  const listStyle = {
-    marginTop: '10px',
-    listStyle: 'none',
-    paddingLeft: 0
   };
 
   return (
-    <form onSubmit={handleSubmit} style={containerStyle}>
-      <h2 style={{ gridColumn:'1/2', gridRow:'1/1', textAlign: 'left', marginBottom: '20px' }}>Volunteer Profile</h2>
+    <>
+      <style>{`
+        .profile-container {
+          min-height: 100vh;
+          background-color: #f9fafb;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-start;
+          align-items: center;
+          padding: 2rem 1rem;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", sans-serif;
+        }
 
-      <div style={{gridColumn:'1/2', gridRow:'2/3'}}>
-       <label style={labelStyle }>Full Name*</label>
-       <input
-        type="text"
-        maxLength="50"
-        required
-        style={inputStyle_name_city_zipcode}
-        value={form.fullName}
-        onChange={(e) => setForm({ ...form, fullName: e.target.value })}
-       />
-      </div>
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+          .profile-container {
+            background-color: #111827;
+            color: #f9fafb;
+          }
+          
+          .profile-card {
+            background-color: #1f2937 !important;
+            border: 1px solid #374151 !important;
+          }
+          
+          .form-input, .form-select, .form-textarea {
+            background-color: #374151 !important;
+            border-color: #4b5563 !important;
+            color: #f9fafb !important;
+          }
+          
+          .form-input::placeholder, .form-textarea::placeholder {
+            color: #9ca3af !important;
+          }
+          
+          .form-label {
+            color: #e5e7eb !important;
+          }
+          
+          .profile-brand, .card-title {
+            color: #f9fafb !important;
+          }
+          
+          .profile-subtitle {
+            color: #d1d5db !important;
+          }
+          
+          .skill-item {
+            background-color: #374151 !important;
+            border-color: #4b5563 !important;
+          }
+          
+          .availability-item {
+            background-color: #374151 !important;
+            color: #f9fafb !important;
+          }
+        }
 
-      <div style={{gridColumn:'2/4',gridRow:'2/3'}}>
-      <label style={labelStyle}>Skills*</label>
-      <Select
-        options={skillsOptions}
-        isMulti
-        placeholder="Select Skills"
-        onChange={(selected) => setForm({ ...form, skills: selected })}
-      />
-      </div>
+        .profile-header {
+          text-align: center;
+          margin-bottom: 2rem;
+        }
 
-      <div style={{gridColumn:'1/4',gridRow:'3/4'}}>
-      <label style={labelStyle}>Address 1*</label>
-      <input
-        type="text"
-        maxLength="100"
-        required
-        style={inputStyle}
-        value={form.address1}
-        onChange={(e) => setForm({ ...form, address1: e.target.value })}
-      />
-      </div>
+        .profile-brand {
+          font-size: 1.875rem;
+          font-weight: bold;
+          color: #111827;
+          margin: 0 0 0.5rem 0;
+        }
 
-      <div style={{gridColumn:'1/4',gridRow:'4/5'}}>
-      <label style={labelStyle}>Address 2</label>
-      <input
-        type="text"
-        maxLength="100"
-        style={inputStyle}
-        value={form.address2}
-        onChange={(e) => setForm({ ...form, address2: e.target.value })}
-      />
-      </div>
-      
-      <div style={{gridColumn:'1/2',gridRow:'5/6'}}>
-      <label style={labelStyle}>City*</label>
-      <input
-        type="text"
-        maxLength="100"
-        required
-        style={inputStyle_name_city_zipcode}
-        value={form.city}
-        onChange={(e) => setForm({ ...form, city: e.target.value })}
-      />
-      </div>
+        .profile-subtitle {
+          color: #6b7280;
+          font-size: 1rem;
+          margin: 0;
+        }
 
-      <div style={{gridColumn:'2/3',gridRow:'5/6'}}>
-      <label style={labelStyle}>State*</label>
-      <Select
-        options={stateOptions}
-        onChange={(selected) => setForm({ ...form, state: selected.value })}
-        placeholder="Select State"
-      />
-      </div>
+        .profile-card {
+          background-color: white;
+          border-radius: 0.5rem;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+          padding: 2rem;
+          width: 100%;
+          max-width: 800px;
+          border: 1px solid #e5e7eb;
+        }
 
-      <div style={{gridColumn:'3/4',gridRow:'5/6'}}>
-      <label style={labelStyle}>Zip Code*</label>
-      <input
-        type="text"
-        required
-        style={inputStyle_name_city_zipcode}
-        pattern="^\d{5}(-\d{4})?$"
-        placeholder="e.g., 12345 or 12345-6789"
-        value={form.zip}
-        onChange={(e) => setForm({ ...form, zip: e.target.value })}
-      />
-      </div>
-      
- 
-      <div style={{gridColumn:'1/4',gridRow:'6/7'}}>
-      <label style={labelStyle}>Preferences</label>
-      <textarea
-        placeholder="Enter any preferences"
-        style={{ ...inputStyle, height: '80px' }}
-        value={form.preferences}
-        onChange={(e) => setForm({ ...form, preferences: e.target.value })}
-      ></textarea>
-      </div>
+        .card-header {
+          display: flex;
+          align-items: center;
+          margin-bottom: 2rem;
+          justify-content: center;
+          gap: 0.75rem;
+        }
 
-      <div style={{gridColumn:'1/4',gridRow:'7/8'}}>
-       <label style={labelStyle}>Availability Dates* (Add multiple)</label>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-         <input
-          type="date"
-          style={{ ...inputStyle, width:'200px' }}
-          value={dateInput}
-          onChange={(e) => setDateInput(e.target.value)}
-         />
-        <button type="button" style={buttonStyle} onClick={handleAddDate}>Add</button>
-       </div>
-        <ul style={listStyle}>
-        {form.availability.map((date, index) => (
-          <li key={index}>
-            {date}{' '}
-            <button
-              type="button"
-              style={{
-                marginLeft: '10px',
-                color: '#f44336',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer'
-              }}
-              onClick={() => handleRemoveDate(date)}
-            >
-              Remove
+        .card-title {
+          font-size: 1.5rem;
+          font-weight: 600;
+          color: #111827;
+          margin: 0;
+        }
+
+        .profile-form {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1.5rem;
+        }
+
+        .form-group {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .form-group.full-width {
+          grid-column: 1 / -1;
+        }
+
+        .form-label {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: #374151;
+          margin-bottom: 0.5rem;
+        }
+
+        .form-input, .form-select, .form-textarea {
+          width: 100%;
+          padding: 0.75rem;
+          border: 1px solid #d1d5db;
+          border-radius: 0.375rem;
+          font-size: 0.875rem;
+          background-color: white;
+          transition: border-color 0.2s, box-shadow 0.2s;
+          box-sizing: border-box;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+          outline: none;
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-textarea {
+          resize: vertical;
+          min-height: 80px;
+        }
+
+        .form-input::placeholder, .form-textarea::placeholder {
+          color: #9ca3af;
+        }
+
+        .skills-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+          gap: 0.75rem;
+          margin-top: 0.5rem;
+        }
+
+        .skill-item {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.75rem;
+          border: 1px solid #d1d5db;
+          border-radius: 0.375rem;
+          background-color: white;
+          transition: all 0.2s;
+          cursor: pointer;
+        }
+
+        .skill-item:hover {
+          border-color: #3b82f6;
+          background-color: #f8fafc;
+        }
+
+        .skill-item input[type="checkbox"] {
+          margin: 0;
+        }
+
+        .availability-section {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+        }
+
+        .date-input-group {
+          display: flex;
+          gap: 0.75rem;
+          align-items: end;
+        }
+
+        .date-input-group input {
+          flex: 1;
+        }
+
+        .add-button {
+          padding: 0.75rem 1rem;
+          background-color: #10b981;
+          color: white;
+          border: none;
+          border-radius: 0.375rem;
+          font-size: 0.875rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: background-color 0.2s;
+          white-space: nowrap;
+        }
+
+        .add-button:hover {
+          background-color: #059669;
+        }
+
+        .availability-list {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+          margin-top: 0.5rem;
+        }
+
+        .availability-item {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.5rem 0.75rem;
+          background-color: #eff6ff;
+          border: 1px solid #bfdbfe;
+          border-radius: 0.375rem;
+          font-size: 0.875rem;
+          color: #1e40af;
+        }
+
+        .remove-button {
+          background: none;
+          border: none;
+          color: #dc2626;
+          font-size: 0.75rem;
+          cursor: pointer;
+          padding: 0;
+          font-weight: 500;
+        }
+
+        .remove-button:hover {
+          color: #991b1b;
+        }
+
+        .submit-button {
+          grid-column: 1 / -1;
+          justify-self: center;
+          padding: 0.875rem 2rem;
+          background-color: #3b82f6;
+          color: white;
+          border: none;
+          border-radius: 0.375rem;
+          font-size: 1rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: background-color 0.2s;
+          margin-top: 1rem;
+        }
+
+        .submit-button:hover {
+          background-color: #1d4ed8;
+        }
+
+        @media (max-width: 768px) {
+          .profile-form {
+            grid-template-columns: 1fr;
+          }
+          
+          .date-input-group {
+            flex-direction: column;
+            align-items: stretch;
+          }
+          
+          .skills-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
+
+      <div className="profile-container">
+        {/* Header */}
+        <div className="profile-header">
+          <h1 className="profile-brand">Volunteer Portal</h1>
+          <p className="profile-subtitle">Complete your volunteer profile</p>
+        </div>
+
+        {/* Profile Card */}
+        <div className="profile-card">
+          <div className="card-header">
+            <User color="#3b82f6" size={24} />
+            <h2 className="card-title">Volunteer Profile</h2>
+          </div>
+
+          <div onSubmit={handleSubmit} className="profile-form">
+            {/* Full Name */}
+            <div className="form-group full-width">
+              <label className="form-label">
+                <User size={16} />
+                Full Name*
+              </label>
+              <input
+                type="text"
+                maxLength="50"
+                required
+                className="form-input"
+                value={form.fullName}
+                onChange={(e) => setForm({ ...form, fullName: e.target.value })}
+                placeholder="Enter your full name"
+              />
+            </div>
+
+            {/* Address 1 */}
+            <div className="form-group full-width">
+              <label className="form-label">
+                <Home size={16} />
+                Address 1*
+              </label>
+              <input
+                type="text"
+                maxLength="100"
+                required
+                className="form-input"
+                value={form.address1}
+                onChange={(e) => setForm({ ...form, address1: e.target.value })}
+                placeholder="Enter your street address"
+              />
+            </div>
+
+            {/* Address 2 */}
+            <div className="form-group full-width">
+              <label className="form-label">
+                <Home size={16} />
+                Address 2
+              </label>
+              <input
+                type="text"
+                maxLength="100"
+                className="form-input"
+                value={form.address2}
+                onChange={(e) => setForm({ ...form, address2: e.target.value })}
+                placeholder="Apartment, suite, etc. (optional)"
+              />
+            </div>
+
+            {/* City */}
+            <div className="form-group">
+              <label className="form-label">
+                <MapPin size={16} />
+                City*
+              </label>
+              <input
+                type="text"
+                maxLength="100"
+                required
+                className="form-input"
+                value={form.city}
+                onChange={(e) => setForm({ ...form, city: e.target.value })}
+                placeholder="Enter your city"
+              />
+            </div>
+
+            {/* State */}
+            <div className="form-group">
+              <label className="form-label">
+                <MapPin size={16} />
+                State*
+              </label>
+              <select
+                required
+                className="form-select"
+                value={form.state}
+                onChange={(e) => setForm({ ...form, state: e.target.value })}
+              >
+                <option value="">Select State</option>
+                {stateOptions.map((state) => (
+                  <option key={state.value} value={state.value}>
+                    {state.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Zip Code */}
+            <div className="form-group">
+              <label className="form-label">
+                <MapPin size={16} />
+                Zip Code*
+              </label>
+              <input
+                type="text"
+                required
+                className="form-input"
+                pattern="^\d{5}(-\d{4})?$"
+                placeholder="12345 or 12345-6789"
+                value={form.zip}
+                onChange={(e) => setForm({ ...form, zip: e.target.value })}
+              />
+            </div>
+
+            {/* Skills */}
+            <div className="form-group full-width">
+              <label className="form-label">
+                <Award size={16} />
+                Skills*
+              </label>
+              <div className="skills-grid">
+                {skillsOptions.map((skill) => (
+                  <label key={skill.value} className="skill-item">
+                    <input
+                      type="checkbox"
+                      value={skill.value}
+                      checked={form.skills.some(s => s.value === skill.value)}
+                      onChange={handleSkillChange}
+                    />
+                    <span>{skill.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Preferences */}
+            <div className="form-group full-width">
+              <label className="form-label">
+                <FileText size={16} />
+                Preferences
+              </label>
+              <textarea
+                className="form-textarea"
+                placeholder="Enter any preferences or special requirements"
+                value={form.preferences}
+                onChange={(e) => setForm({ ...form, preferences: e.target.value })}
+              />
+            </div>
+
+            {/* Availability */}
+            <div className="form-group full-width">
+              <label className="form-label">
+                <Calendar size={16} />
+                Availability Dates*
+              </label>
+              <div className="availability-section">
+                <div className="date-input-group">
+                  <input
+                    type="date"
+                    className="form-input"
+                    value={dateInput}
+                    onChange={(e) => setDateInput(e.target.value)}
+                  />
+                  <button type="button" className="add-button" onClick={handleAddDate}>
+                    Add Date
+                  </button>
+                </div>
+                
+                <div className="availability-list">
+                  {form.availability.map((date, index) => (
+                    <div key={index} className="availability-item">
+                      <span>{date}</span>
+                      <button
+                        type="button"
+                        className="remove-button"
+                        onClick={() => handleRemoveDate(date)}
+                      >
+                        X
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <button 
+              type="button" 
+              onClick={handleSubmit} 
+              className="submit-button">
+              Save Profile
             </button>
-          </li>
-        ))}
-      </ul>
+          </div>
+        </div>
       </div>
-
-      
- 
-      
-      <div style={{gridColumn:'1/-1',gridRow:'8/9',justifySelf: 'center', paddingTop:'10px'}}>
-      <button type="submit" style={buttonStyle}>Save Profile</button>
-      </div>
-    </form>
+    </>
   );
 }

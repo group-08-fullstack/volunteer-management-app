@@ -8,7 +8,7 @@
 
 .navbar-container {
     width: 100%;
-    padding: 0 1rem;
+    padding: 0 2rem;
 }
 
 .navbar-content {
@@ -22,12 +22,49 @@
     font-size: 1.25rem;
     font-weight: 600;
     color: #111827;
+    margin: 0;
 }
 
 .navbar-actions {
     display: flex;
     align-items: center;
     gap: 1rem;
+}
+
+.nav-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    color: #6b7280;
+    background: none;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.nav-button:hover {
+    color: #111827;
+    background-color: #f3f4f6;
+}
+
+.notification-button {
+    position: relative;
+    padding: 0.5rem;
+    color: #6b7280;
+    background: none;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.notification-button:hover {
+    color: #111827;
+    background-color: #f3f4f6;
 }
 
 .icon-button {
@@ -44,21 +81,6 @@
 .icon-button:hover {
     color: #111827;
     background-color: #f3f4f6;
-}
-
-.notification-badge {
-    position: absolute;
-    top: -0.25rem;
-    right: -0.25rem;
-    background-color: #ef4444;
-    color: white;
-    font-size: 0.75rem;
-    border-radius: 50%;
-    height: 1.25rem;
-    width: 1.25rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .logout-button {
@@ -106,4 +128,60 @@
 .home-text {
     font-size: 0.875rem;
     font-weight: 500;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .navbar {
+    background-color: #1f2937 !important;
+    border-bottom: 1px solid #374151 !important;
+    }
+
+    .navbar-title {
+    color: #f9fafb !important;
+    }
+
+    .nav-button {
+    color: #d1d5db !important;
+    }
+
+    .nav-button:hover {
+    color: #f9fafb !important;
+    background-color: #374151 !important;
+    }
+
+    .icon-button {
+    color: #d1d5db !important;; 
+    }
+
+    .icon-button:hover {
+    color: #f9fafb !important; 
+    background-color: #374151 !important;
+    }
+
+    .logout-button {
+    color: #d1d5db !important;
+    }
+
+    .logout-button:hover {
+    color: #f9fafb !important;
+    background-color: #374151 !important;
+    }
+
+    .logout-text {
+    color: #f9fafb !important;
+    }
+
+    .home-button {
+    color: #d1d5db !important;
+    }
+
+    .home-button:hover {
+    color: #f9fafb !important;
+    background-color: #374151 !important;
+    }
+
+    .home-text {
+    color: #f9fafb !important;
+    }
 }

@@ -1,12 +1,12 @@
 import { useNavigate } from 'react-router-dom';
 import NotificationButton from './Notification';
 import './Navigation.css';
-import {User, LogOut, Home  } from 'lucide-react';
+import { Calendar, MapPin, Users, Home, LogOut, UserCheck, User, History } from 'lucide-react';
 
 /* Instructions for setting up:
 
     1. Import NavigationBar from './Navigation'
-    2. Place '<NavigationBar extraLinks={[]} />' into return body
+    2. Place '<NavigationBar extraLinks={[] , title = "String"} />' into return body
 */
 
 /* Instructions for providing extraLinks as a prop:
@@ -37,7 +37,7 @@ import {User, LogOut, Home  } from 'lucide-react';
 
 
 // Component that returns a navigation bar
-export default function NavigationBar({extraLinks}){
+export default function NavigationBar({extraLinks, title}){
     const navigate = useNavigate()
     
     // Get the user data from localStorage to determine which dashboard to link to
@@ -61,7 +61,7 @@ export default function NavigationBar({extraLinks}){
                 <div className="navbar-container">
                   <div className="navbar-content">
                     <div>
-                      <h1 className="navbar-title">Volutneer Platform</h1>
+                      <h1 className="navbar-title">{title}</h1>
                     </div>
 
                     <div className="navbar-actions">
