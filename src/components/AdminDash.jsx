@@ -79,7 +79,7 @@ export default function AdminDashboard() {
   const extraLinks = [
   {
     className: "nav-button",          // CSS class for styling
-    link: "/eventmanagement",                     // Path to navigate to
+    link: "/createevent",                     // Path to navigate to
     logo:  <Settings size={16} />,          // lucide-react icon component
     text: "Event Management"                       // Label displayed next to the icon
   },
