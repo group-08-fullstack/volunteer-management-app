@@ -68,6 +68,10 @@ export default function VolunteerDashboard() {
     navigate("/volunteerhistory");
   }
 
+  const handleViewAllEvents = ()=>{
+    navigate("/ViewAllEvents")
+  }
+
   return (
     <>
       <style>{`
@@ -441,7 +445,7 @@ export default function VolunteerDashboard() {
                 </div>
               </div>
               
-              <button className="view-all-button green">
+              <button className="view-all-button green" onClick={handleViewAllEvents}>
                 View All Events →
               </button>
             </div>
