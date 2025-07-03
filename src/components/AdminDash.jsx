@@ -339,33 +339,6 @@ export default function AdminDashboard() {
             color: #f9fafb !important;
           }
 
-          .navbar {
-            background-color: #1f2937 !important;
-            border-bottom: 1px solid #374151 !important;
-          }
-
-          .navbar-title {
-            color: #f9fafb !important;
-          }
-
-          .nav-button {
-            color: #d1d5db !important;
-          }
-
-          .nav-button:hover {
-            color: #f9fafb !important;
-            background-color: #374151 !important;
-          }
-
-          .notification-button {
-            color: #d1d5db !important;
-          }
-
-          .notification-button:hover {
-            color: #f9fafb !important;
-            background-color: #374151 !important;
-          }
-
           .welcome-title {
             color: #f9fafb !important;
           }
