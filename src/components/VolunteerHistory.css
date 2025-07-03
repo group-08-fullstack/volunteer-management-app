@@ -41,6 +41,27 @@
   color: #0c5460;
 }
 
+.th-div{
+  display: flex;
+  justify-content: center; 
+  align-items: center;    
+}
+
+.th-div button {
+  font-size: 0.75rem;     
+  padding: 2px 6px;       
+  margin-left: 4px;       
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #555;
+}
+
+.th-div button.active {
+  color: #2563eb;       
+  font-weight: bold;
+}
+
 .tfoot-div {
   display: flex;
   justify-content: space-between;
