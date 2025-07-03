@@ -140,3 +140,15 @@
 }
 
 
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  
+  .bell-button {
+    color: #d1d5db !important;
+  }
+
+  .bell-button:hover {
+    color: #f9fafb !important;
+    background-color: #374151 !important;
+  }
+}

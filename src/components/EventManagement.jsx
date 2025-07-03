@@ -1,13 +1,28 @@
 import React, { useState } from 'react';
-import { Calendar, MapPin, Users, X, Home, LogOut, UserCheck, User, History } from 'lucide-react';
+import { Calendar, MapPin, Users, X,UserCheck, History } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import NavigationBar from './Navigation';
-import NotificationButton from './Notification';
 
 export default function EventManagementPage() {
   const [removeMode, setRemoveMode] = useState(false);
   const navigate = useNavigate();
 
+
+  // Array containing props to be sent to navigationbar component
+  const extraLinks = [
+    {
+      className: "nav-button",          // CSS class for styling
+      link: "/volunteermatch",                     // Path to navigate to
+      logo:  <UserCheck size={16} />,          // lucide-react icon component
+      text: "Volunteer Matching"                       // Label displayed next to the icon
+    },
+    {
+      className: "nav-button",          // CSS class for styling
+      link: null,                     // Path to navigate to
+      logo:  <History size={16} />,          // lucide-react icon component
+      text: " Event History"                       // Label displayed next to the icon
+    },
+  ];  
   const [events, setEvents] = useState([
     {
       id: 1,
@@ -46,25 +61,7 @@ export default function EventManagementPage() {
     }
   };
 
-  const handleLogout = () => {
-    navigate('/login')
-  };
 
-  const handleAccountClick = () => {
-    alert('Account settings');
-  };
-
-  const handleVolunteerMatching = () => {
-    navigate('/volunteermatch');
-  };
-
-  const handleEventHistory = () => {
-    alert('Would navigate to event history page');
-  };
-
-  const handleHome = () => {
-    navigate('/admindash');
-  };
 
   return (
     <>
@@ -73,74 +70,6 @@ export default function EventManagementPage() {
           min-height: 100vh;
           background-color: #f9fafb;
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", sans-serif;
-        }
-
-        .navbar {
-          width: 100%;
-          background-color: white;
-          box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-          border-bottom: 1px solid #e5e7eb;
-        }
-
-        .navbar-container {
-          width: 100%;
-          padding: 0 2rem;
-        }
-
-        .navbar-content {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          height: 4rem;
-        }
-
-        .navbar-title {
-          font-size: 1.25rem;
-          font-weight: 600;
-          color: #111827;
-          margin: 0;
-        }
-
-        .navbar-actions {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-        }
-
-        .nav-button {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 0.5rem 1rem;
-          color: #6b7280;
-          background: none;
-          border: none;
-          border-radius: 0.375rem;
-          cursor: pointer;
-          font-size: 0.875rem;
-          font-weight: 500;
-          transition: all 0.2s;
-        }
-
-        .nav-button:hover {
-          color: #111827;
-          background-color: #f3f4f6;
-        }
-
-        .notification-button {
-          position: relative;
-          padding: 0.5rem;
-          color: #6b7280;
-          background: none;
-          border: none;
-          border-radius: 50%;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .notification-button:hover {
-          color: #111827;
-          background-color: #f3f4f6;
         }
 
         .main-content {
@@ -296,74 +225,6 @@ export default function EventManagementPage() {
           padding: 2rem;
         }
 
-        /* Dark mode support */
-        @media (prefers-color-scheme: dark) {
-          .event-management-container {
-            background-color: #111827 !important;
-            color: #f9fafb !important;
-          }
-
-          .navbar {
-            background-color: #1f2937 !important;
-            border-bottom: 1px solid #374151 !important;
-          }
-
-          .navbar-title {
-            color: #f9fafb !important;
-          }
-
-          .nav-button {
-            color: #d1d5db !important;
-          }
-
-          .nav-button:hover {
-            color: #f9fafb !important;
-            background-color: #374151 !important;
-          }
-
-          .notification-button {
-            color: #d1d5db !important;
-          }
-
-          .notification-button:hover {
-            color: #f9fafb !important;
-            background-color: #374151 !important;
-          }
-
-          .page-title {
-            color: #f9fafb !important;
-          }
-
-          .events-container {
-            background-color: #1f2937 !important;
-            border: 1px solid #374151 !important;
-          }
-
-          .event-item {
-            background-color: #374151 !important;
-          }
-
-          .event-item:hover {
-            background-color: #4b5563 !important;
-          }
-
-          .event-title {
-            color: #f9fafb !important;
-          }
-
-          .event-details {
-            color: #d1d5db !important;
-          }
-
-          .no-events-message {
-            color: #d1d5db !important;
-          }
-
-          .remove-event-button:hover {
-            background-color: #7f1d1d !important;
-          }
-        }
-
         @media (max-width: 768px) {
           .navbar-content {
             flex-direction: column;
@@ -390,46 +251,8 @@ export default function EventManagementPage() {
 
       <div className="event-management-container">
         {/* Navbar */}
-        <nav className="navbar">
-          <div className="navbar-container">
-            <div className="navbar-content">
-              <div>
-                <h1 className="navbar-title">Admin Portal</h1>
-              </div>
-
-              <div className="navbar-actions">
-                <button onClick={handleHome} className="nav-button">
-                  <Home size={16} />
-                  Home
-                </button>
-
-                <button onClick={handleVolunteerMatching} className="nav-button">
-                  <UserCheck size={16} />
-                  Volunteer Matching
-                </button>
-
-                <button onClick={handleEventHistory} className="nav-button">
-                  <History size={16} />
-                  Event History
-                </button>
-
-                {/* Notifications */}
-                <NotificationButton />
-
-                {/* Account */}
-                <button onClick={handleAccountClick} className="notification-button">
-                  <User size={20} />
-                </button>
-
-                {/* Logout */}
-                <button onClick={handleLogout} className="nav-button">
-                  <LogOut size={18} />
-                  <span>Logout</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </nav>
+        {/* Naviagation bar imported from Navigation.jsx */}
+        <NavigationBar extraLinks={extraLinks} title={"Admin Portal"}/>
 
         {/* Main Content */}
         <div className="main-content">

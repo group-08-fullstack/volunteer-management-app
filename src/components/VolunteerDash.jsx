@@ -2,12 +2,15 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, User, LogOut, Calendar, Clock, MapPin, Users } from 'lucide-react';
 import NotificationButton from './Notification';
+import NavigationBar from './Navigation';;
 import './VolunteerDash.css';
 
 export default function VolunteerDashboard() {
   const [volunteerName, setVolunteerName] = useState('Sarah Johnson');
   const [notifications, setNotifications] = useState(3);
   const navigate = useNavigate();
+
+  const extraLinks  = [];
 
   // Sample data for demonstration
   const volunteerHistory = [
@@ -60,23 +63,6 @@ export default function VolunteerDashboard() {
       volunteers: 5
     }
   ];
-
-  const handleLogout = () => {
-    // Clear any authentication tokens or user data
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userData');
-    
-    // Navigate to login page
-    navigate('/login');
-  };
-
-  const handleNotificationClick = () => {
-    alert(`You have ${notifications} new notifications`);
-  };
-
-  const handleAccountClick = () => {
-    alert('Account settings');
-  };
 
   const handleVolunteerMatching = () => {
     navigate("/volunteerhistory");
@@ -328,33 +314,6 @@ export default function VolunteerDashboard() {
             color: #f9fafb !important;
           }
 
-          .navbar {
-            background-color: #1f2937 !important;
-            border-bottom: 1px solid #374151 !important;
-          }
-
-          .navbar-title {
-            color: #f9fafb !important;
-          }
-
-          .nav-button {
-            color: #d1d5db !important;
-          }
-
-          .nav-button:hover {
-            color: #f9fafb !important;
-            background-color: #374151 !important;
-          }
-
-          .notification-button {
-            color: #d1d5db !important;
-          }
-
-          .notification-button:hover {
-            color: #f9fafb !important;
-            background-color: #374151 !important;
-          }
-
           .welcome-title {
             color: #f9fafb !important;
           }
@@ -400,32 +359,10 @@ export default function VolunteerDashboard() {
       `}</style>
 
       <div className="volunteer-dashboard">
+
         {/* Navbar */}
-        <nav className="navbar">
-          <div className="navbar-container">
-            <div className="navbar-content">
-              <div>
-                <h1 className="navbar-title">Volunteer Portal</h1>
-              </div>
-              
-              <div className="navbar-actions">
-                {/* Notifications */}
-                <NotificationButton />
-
-                {/* Account */}
-                <button onClick={handleAccountClick} className="notification-button">
-                  <User size={20} />
-                </button>
-
-                {/* Logout */}
-                <button onClick={handleLogout} className="nav-button">
-                  <LogOut size={18} />
-                  <span>Logout</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </nav>
+        {/* Naviagation bar imported from Navigation.jsx */}
+        <NavigationBar extraLinks={extraLinks} title={"Volunteer Portal"}/>
 
         {/* Main Content */}
         <div className="main-content">

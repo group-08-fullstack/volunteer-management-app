@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import NavigationBar from './Navigation';
+import {History,Settings} from 'lucide-react';
+
 
 // notification
 function sendNotification(email, message) {
@@ -34,6 +37,22 @@ export default function VolunteerMatch() {
     }
   ];
 
+  // Array containing props to be sent to navigationbar component
+  const extraLinks = [
+    {
+      className: "nav-button",          // CSS class for styling
+      link: "/eventmanagement",                     // Path to navigate to
+      logo:  <Settings size={16} />,          // lucide-react icon component
+      text: "Event Management"                       // Label displayed next to the icon
+    },
+    {
+      className: "nav-button",          // CSS class for styling
+      link: null,                     // Path to navigate to
+      logo:  <History size={16} />,          // lucide-react icon component
+      text: " Event History"                       // Label displayed next to the icon
+    },
+  ];  
+
   const [selectedVolunteer, setSelectedVolunteer] = useState(null);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [matchResult, setMatchResult] = useState(null);
@@ -55,25 +74,6 @@ export default function VolunteerMatch() {
     });
   };
 
-  const navStyle = {
-    backgroundColor: '#333',
-    color: 'white',
-    padding: '15px 30px',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center'
-  };
-
-  const navTitle = {
-    fontSize: '20px',
-    fontWeight: 'bold'
-  };
-
-  const navLink = {
-    color: 'white',
-    textDecoration: 'underline',
-    cursor: 'pointer'
-  };
 
   const containerStyle = {
     maxWidth: '600px',
@@ -121,10 +121,8 @@ export default function VolunteerMatch() {
 
   return (
     <>
-      <nav style={navStyle}>
-        
-        <span style={navLink} onClick={() => navigate('/adminDash')}>Back to Dashboard</span>
-      </nav>
+      {/* Naviagation bar imported from Navigation.jsx */}
+      <NavigationBar extraLinks={extraLinks} title={"Admin Portal"}/>
 
       <div style={containerStyle}>
         <h2>Volunteer Match</h2>
