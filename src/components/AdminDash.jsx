@@ -366,6 +366,10 @@ export default function AdminDashboard() {
         {/* Naviagation bar imported from Navigation.jsx */}
         <NavigationBar extraLinks={extraLinks} title={"Admin Portal"}/>
         
+        
+        {/* Naviagation bar imported from Navigation.jsx */}
+        <NavigationBar extraLinks={extraLinks} title={"Admin Portal"}/>
+        
 
         {/* Main Content */}
         <div className="main-content">
