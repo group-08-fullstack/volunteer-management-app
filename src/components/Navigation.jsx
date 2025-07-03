@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import NotificationButton from './Notification';
 import './Navigation.css';
-import { Calendar, MapPin, Users, X, Home, LogOut, UserCheck, User, History } from 'lucide-react';
+import { Calendar, MapPin, Users, Home, LogOut, UserCheck, User, History } from 'lucide-react';
 
 /* Instructions for setting up:
 

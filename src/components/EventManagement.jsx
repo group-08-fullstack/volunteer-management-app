@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, MapPin, Users, X, Home, LogOut, UserCheck, User, History } from 'lucide-react';
+import { Calendar, MapPin, Users, X,UserCheck, History } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import NavigationBar from './Navigation';
 
@@ -11,10 +11,10 @@ export default function EventManagementPage() {
   // Array containing props to be sent to navigationbar component
   const extraLinks = [
     {
-    className: "nav-button",          // CSS class for styling
-    link: "/eventmanagement",                     // Path to navigate to
-    logo:  <Settings size={16} />,          // lucide-react icon component
-    text: "Event Management"                       // Label displayed next to the icon
+      className: "nav-button",          // CSS class for styling
+      link: "/volunteermatch",                     // Path to navigate to
+      logo:  <UserCheck size={16} />,          // lucide-react icon component
+      text: "Volunteer Matching"                       // Label displayed next to the icon
     },
     {
       className: "nav-button",          // CSS class for styling
@@ -223,74 +223,6 @@ export default function EventManagementPage() {
           color: #6b7280;
           font-size: 0.875rem;
           padding: 2rem;
-        }
-
-        /* Dark mode support */
-        @media (prefers-color-scheme: dark) {
-          .event-management-container {
-            background-color: #111827 !important;
-            color: #f9fafb !important;
-          }
-
-          .navbar {
-            background-color: #1f2937 !important;
-            border-bottom: 1px solid #374151 !important;
-          }
-
-          .navbar-title {
-            color: #f9fafb !important;
-          }
-
-          .nav-button {
-            color: #d1d5db !important;
-          }
-
-          .nav-button:hover {
-            color: #f9fafb !important;
-            background-color: #374151 !important;
-          }
-
-          .notification-button {
-            color: #d1d5db !important;
-          }
-
-          .notification-button:hover {
-            color: #f9fafb !important;
-            background-color: #374151 !important;
-          }
-
-          .page-title {
-            color: #f9fafb !important;
-          }
-
-          .events-container {
-            background-color: #1f2937 !important;
-            border: 1px solid #374151 !important;
-          }
-
-          .event-item {
-            background-color: #374151 !important;
-          }
-
-          .event-item:hover {
-            background-color: #4b5563 !important;
-          }
-
-          .event-title {
-            color: #f9fafb !important;
-          }
-
-          .event-details {
-            color: #d1d5db !important;
-          }
-
-          .no-events-message {
-            color: #d1d5db !important;
-          }
-
-          .remove-event-button:hover {
-            background-color: #7f1d1d !important;
-          }
         }
 
         @media (max-width: 768px) {

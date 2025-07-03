@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavigationBar from './Navigation';
-import { Calendar, MapPin, Users, X, Home, LogOut, UserCheck, User, History } from 'lucide-react';
+import {History,Settings} from 'lucide-react';
 
 
 // notification
@@ -41,9 +41,9 @@ export default function VolunteerMatch() {
   const extraLinks = [
     {
       className: "nav-button",          // CSS class for styling
-      link: "/volunteermatch",                     // Path to navigate to
-      logo:  <UserCheck size={16} />,          // lucide-react icon component
-      text: "Volunteer Matching"                       // Label displayed next to the icon
+      link: "/eventmanagement",                     // Path to navigate to
+      logo:  <Settings size={16} />,          // lucide-react icon component
+      text: "Event Management"                       // Label displayed next to the icon
     },
     {
       className: "nav-button",          // CSS class for styling
