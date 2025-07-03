@@ -97,33 +97,6 @@ export default function AdminDashboard() {
   },
 ];
 
-  const handleLogout = () => {
-    // Clear any authentication tokens or user data
-    // localStorage.removeItem('authToken');
-    // localStorage.removeItem('userData');
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userData');
-
-    // Navigate to login page
-    navigate('/login');
-  };
-
-  const handleNotificationClick = () => {
-    alert(`You have ${notifications} new notifications`);
-  };
-
-  const handleAccountClick = () => {
-    alert('Account settings');
-  };
-
-
-  const handleVolunteerMatching = () => {
-    navigate('/volunteermatch');
-  };
-
-  const handleEventHistory = () => {
-    alert('Event History - Navigate to event history page');
-  };
 
   const handleSortChange = (newSortBy) => {
     setSortBy(newSortBy);
