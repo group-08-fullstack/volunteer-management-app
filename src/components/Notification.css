@@ -6,7 +6,7 @@
   border: 1px solid gray;
   padding: 10px;
   z-index: 1000;
-  width: 150px;                  /* fixed width */
+  width: 360px;                  /* fixed width */
   box-shadow: 0 10px 8px rgba(0, 0, 0, 0.1);  /* light shadow effect */
   border-radius: 25px;           /* rounded corners */
   box-sizing: border-box; 
@@ -51,7 +51,7 @@
 .notification-div {
   overflow-y: auto;             
   overflow-x: hidden;            
-  max-height: 120px;           
+  max-height: 200px;           
   padding: 10px;
   white-space: normal;
   word-break: break-word;              

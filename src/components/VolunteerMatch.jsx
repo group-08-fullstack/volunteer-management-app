@@ -1,63 +1,80 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// Helper function to send notification
+// notification
 function sendNotification(email, message) {
-  const notifications = JSON.parse(localStorage.getItem(`notifications_${email}`) || '[]');
-  notifications.push({ message, timestamp: new Date().toISOString() });
-  localStorage.setItem(`notifications_${email}`, JSON.stringify(notifications));
+  alert(`Notification to ${email}: ${message}`);
 }
 
 export default function VolunteerMatch() {
-  const [volunteers, setVolunteers] = useState([]);
-  const [events, setEvents] = useState([]);
+  const navigate = useNavigate();
+
+  const volunteers = [
+    { email: 'alice@yahoo.com', name: 'Alice Johnson' },
+    { email: 'bob@yahoo.com', name: 'Bob Smith' },
+    { email: 'carol@yahoo.com', name: 'Carol Williams' }
+  ];
+
+  const events = [
+    {
+      name: 'Food Drive',
+      description: 'Help distribute food to those in need',
+      location: 'Community Center',
+      requiredSkills: ['Food Handling', 'Communication'],
+      urgency: 'High',
+      date: '2025-08-15'
+    },
+    {
+      name: 'Animal Shelter Support',
+      description: 'Assist with animal care and adoption events',
+      location: 'Animal Shelter',
+      requiredSkills: ['Animal Handling'],
+      urgency: 'Medium',
+      date: '2025-09-01'
+    }
+  ];
+
   const [selectedVolunteer, setSelectedVolunteer] = useState(null);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [matchResult, setMatchResult] = useState(null);
 
-  // Load volunteers and events
-  useEffect(() => {
-    const savedVolunteers = JSON.parse(localStorage.getItem('profiles') || '[]');
-    setVolunteers(savedVolunteers);
-
-    const savedEvents = JSON.parse(localStorage.getItem('events') || '[]');
-    setEvents(savedEvents);
-  }, []);
-
-  // Match selected volunteer 
   const handleMatch = () => {
     if (!selectedVolunteer || !selectedEvent) {
       alert('Please select both a volunteer and an event.');
       return;
     }
 
-    const participationKey = `participation_${selectedVolunteer.email}`;
-    const currentParticipation = JSON.parse(localStorage.getItem(participationKey) || '[]');
-
-    currentParticipation.push({
-      name: selectedEvent.name,
-      description: selectedEvent.description,
-      location: selectedEvent.location,
-      requiredSkills: selectedEvent.requiredSkills || [],
-      urgency: selectedEvent.urgency || '',
-      eventDate: selectedEvent.date || '',
-      status: 'Matched'
-    });
-
-    localStorage.setItem(participationKey, JSON.stringify(currentParticipation));
-    
-    // Notify volunteer of the match
     sendNotification(
       selectedVolunteer.email,
       `You have been matched to the event: ${selectedEvent.name}`
     );
 
-    alert('Volunteer matched and notified successfully!');
-
-    
-    
+    setMatchResult({
+      volunteer: selectedVolunteer,
+      event: selectedEvent
+    });
   };
 
-  // Styles
+  const navStyle = {
+    backgroundColor: '#333',
+    color: 'white',
+    padding: '15px 30px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  };
+
+  const navTitle = {
+    fontSize: '20px',
+    fontWeight: 'bold'
+  };
+
+  const navLink = {
+    color: 'white',
+    textDecoration: 'underline',
+    cursor: 'pointer'
+  };
+
   const containerStyle = {
     maxWidth: '600px',
     margin: '40px auto',
@@ -93,49 +110,77 @@ export default function VolunteerMatch() {
     cursor: 'pointer'
   };
 
+  const resultBoxStyle = {
+    marginTop: '30px',
+    padding: '15px',
+    border: '1px solid #ccc',
+    borderRadius: '8px',
+    backgroundColor: '#eef',
+    lineHeight: '1.6'
+  };
+
   return (
-    <div style={containerStyle}>
-      <h2>Volunteer Match</h2>
+    <>
+      <nav style={navStyle}>
+        
+        <span style={navLink} onClick={() => navigate('/adminDash')}>Back to Dashboard</span>
+      </nav>
 
-      <label style={labelStyle}>
-        Select Volunteer:
-        <select
-          value={selectedVolunteer ? selectedVolunteer.email : ''}
-          onChange={(e) =>
-            setSelectedVolunteer(volunteers.find(v => v.email === e.target.value))
-          }
-          style={inputStyle}
-        >
-          <option value="">--Select Volunteer--</option>
-          {volunteers.map((vol) => (
-            <option key={vol.email} value={vol.email}>
-              {vol.name} ({vol.email})
-            </option>
-          ))}
-        </select>
-      </label>
+      <div style={containerStyle}>
+        <h2>Volunteer Match</h2>
 
-      <label style={labelStyle}>
-        Select Event:
-        <select
-          value={selectedEvent ? selectedEvent.name : ''}
-          onChange={(e) =>
-            setSelectedEvent(events.find(ev => ev.name === e.target.value))
-          }
-          style={inputStyle}
-        >
-          <option value="">--Select Event--</option>
-          {events.map((ev) => (
-            <option key={ev.name} value={ev.name}>
-              {ev.name}
-            </option>
-          ))}
-        </select>
-      </label>
+        <label style={labelStyle}>
+          Select Volunteer:
+          <select
+            value={selectedVolunteer ? selectedVolunteer.email : ''}
+            onChange={(e) =>
+              setSelectedVolunteer(volunteers.find(v => v.email === e.target.value) || null)
+            }
+            style={inputStyle}
+          >
+            <option value="">--Select Volunteer--</option>
+            {volunteers.map((vol) => (
+              <option key={vol.email} value={vol.email}>
+                {vol.name}
+              </option>
+            ))}
+          </select>
+        </label>
 
-      <button onClick={handleMatch} style={buttonStyle}>
-        Match Volunteer
-      </button>
-    </div>
+        <label style={labelStyle}>
+          Select Event:
+          <select
+            value={selectedEvent ? selectedEvent.name : ''}
+            onChange={(e) =>
+              setSelectedEvent(events.find(ev => ev.name === e.target.value) || null)
+            }
+            style={inputStyle}
+          >
+            <option value="">--Select Event--</option>
+            {events.map((ev) => (
+              <option key={ev.name} value={ev.name}>
+                {ev.name}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <button onClick={handleMatch} style={buttonStyle}>
+          Match Volunteer
+        </button>
+
+        {matchResult && (
+          <div style={resultBoxStyle}>
+            <h3>Match Result</h3>
+            <p><strong>Volunteer:</strong> {matchResult.volunteer.name} ({matchResult.volunteer.email})</p>
+            <p><strong>Event:</strong> {matchResult.event.name}</p>
+            <p><strong>Description:</strong> {matchResult.event.description}</p>
+            <p><strong>Date:</strong> {matchResult.event.date}</p>
+            <p><strong>Location:</strong> {matchResult.event.location}</p>
+            <p><strong>Urgency:</strong> {matchResult.event.urgency}</p>
+          </div>
+        )}
+      </div>
+    </>
   );
 }

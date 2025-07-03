@@ -1,114 +1,293 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { User, Lock, UserPlus, Mail } from 'lucide-react';
 
 export default function Register({ users, setUsers }) {
-  // State to store form input values
-  const [form, setForm] = useState({
-    email: '',
-    password: '',
-    role: 'volunteer',
-  });
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [role, setRole] = useState('volunteer');
 
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleRegister = (e) => {
     e.preventDefault();
 
- // Check if the email is already registered
-    const existingUser = users.find((user) => user.email === form.email);
+    const existingUser = users.find((user) => user.email === email);
     if (existingUser) {
       alert('User with this email already exists.');
       return;
     }
-    // Create new user object
-    const newUser = {
-      email: form.email,
-      password: form.password,
-      role: form.role,
-    };
 
-    const updatedUsers = [...users, newUser];
-    setUsers(updatedUsers);
-    localStorage.setItem('users', JSON.stringify(updatedUsers));
-    localStorage.setItem('currentUser', JSON.stringify(newUser));
+    const newUser = { email, password, role };
+    setUsers([...users, newUser]);
 
     alert('Registration successful!');
-    navigate('/profile');
-  };
-  // styles layout
-  const containerStyle = {
-    maxWidth: '600px',
-    margin: '40px auto',
-    padding: '30px',
-    borderRadius: '10px',
-    backgroundColor: '#f9f9f9',
-    boxShadow: '0 0 10px rgba(0,0,0,0.1)',
-    fontFamily: 'Segoe UI, sans-serif'
+    navigate('/login');
   };
 
-  const labelStyle = {
-    marginTop: '15px',
-    fontWeight: 'bold',
-    display: 'block'
-  };
-
-  const inputStyle = {
-    width: '100%',
-    padding: '10px',
-    marginTop: '5px',
-    marginBottom: '10px',
-    borderRadius: '5px',
-    border: '1px solid #ccc'
-  };
-
-  const buttonStyle = {
-    padding: '10px 20px',
-    backgroundColor: '#4CAF50',
-    color: 'white',
-    border: 'none',
-    borderRadius: '5px',
-    marginTop: '20px',
-    cursor: 'pointer'
+  const handleNavigateToLogin = (e) => {
+    e.preventDefault();
+    navigate('/login');
   };
 
   return (
-    <form onSubmit={handleSubmit} style={containerStyle}>
-      <h2 style={{ textAlign: 'left', marginBottom: '20px' }}>Register</h2>
+    <>
+      <style>{`
+        .login-container {
+          min-height: 100vh;
+          background-color: #f9fafb;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          padding: 1rem;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", sans-serif;
+        }
 
-      <label style={labelStyle}>Email*</label>
-      <input
-        type="email"
-        required
-        style={inputStyle}
-        value={form.email}
-        onChange={(e) => setForm({ ...form, email: e.target.value })}
-      />
+        @media (prefers-color-scheme: dark) {
+          .login-container {
+            background-color: #111827;
+            color: #f9fafb;
+          }
+          
+          .login-card {
+            background-color: #1f2937 !important;
+            border: 1px solid #374151 !important;
+          }
+          
+          .form-input, .form-select {
+            background-color: #374151 !important;
+            border-color: #4b5563 !important;
+            color: #f9fafb !important;
+          }
+          
+          .form-input::placeholder {
+            color: #9ca3af !important;
+          }
+          
+          .form-label {
+            color: #e5e7eb !important;
+          }
+          
+          .login-brand, .card-title {
+            color: #f9fafb !important;
+          }
+          
+          .login-subtitle, .register-text {
+            color: #d1d5db !important;
+          }
+        }
 
-      <label style={labelStyle}>Password*</label>
-      <input
-        type="password"
-        required
-        style={inputStyle}
-        value={form.password}
-        onChange={(e) => setForm({ ...form, password: e.target.value })}
-      />
+        .login-header {
+          text-align: center;
+          margin-bottom: 2rem;
+        }
 
-      <label style={labelStyle}>Role*</label>
-      <select
-        required
-        value={form.role}
-        onChange={(e) => setForm({ ...form, role: e.target.value })}
-        style={inputStyle}
-      >
-        <option value="volunteer">Volunteer</option>
-        <option value="admin">Admin</option>
-      </select>
+        .login-brand {
+          font-size: 1.875rem;
+          font-weight: bold;
+          color: #111827;
+          margin: 0 0 0.5rem 0;
+        }
 
-      <button type="submit" style={buttonStyle}>Register</button>
+        .login-subtitle {
+          color: #6b7280;
+          font-size: 1rem;
+          margin: 0;
+        }
 
-      <p style={{ marginTop: '20px' }}>
-        Already registered? <Link to="/login">Login here</Link>
-      </p>
-    </form>
+        .login-card {
+          background-color: white;
+          border-radius: 0.5rem;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+          padding: 2rem;
+          width: 100%;
+          max-width: 400px;
+          border: 1px solid #e5e7eb;
+        }
+
+        .card-header {
+          display: flex;
+          align-items: center;
+          margin-bottom: 1.5rem;
+          justify-content: center;
+          gap: 0.75rem;
+        }
+
+        .card-title {
+          font-size: 1.25rem;
+          font-weight: 600;
+          color: #111827;
+          margin: 0;
+        }
+
+        .login-form {
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+        }
+
+        .form-group {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .form-label {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: #374151;
+          margin-bottom: 0.5rem;
+        }
+
+        .form-input, .form-select {
+          width: 100%;
+          padding: 0.75rem;
+          border: 1px solid #d1d5db;
+          border-radius: 0.375rem;
+          font-size: 0.875rem;
+          background-color: white;
+          transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-input:focus, .form-select:focus {
+          outline: none;
+          border-color: #10b981;
+          box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        .form-select {
+          cursor: pointer;
+        }
+
+        .form-input::placeholder {
+          color: #9ca3af;
+        }
+
+        .login-button {
+          width: 100%;
+          padding: 0.75rem 1rem;
+          background-color: #10b981;
+          color: white;
+          border: none;
+          border-radius: 0.375rem;
+          font-size: 0.875rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: background-color 0.2s;
+        }
+
+        .login-button:hover {
+          background-color: #059669;
+        }
+
+        .login-footer {
+          margin-top: 1.5rem;
+          text-align: center;
+        }
+
+        .register-text {
+          font-size: 0.875rem;
+          color: #6b7280;
+          margin: 0;
+        }
+
+        .register-link {
+          color: #3b82f6;
+          font-weight: 500;
+          cursor: pointer;
+          text-decoration: none;
+        }
+
+        .register-link:hover {
+          color: #1d4ed8;
+          text-decoration: underline;
+        }
+      `}</style>
+
+      <div className="login-container">
+        {/* Header */}
+        <div className="login-header">
+          <h1 className="login-brand">Volunteer Portal</h1>
+          <p className="login-subtitle">Create your account</p>
+        </div>
+
+        {/* Register Card */}
+        <div className="login-card">
+          <div className="card-header">
+            <UserPlus color="#10b981" size={24} />
+            <h2 className="card-title">Join Our Community</h2>
+          </div>
+
+          <form className="login-form" onSubmit={handleRegister}>
+            {/* Role Selection */}
+            <div className="form-group">
+              <label className="form-label">
+                <User size={16} />
+                Select Role
+              </label>
+              <select
+                value={role}
+                onChange={e => setRole(e.target.value)}
+                required
+                className="form-select"
+              >
+                <option value="volunteer">Volunteer</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+
+            {/* Email Input */}
+            <div className="form-group">
+              <label className="form-label">
+                <Mail size={16} />
+                Email Address
+              </label>
+              <input
+                type="email"
+                placeholder="Enter your email"
+                required
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                className="form-input"
+              />
+            </div>
+
+            {/* Password Input */}
+            <div className="form-group">
+              <label className="form-label">
+                <Lock size={16} />
+                Password
+              </label>
+              <input
+                type="password"
+                placeholder="Enter your password"
+                required
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                className="form-input"
+              />
+            </div>
+
+            {/* Register Button */}
+            <button type="submit" className="login-button">
+              Create Account
+            </button>
+          </form>
+
+          {/* Login Link */}
+          <div className="login-footer">
+            <p className="register-text">
+              Already have an account?{' '}
+              <span className="register-link" onClick={handleNavigateToLogin}>
+                Login here
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }
