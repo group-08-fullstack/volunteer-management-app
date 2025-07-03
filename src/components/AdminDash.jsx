@@ -75,7 +75,7 @@ export default function AdminDashboard() {
     }
   ];
 
-  // Array containg props to be sent to navigationbar component
+  // Array containing props to be sent to navigationbar component
   const extraLinks = [
   {
     className: "nav-button",          // CSS class for styling
@@ -539,7 +539,6 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
-      </div>
       </div>
     </>
   );
