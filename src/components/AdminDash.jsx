@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import NotificationButton from './Notification';
+import NotificationButton from './Notification'
+import NavigationBar from './Navigation';;
 import { Bell, User, LogOut, Calendar, Clock, MapPin, Users, Settings, UserCheck, History, ChevronDown } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -74,6 +75,28 @@ export default function AdminDashboard() {
     }
   ];
 
+  // Array containg props to be sent to navigationbar component
+  const extraLinks = [
+  {
+    className: "nav-button",          // CSS class for styling
+    link: "/eventmanagement",                     // Path to navigate to
+    logo:  <Settings size={16} />,          // lucide-react icon component
+    text: "Event Management"                       // Label displayed next to the icon
+  },
+    {
+    className: "nav-button",          // CSS class for styling
+    link: "/volunteermatch",                     // Path to navigate to
+    logo:  <UserCheck size={16} />,          // lucide-react icon component
+    text: "Volunteer Matching"                       // Label displayed next to the icon
+  },
+    {
+    className: "nav-button",          // CSS class for styling
+    link: null,                     // Path to navigate to
+    logo:  <History size={16} />,          // lucide-react icon component
+    text: " Event History"                       // Label displayed next to the icon
+  },
+];
+
   const handleLogout = () => {
     // Clear any authentication tokens or user data
     // localStorage.removeItem('authToken');
@@ -110,249 +133,290 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
-      {/* Navbar */}
-      <nav style={{
-        width: '100%',
-        backgroundColor: 'white',
-        boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
-        borderBottom: '1px solid #e5e7eb'
-      }}>
-        <div style={{ width: '100%', padding: '0 2rem' }}>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            height: '4rem'
-          }}>
-            <div>
-              <h1 style={{
-                fontSize: '1.25rem',
-                fontWeight: '600',
-                color: '#111827'
-              }}>
-                Admin Portal
-              </h1>
-            </div>
+    <>
+      <style>{`
+        .admin-dashboard {
+          min-height: 100vh;
+          background-color: #f9fafb;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", sans-serif;
+        }
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ position: 'relative' }}>
-                <button
-                  onClick={() => setEventDropdownOpen(!eventDropdownOpen)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    padding: '0.5rem 1rem',
-                    color: '#6b7280',
-                    background: 'none',
-                    border: 'none',
-                    borderRadius: '0.375rem',
-                    cursor: 'pointer',
-                    fontSize: '0.875rem',
-                    fontWeight: '500',
-                    transition: 'all 0.2s',
-                    width: '100%'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.color = '#111827';
-                    e.target.style.backgroundColor = '#f3f4f6';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.color = '#6b7280';
-                    e.target.style.backgroundColor = 'transparent';
-                  }}
-                >
-                  <Settings size={16} />
-                  Event Management
-                  <ChevronDown size={16} />
-                </button>
+        .main-content {
+          width: 100%;
+          padding: 2rem;
+        }
 
-                {/* Dropdown menu */}
-                {eventDropdownOpen && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '100%',
-                      left: 0,
-                      zIndex: 10,
-                      backgroundColor: 'white',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '0.375rem',
-                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                      padding: '0.5rem 0',
-                      minWidth: '100%'
-                    }}
-                  >
-                    <button
-                      onClick={() => {
-                        handleEventManagement();
-                        setEventDropdownOpen(false);
-                        
-                      }}
-                      style={{
-                        display: 'block',
-                        width: '100%',
-                        padding: '0.5rem 1rem',
-                        textAlign: 'left',
-                        background: 'none',
-                        border: 'none',
-                        color: '#374151',
-                        fontSize: '0.875rem',
-                        cursor: 'pointer',
-                      }}
-                      onMouseEnter={(e) => (e.target.style.backgroundColor = '#f3f4f6')}
-                      onMouseLeave={(e) => (e.target.style.backgroundColor = 'transparent')}
-                    >
-                      Create Event
-                    </button>
+        .welcome-section {
+          margin-bottom: 2rem;
+        }
 
-                    <button
-                      onClick={() => {
-                        setEventDropdownOpen(false);
-                        alert('Event list');
-                      }}
-                      style={{
-                        display: 'block',
-                        width: '100%',
-                        padding: '0.5rem 1rem',
-                        textAlign: 'left',
-                        background: 'none',
-                        border: 'none',
-                        color: '#374151',
-                        fontSize: '0.875rem',
-                        cursor: 'pointer',
-                      }}
-                      onMouseEnter={(e) => (e.target.style.backgroundColor = '#f3f4f6')}
-                      onMouseLeave={(e) => (e.target.style.backgroundColor = 'transparent')}
-                    >
-                      Manage Events
-                    </button>
-                  </div>
-                )}
-              </div>
+        .welcome-title {
+          font-size: 1.875rem;
+          font-weight: bold;
+          color: #111827;
+          margin-bottom: 0.5rem;
+        }
 
+        .welcome-subtitle {
+          color: #6b7280;
+          margin: 0;
+        }
 
+        .dashboard-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+          gap: 2rem;
+        }
 
+        .card {
+          background-color: white;
+          border-radius: 0.5rem;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+          padding: 1.5rem;
+        }
 
-              <button
-                onClick={handleVolunteerMatching}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  padding: '0.5rem 1rem',
-                  color: '#6b7280',
-                  background: 'none',
-                  border: 'none',
-                  borderRadius: '0.375rem',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem',
-                  fontWeight: '500',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.color = '#111827';
-                  e.target.style.backgroundColor = '#f3f4f6';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.color = '#6b7280';
-                  e.target.style.backgroundColor = 'transparent';
-                }}
-              >
-                <UserCheck size={16} />
-                Volunteer Matching
-              </button>
+        .card-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 1rem;
+        }
 
-              <button
-                onClick={handleEventHistory}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  padding: '0.5rem 1rem',
-                  color: '#6b7280',
-                  background: 'none',
-                  border: 'none',
-                  borderRadius: '0.375rem',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem',
-                  fontWeight: '500',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.color = '#111827';
-                  e.target.style.backgroundColor = '#f3f4f6';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.color = '#6b7280';
-                  e.target.style.backgroundColor = 'transparent';
-                }}
-              >
-                <History size={16} />
-                Event History
-              </button>
+        .card-title-section {
+          display: flex;
+          align-items: center;
+        }
 
-              {/* Notifications */}
-              {/* Imported from Notification.jsx */}
-              <NotificationButton />
+        .card-title {
+          font-size: 1.25rem;
+          font-weight: 600;
+          color: #111827;
+          margin: 0;
+          margin-left: 0.75rem;
+        }
 
-              {/* Account */}
-              <button
-                onClick={handleAccountClick}
-                style={{
-                  position: 'relative',
-                  padding: '0.5rem',
-                  color: '#6b7280',
-                  background: 'none',
-                  border: 'none',
-                  borderRadius: '50%',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.color = '#111827';
-                  e.target.style.backgroundColor = '#f3f4f6';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.color = '#6b7280';
-                  e.target.style.backgroundColor = 'transparent';
-                }}
-              >
-                <User size={20} />
-              </button>
+        .sort-dropdown {
+          position: relative;
+        }
 
-              {/* Logout */}
-              <button
-                onClick={handleLogout}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  padding: '0.5rem 1rem',
-                  color: '#6b7280',
-                  background: 'none',
-                  border: 'none',
-                  borderRadius: '0.375rem',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.color = '#111827';
-                  e.target.style.backgroundColor = '#f3f4f6';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.color = '#6b7280';
-                  e.target.style.backgroundColor = 'transparent';
-                }}
-              >
-                <LogOut size={18} />
-                <span style={{ fontSize: '0.875rem', fontWeight: '500' }}>Logout</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+        .sort-select {
+          padding: 0.5rem 2rem 0.5rem 0.75rem;
+          border: 1px solid #d1d5db;
+          border-radius: 0.375rem;
+          font-size: 0.875rem;
+          background-color: white;
+          cursor: pointer;
+          appearance: none;
+          background-image: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQiIGhlaWdodD0iMTQiIHZpZXdCb3g9IjAgMCAxNCAxNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTMuNSA1LjI1TDcgOC43NUwxMC41IDUuMjUiIHN0cm9rZT0iIzZCNzI4MCIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K");
+          background-repeat: no-repeat;
+          background-position: right 0.5rem center;
+        }
+
+        .content-section {
+          margin-bottom: 1rem;
+        }
+
+        .item-list {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+        }
+
+        .volunteer-item, .event-item {
+          border-left: 4px solid;
+          padding-left: 1rem;
+          padding-top: 0.5rem;
+          padding-bottom: 0.5rem;
+        }
+
+        .volunteer-item {
+          border-left-color: #3b82f6;
+        }
+
+        .event-item {
+          border-left-color: #10b981;
+        }
+
+        .item-title {
+          font-weight: 500;
+          color: #111827;
+          margin: 0;
+        }
+
+        .item-details {
+          font-size: 0.875rem;
+          color: #6b7280;
+          margin-top: 0.25rem;
+        }
+
+        .item-details-row {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+        }
+
+        .item-details-row.with-margin {
+          margin-top: 0.25rem;
+        }
+
+        .item-detail-with-icon {
+          display: flex;
+          align-items: center;
+          gap: 0.25rem;
+        }
+
+        .expertise-text {
+          font-weight: 500;
+        }
+
+        .view-all-button {
+          color: #3b82f6;
+          background: none;
+          border: none;
+          font-size: 0.875rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: color 0.2s;
+        }
+
+        .view-all-button:hover {
+          color: #1d4ed8;
+        }
+
+        .view-all-button.green {
+          color: #10b981;
+        }
+
+        .view-all-button.green:hover {
+          color: #059669;
+        }
+
+        .stats-grid {
+          margin-top: 2rem;
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 1.5rem;
+        }
+
+        .stat-card {
+          background-color: white;
+          border-radius: 0.5rem;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+          padding: 1.5rem;
+          text-align: center;
+        }
+
+        .stat-number {
+          font-size: 1.875rem;
+          font-weight: bold;
+          margin-bottom: 0.5rem;
+        }
+
+        .stat-number.blue {
+          color: #3b82f6;
+        }
+
+        .stat-number.green {
+          color: #10b981;
+        }
+
+        .stat-number.purple {
+          color: #8b5cf6;
+        }
+
+        .stat-label {
+          color: #6b7280;
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+          .admin-dashboard {
+            background-color: #111827 !important;
+            color: #f9fafb !important;
+          }
+
+          .navbar {
+            background-color: #1f2937 !important;
+            border-bottom: 1px solid #374151 !important;
+          }
+
+          .navbar-title {
+            color: #f9fafb !important;
+          }
+
+          .nav-button {
+            color: #d1d5db !important;
+          }
+
+          .nav-button:hover {
+            color: #f9fafb !important;
+            background-color: #374151 !important;
+          }
+
+          .notification-button {
+            color: #d1d5db !important;
+          }
+
+          .notification-button:hover {
+            color: #f9fafb !important;
+            background-color: #374151 !important;
+          }
+
+          .welcome-title {
+            color: #f9fafb !important;
+          }
+
+          .welcome-subtitle {
+            color: #d1d5db !important;
+          }
+
+          .card, .stat-card {
+            background-color: #1f2937 !important;
+            border: 1px solid #374151 !important;
+          }
+
+          .card-title, .item-title {
+            color: #f9fafb !important;
+          }
+
+          .item-details {
+            color: #d1d5db !important;
+          }
+
+          .sort-select {
+            background-color: #374151 !important;
+            border-color: #4b5563 !important;
+            color: #f9fafb !important;
+          }
+
+          .stat-label {
+            color: #d1d5db !important;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .dashboard-grid {
+            grid-template-columns: 1fr;
+          }
+          
+          .navbar-content {
+            flex-direction: column;
+            gap: 1rem;
+            height: auto;
+            padding: 1rem 0;
+          }
+          
+          .main-content {
+            padding: 1rem;
+          }
+        }
+      `}</style>
+
+      <div className="admin-dashboard">
+        
+        {/* Naviagation bar imported from Navigation.jsx */}
+        <NavigationBar extraLinks={extraLinks} title={"Admin Portal"}/>
+        
 
       {/* Main Content */}
       <div style={{ width: '100%', padding: '2rem' }}>
@@ -645,6 +709,7 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
