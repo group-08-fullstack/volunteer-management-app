@@ -1,21 +1,12 @@
 import React, { useState } from 'react';
-import { Calendar, MapPin, Users, X, Home } from 'lucide-react';
+import { Calendar, MapPin, Users, X, Home, LogOut, UserCheck, User, History } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import NavigationBar from './Navigation';
+import NotificationButton from './Notification';
 
 export default function EventManagementPage() {
-  const navigate = useNavigate();
-
   const [removeMode, setRemoveMode] = useState(false);
-
-  const extraLinks = [
-    {
-      className: "home-button",
-      link: "/home",
-      //logo: <Home size={18} />,
-      //text: "Home"
-    }
-  ];
+  const navigate = useNavigate();
 
   const [events, setEvents] = useState([
     {
@@ -55,128 +46,464 @@ export default function EventManagementPage() {
     }
   };
 
+  const handleLogout = () => {
+    navigate('/login')
+  };
+
+  const handleAccountClick = () => {
+    alert('Account settings');
+  };
+
+  const handleVolunteerMatching = () => {
+    navigate('/volunteermatch');
+  };
+
+  const handleEventHistory = () => {
+    alert('Would navigate to event history page');
+  };
+
+  const handleHome = () => {
+    navigate('/admindash');
+  };
+
   return (
-   <>
-    <NavigationBar extraLinks={extraLinks} />
-    <div style={{ padding: '2rem', maxWidth: '700px', margin: 'auto', backgroundColor: '#f9fafb' }}>
-      {/* Header with icon, title and buttons aligned right */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: '1rem'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <Calendar color="#10b981" size={24} style={{ marginRight: '0.75rem' }} />
-          <h2 style={{ fontWeight: '600', color: '#111827', margin: 0 }}>Events Management</h2>
-        </div>
+    <>
+      <style>{`
+        .event-management-container {
+          min-height: 100vh;
+          background-color: #f9fafb;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", sans-serif;
+        }
 
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button onClick={handleCreateEvent} style={{
-            padding: '0.5rem 1rem',
-            backgroundColor: '#10b981',
-            color: 'white',
-            border: 'none',
-            borderRadius: '0.375rem',
-            cursor: 'pointer'
-          }}>
-            Create Event
-          </button>
-          <button onClick={() => setRemoveMode(!removeMode)} style={{
-            padding: '0.5rem 1rem',
-            backgroundColor: '#ef4444',
-            color: 'white',
-            border: 'none',
-            borderRadius: '0.375rem',
-            cursor: 'pointer'
-          }}>
-            {removeMode ? 'Cancel' : 'Remove Event'}
-          </button>
-        </div>
-      </div>
+        .navbar {
+          width: 100%;
+          background-color: white;
+          box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+          border-bottom: 1px solid #e5e7eb;
+        }
 
-      {/* Upcoming Events List */}
-      <div>
-        {events.length === 0 && (
-          <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>No upcoming events.</p>
-        )}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {events.map(event => (
-            <div
-              key={event.id}
-              onClick={() => {
-                if (!removeMode) alert(`You are entering ${event.event} event editing page`);
-              }}
-              style={{
-                position: 'relative',
-                borderLeft: '4px solid #10b981',
-                padding: '1rem',
-                borderRadius: '0.5rem',
-                backgroundColor: '#ffffff',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                transition: 'box-shadow 0.2s ease-in-out',
-                cursor: removeMode ? 'default' : 'pointer',
-                userSelect: 'none',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)';
-              }}
-            >
-              <h4 style={{ fontWeight: '500', color: '#111827', marginBottom: '0.25rem' }}>
-                {event.event}
-              </h4>
-              <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <span>{event.date}</span>
-                  <span>{event.time}</span>
-                </div>
-                <div style={{
-                  marginTop: '0.25rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '1rem'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                    <MapPin size={14} />
-                    <span>{event.location}</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                    <Users size={14} />
-                    <span>{event.volunteers} volunteers</span>
-                  </div>
-                </div>
+        .navbar-container {
+          width: 100%;
+          padding: 0 2rem;
+        }
+
+        .navbar-content {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          height: 4rem;
+        }
+
+        .navbar-title {
+          font-size: 1.25rem;
+          font-weight: 600;
+          color: #111827;
+          margin: 0;
+        }
+
+        .navbar-actions {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+        }
+
+        .nav-button {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.5rem 1rem;
+          color: #6b7280;
+          background: none;
+          border: none;
+          border-radius: 0.375rem;
+          cursor: pointer;
+          font-size: 0.875rem;
+          font-weight: 500;
+          transition: all 0.2s;
+        }
+
+        .nav-button:hover {
+          color: #111827;
+          background-color: #f3f4f6;
+        }
+
+        .notification-button {
+          position: relative;
+          padding: 0.5rem;
+          color: #6b7280;
+          background: none;
+          border: none;
+          border-radius: 50%;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .notification-button:hover {
+          color: #111827;
+          background-color: #f3f4f6;
+        }
+
+        .main-content {
+          width: 100%;
+          padding: 2rem;
+          max-width: 1200px;
+          margin: 0 auto;
+        }
+
+        .page-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 2rem;
+        }
+
+        .page-title-section {
+          display: flex;
+          align-items: center;
+        }
+
+        .page-title {
+          font-size: 1.875rem;
+          font-weight: bold;
+          color: #111827;
+          margin: 0;
+          margin-left: 0.75rem;
+        }
+
+        .page-actions {
+          display: flex;
+          gap: 0.75rem;
+        }
+
+        .action-button {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.75rem 1.5rem;
+          border: none;
+          border-radius: 0.375rem;
+          cursor: pointer;
+          font-size: 0.875rem;
+          font-weight: 500;
+          transition: background-color 0.2s;
+        }
+
+        .create-button {
+          background-color: #10b981;
+          color: white;
+        }
+
+        .create-button:hover {
+          background-color: #059669;
+        }
+
+        .remove-button {
+          background-color: #ef4444;
+          color: white;
+        }
+
+        .remove-button:hover {
+          background-color: #dc2626;
+        }
+
+        .remove-button.cancel {
+          background-color: #6b7280;
+        }
+
+        .remove-button.cancel:hover {
+          background-color: #4b5563;
+        }
+
+        .events-container {
+          background-color: white;
+          border-radius: 0.5rem;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+          padding: 1.5rem;
+        }
+
+        .events-list {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+        }
+
+        .event-item {
+          position: relative;
+          border-left: 4px solid #10b981;
+          padding: 1rem;
+          background-color: #f9fafb;
+          border-radius: 0.375rem;
+          cursor: pointer;
+          transition: all 0.2s;
+          user-select: none;
+        }
+
+        .event-item:hover {
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+          background-color: #f3f4f6;
+        }
+
+        .event-item.remove-mode {
+          cursor: default;
+        }
+
+        .event-title {
+          font-size: 1rem;
+          font-weight: 600;
+          color: #111827;
+          margin: 0 0 0.5rem 0;
+        }
+
+        .event-details {
+          font-size: 0.875rem;
+          color: #6b7280;
+        }
+
+        .event-details-row {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          margin-bottom: 0.25rem;
+        }
+
+        .event-detail-with-icon {
+          display: flex;
+          align-items: center;
+          gap: 0.25rem;
+        }
+
+        .remove-event-button {
+          position: absolute;
+          top: 0.5rem;
+          right: 0.5rem;
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 0.25rem;
+          color: #ef4444;
+          border-radius: 0.25rem;
+          transition: background-color 0.2s;
+        }
+
+        .remove-event-button:hover {
+          background-color: #fef2f2;
+        }
+
+        .no-events-message {
+          text-align: center;
+          color: #6b7280;
+          font-size: 0.875rem;
+          padding: 2rem;
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+          .event-management-container {
+            background-color: #111827 !important;
+            color: #f9fafb !important;
+          }
+
+          .navbar {
+            background-color: #1f2937 !important;
+            border-bottom: 1px solid #374151 !important;
+          }
+
+          .navbar-title {
+            color: #f9fafb !important;
+          }
+
+          .nav-button {
+            color: #d1d5db !important;
+          }
+
+          .nav-button:hover {
+            color: #f9fafb !important;
+            background-color: #374151 !important;
+          }
+
+          .notification-button {
+            color: #d1d5db !important;
+          }
+
+          .notification-button:hover {
+            color: #f9fafb !important;
+            background-color: #374151 !important;
+          }
+
+          .page-title {
+            color: #f9fafb !important;
+          }
+
+          .events-container {
+            background-color: #1f2937 !important;
+            border: 1px solid #374151 !important;
+          }
+
+          .event-item {
+            background-color: #374151 !important;
+          }
+
+          .event-item:hover {
+            background-color: #4b5563 !important;
+          }
+
+          .event-title {
+            color: #f9fafb !important;
+          }
+
+          .event-details {
+            color: #d1d5db !important;
+          }
+
+          .no-events-message {
+            color: #d1d5db !important;
+          }
+
+          .remove-event-button:hover {
+            background-color: #7f1d1d !important;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .navbar-content {
+            flex-direction: column;
+            gap: 1rem;
+            height: auto;
+            padding: 1rem 0;
+          }
+          
+          .main-content {
+            padding: 1rem;
+          }
+
+          .page-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: stretch;
+          }
+
+          .page-actions {
+            justify-content: center;
+          }
+        }
+      `}</style>
+
+      <div className="event-management-container">
+        {/* Navbar */}
+        <nav className="navbar">
+          <div className="navbar-container">
+            <div className="navbar-content">
+              <div>
+                <h1 className="navbar-title">Admin Portal</h1>
               </div>
 
-              {removeMode && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleRemoveEvent(event.id);
-                  }}
-                  title="Remove this event"
-                  style={{
-                    position: 'absolute',
-                    top: '0.5rem',
-                    right: '0.5rem',
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    padding: '0.25rem',
-                    color: '#ef4444'
-                  }}
-                >
-                  <X size={18} />
+              <div className="navbar-actions">
+                <button onClick={handleHome} className="nav-button">
+                  <Home size={16} />
+                  Home
                 </button>
-              )}
+
+                <button onClick={handleVolunteerMatching} className="nav-button">
+                  <UserCheck size={16} />
+                  Volunteer Matching
+                </button>
+
+                <button onClick={handleEventHistory} className="nav-button">
+                  <History size={16} />
+                  Event History
+                </button>
+
+                {/* Notifications */}
+                <NotificationButton />
+
+                {/* Account */}
+                <button onClick={handleAccountClick} className="notification-button">
+                  <User size={20} />
+                </button>
+
+                {/* Logout */}
+                <button onClick={handleLogout} className="nav-button">
+                  <LogOut size={18} />
+                  <span>Logout</span>
+                </button>
+              </div>
             </div>
-          ))}
+          </div>
+        </nav>
+
+        {/* Main Content */}
+        <div className="main-content">
+          {/* Page Header */}
+          <div className="page-header">
+            <div className="page-title-section">
+              <Calendar color="#10b981" size={32} />
+              <h2 className="page-title">Events Management</h2>
+            </div>
+
+            <div className="page-actions">
+              <button onClick={handleCreateEvent} className="action-button create-button">
+                Create Event
+              </button>
+              <button 
+                onClick={() => setRemoveMode(!removeMode)} 
+                className={`action-button remove-button ${removeMode ? 'cancel' : ''}`}
+              >
+                {removeMode ? 'Cancel' : 'Remove Event'}
+              </button>
+            </div>
+          </div>
+
+          {/* Events Container */}
+          <div className="events-container">
+            {events.length === 0 ? (
+              <div className="no-events-message">No upcoming events.</div>
+            ) : (
+              <div className="events-list">
+                {events.map(event => (
+                  <div
+                    key={event.id}
+                    onClick={() => {
+                      if (!removeMode) alert(`You are entering ${event.event} event editing page`);
+                    }}
+                    className={`event-item ${removeMode ? 'remove-mode' : ''}`}
+                  >
+                    <h4 className="event-title">{event.event}</h4>
+                    <div className="event-details">
+                      <div className="event-details-row">
+                        <span>{event.date}</span>
+                        <span>{event.time}</span>
+                      </div>
+                      <div className="event-details-row">
+                        <div className="event-detail-with-icon">
+                          <MapPin size={14} />
+                          <span>{event.location}</span>
+                        </div>
+                        <div className="event-detail-with-icon">
+                          <Users size={14} />
+                          <span>{event.volunteers} volunteers</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {removeMode && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveEvent(event.id);
+                        }}
+                        title="Remove this event"
+                        className="remove-event-button"
+                      >
+                        <X size={18} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
     </>
   );
-
 }
