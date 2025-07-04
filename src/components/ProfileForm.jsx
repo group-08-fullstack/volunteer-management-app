@@ -15,6 +15,50 @@ const stateOptions = [
   { value: 'TX', label: 'Texas' },
 ];
 
+const Select = ({ options, isMulti, placeholder, onChange, value }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [selected, setSelected] = useState(value || (isMulti ? [] : null));
+
+  const handleOptionClick = (option) => {
+    if (isMulti) {
+      const newSelected = selected.some(s => s.value === option.value)
+        ? selected.filter(s => s.value !== option.value)
+        : [...selected, option];
+      setSelected(newSelected);
+      onChange(newSelected);
+    } else {
+      setSelected(option);
+      onChange(option);
+      setIsOpen(false);
+    }
+  };
+
+  return (
+    <div className="select-container">
+      <div className="select-display" onClick={() => setIsOpen(!isOpen)}>
+        {isMulti ? (
+          selected.length > 0 ? selected.map(s => s.label).join(', ') : placeholder
+        ) : (
+          selected ? selected.label : placeholder
+        )}
+      </div>
+      {isOpen && (
+        <div className="select-dropdown">
+          {options.map(option => (
+            <div
+              key={option.value}
+              className={`select-option ${isMulti && selected.some(s => s.value === option.value) ? 'selected' : ''}`}
+              onClick={() => handleOptionClick(option)}
+            >
+              {option.label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function ProfileForm() {
   // Form state
   const [form, setForm] = useState({
@@ -52,23 +96,14 @@ export default function ProfileForm() {
     }));
   };
 
-  // Handle skill selection
-  const handleSkillChange = (e) => {
-    const skill = e.target.value;
-    const isChecked = e.target.checked;
-    
-    if (isChecked) {
-      setForm(prev => ({
-        ...prev,
-        skills: [...prev.skills, { value: skill, label: skillsOptions.find(s => s.value === skill)?.label }]
-      }));
-    } else {
-      setForm(prev => ({
-        ...prev,
-        skills: prev.skills.filter(s => s.value !== skill)
-      }));
-    }
-  };
+  // Multi-select options
+  const skillsOptions = [
+    { value: 'bilingual', label: 'Bilingual' },
+    { value: 'animal_handling', label: 'Animal Handling' },
+    { value: 'food_handling', label: 'Food Handling' },
+    { value: 'first_aid', label: 'First Aid Certified' },
+    { value: 'tutoring', label: 'Tutoring/Teaching' },
+  ];
 
   // Handle form submission
   const handleSubmit = (e) => {
@@ -89,7 +124,7 @@ export default function ProfileForm() {
     navigate('/volunteerdash');
   };
 
-  return (
+   return (
     <>
       <style>{`
         .profile-container {
@@ -115,7 +150,7 @@ export default function ProfileForm() {
             border: 1px solid #374151 !important;
           }
           
-          .form-input, .form-select, .form-textarea {
+          .form-input, .form-select, .form-textarea, .select-display {
             background-color: #374151 !important;
             border-color: #4b5563 !important;
             color: #f9fafb !important;
@@ -137,14 +172,28 @@ export default function ProfileForm() {
             color: #d1d5db !important;
           }
           
-          .skill-item {
-            background-color: #374151 !important;
-            border-color: #4b5563 !important;
-          }
-          
           .availability-item {
             background-color: #374151 !important;
             color: #f9fafb !important;
+            border-color: #4b5563 !important;
+          }
+
+          .select-dropdown {
+            background-color: #374151 !important;
+            border-color: #4b5563 !important;
+          }
+
+          .select-option {
+            color: #f9fafb !important;
+          }
+
+          .select-option:hover {
+            background-color: #4b5563 !important;
+          }
+
+          .select-option.selected {
+            background-color: #1e40af !important;
+            color: #dbeafe !important;
           }
         }
 
@@ -236,38 +285,111 @@ export default function ProfileForm() {
         .form-textarea {
           resize: vertical;
           min-height: 80px;
+          font-family: inherit;
         }
 
         .form-input::placeholder, .form-textarea::placeholder {
           color: #9ca3af;
         }
 
-        .skills-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-          gap: 0.75rem;
-          margin-top: 0.5rem;
+        .select-container {
+          position: relative;
+          width: 100%;
         }
 
-        .skill-item {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
+        .select-display {
+          width: 100%;
           padding: 0.75rem;
           border: 1px solid #d1d5db;
           border-radius: 0.375rem;
+          font-size: 0.875rem;
           background-color: white;
-          transition: all 0.2s;
           cursor: pointer;
+          transition: border-color 0.2s;
+          box-sizing: border-box;
         }
 
-        .skill-item:hover {
-          border-color: #3b82f6;
-          background-color: #f8fafc;
+        .select-display:hover {
+          border-color: #9ca3af;
         }
 
-        .skill-item input[type="checkbox"] {
-          margin: 0;
+        .select-dropdown {
+          position: absolute;
+          top: 100%;
+          left: 0;
+          right: 0;
+          background-color: white;
+          border: 1px solid #d1d5db;
+          border-radius: 0.375rem;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+          z-index: 10;
+          max-height: 200px;
+          overflow-y: auto;
+        }
+
+        .select-option {
+          padding: 0.75rem;
+          cursor: pointer;
+          transition: background-color 0.2s;
+        }
+
+        .select-option:hover {
+          background-color: #f3f4f6;
+        }
+
+        .select-option.selected {
+          background-color: #dbeafe;
+          color: #1d4ed8;
+        }
+
+        .select-container {
+          position: relative;
+          width: 100%;
+        }
+
+        .select-display {
+          width: 100%;
+          padding: 0.75rem;
+          border: 1px solid #d1d5db;
+          border-radius: 0.375rem;
+          font-size: 0.875rem;
+          background-color: white;
+          cursor: pointer;
+          transition: border-color 0.2s;
+          box-sizing: border-box;
+        }
+
+        .select-display:hover {
+          border-color: #9ca3af;
+        }
+
+        .select-dropdown {
+          position: absolute;
+          top: 100%;
+          left: 0;
+          right: 0;
+          background-color: white;
+          border: 1px solid #d1d5db;
+          border-radius: 0.375rem;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+          z-index: 10;
+          max-height: 200px;
+          overflow-y: auto;
+        }
+
+        .select-option {
+          padding: 0.75rem;
+          cursor: pointer;
+          transition: background-color 0.2s;
+        }
+
+        .select-option:hover {
+          background-color: #f3f4f6;
+        }
+
+        .select-option.selected {
+          background-color: #dbeafe;
+          color: #1d4ed8;
         }
 
         .availability-section {
@@ -363,10 +485,6 @@ export default function ProfileForm() {
           .date-input-group {
             flex-direction: column;
             align-items: stretch;
-          }
-          
-          .skills-grid {
-            grid-template-columns: 1fr;
           }
         }
       `}</style>
@@ -491,25 +609,19 @@ export default function ProfileForm() {
               />
             </div>
 
-            {/* Skills */}
+               {/* Skills - Now as dropdown */}
             <div className="form-group full-width">
               <label className="form-label">
                 <Award size={16} />
                 Skills*
               </label>
-              <div className="skills-grid">
-                {skillsOptions.map((skill) => (
-                  <label key={skill.value} className="skill-item">
-                    <input
-                      type="checkbox"
-                      value={skill.value}
-                      checked={form.skills.some(s => s.value === skill.value)}
-                      onChange={handleSkillChange}
-                    />
-                    <span>{skill.label}</span>
-                  </label>
-                ))}
-              </div>
+              <Select
+                options={skillsOptions}
+                isMulti
+                placeholder="Select your skills"
+                value={form.skills}
+                onChange={(selected) => setForm({ ...form, skills: selected })}
+              />
             </div>
 
             {/* Preferences */}
