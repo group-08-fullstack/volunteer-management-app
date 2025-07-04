@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import NavigationBar from './Navigation';
 
 export default function ViewAllEvents() {
-  const [removeMode, setRemoveMode] = useState(false);
+  
   const navigate = useNavigate();
 
 
@@ -59,7 +59,7 @@ export default function ViewAllEvents() {
   return (
     <>
       <style>{`
-        .event-management-container {
+        .view-all-event-container {
           min-height: 100vh;
           background-color: #f9fafb;
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", sans-serif;
@@ -242,7 +242,7 @@ export default function ViewAllEvents() {
         }
       `}</style>
 
-      <div className="event-management-container">
+      <div className="view-all-event-container">
         {/* Navbar */}
         {/* Naviagation bar imported from Navigation.jsx */}
         {/*<NavigationBar extraLinks={extraLinks} title={"Upcomming Events"}/>*/}
@@ -250,6 +250,8 @@ export default function ViewAllEvents() {
         {/* Main Content */}
         <div className="main-content">
           {/* Page Header */}
+
+          <h2 style={{ paddingBottom: '20px' ,textAlign:'center'}}>Check out the latest events and volunteer to help your community</h2>
           
 
           {/* Events Container */}
@@ -262,9 +264,9 @@ export default function ViewAllEvents() {
                   <div
                     key={event.id}
                     onClick={() => {
-                      if (!removeMode) alert(`You are entering ${event.event} event editing page`);
+                      if (!removeMode) alert(`You are entering ${event.event} event detail page`);
                     }}
-                    className={`event-item ${removeMode ? 'remove-mode' : ''}`}
+                    className="event-item"
                   >
                     <h4 className="event-title">{event.event}</h4>
                     <div className="event-details">
@@ -283,19 +285,6 @@ export default function ViewAllEvents() {
                         </div>
                       </div>
                     </div>
-
-                    {removeMode && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRemoveEvent(event.id);
-                        }}
-                        title="Remove this event"
-                        className="remove-event-button"
-                      >
-                        <X size={18} />
-                      </button>
-                    )}
                   </div>
                 ))}
               </div>
