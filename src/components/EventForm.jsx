@@ -453,7 +453,7 @@ export default function EventCreationForm() {
               <div className="form-group">
                 <label className="form-label">
                   <FileText size={16} />
-                  Event Name
+                  Event Name*
                 </label>
                 <input
                   type="text"
@@ -470,7 +470,7 @@ export default function EventCreationForm() {
               <div className="form-group">
                 <label className="form-label">
                   <Users size={16} />
-                  Required Skills
+                  Required Skills*
                 </label>
                 <Select
                   options={skillsOptions}
@@ -485,7 +485,7 @@ export default function EventCreationForm() {
               <div className="form-group">
                 <label className="form-label">
                   <MapPin size={16} />
-                  Location
+                  Location*
                 </label>
                 <input
                   type="text"
@@ -502,7 +502,7 @@ export default function EventCreationForm() {
               <div className="form-group">
                 <label className="form-label">
                   <AlertCircle size={16} />
-                  Urgency
+                  Urgency*
                 </label>
                 <Select
                   options={stateOptions}
@@ -515,7 +515,7 @@ export default function EventCreationForm() {
               <div className="form-group full-width">
                 <label className="form-label">
                   <FileText size={16} />
-                  Event Description
+                  Event Description*
                 </label>
                 <textarea
                   className="form-textarea"
