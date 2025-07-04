@@ -251,7 +251,7 @@ export default function ViewAllEvents() {
         <div className="main-content">
           {/* Page Header */}
 
-          <h2 style={{ paddingBottom: '20px' ,textAlign:'center'}}>Check out the latest events and volunteer to help your community</h2>
+          <h2 style={{ paddingBottom: '20px' ,textAlign:'center'}}>Check out the latest events to help your community</h2>
           
 
           {/* Events Container */}
