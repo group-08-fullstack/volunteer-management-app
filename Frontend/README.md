@@ -42,7 +42,7 @@ It includes **npm**, the Node Package Manager.
 
 # This will start the server on the http://localhost:5173/
 
-![alt text](https://github.com/group-08-fullstack/volunteer-management-app/blob/main/default-page.png)
+![alt text](https://github.com/group-08-fullstack/volunteer-management-app/blob/main/Frontend/default-page.png)
 
 
 ## 🗂️ Project Structure
