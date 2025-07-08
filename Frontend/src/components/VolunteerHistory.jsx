@@ -2,7 +2,7 @@ import { useState,  useEffect} from 'react';
 import './VolunteerHistory.css';
 import './VolunteerDash.css';
 import * as VhHelpers from '../helpers/volunteerHistoryHelpers.js';
-import NavigationBar from './Navigation';
+import NavigationBar from './Navigation.jsx';
 import { ArrowUpDown } from 'lucide-react';
 
 export default function VolunteerHistoryTable(){

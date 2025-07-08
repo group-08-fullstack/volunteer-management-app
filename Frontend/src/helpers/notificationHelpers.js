@@ -39,8 +39,13 @@ export async function markNotificationAsUnread(notificationId){
 
 
 // Delete a notification
-export async function deleteNotification(notificationId){
-    return null;
+export async function deleteNotification(notificationId) {
+    const response = await fetch("http://127.0.0.1:5000/api/notification/", {
+        method: "DELETE"
+    });
+
+    const parsed = await response.json();
+    console.log(parsed);
 }
 
 
