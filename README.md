@@ -21,10 +21,13 @@ This is the back-end API for the Volunteer Management System, built using **Flas
          sudo apt update && apt install python3 python3-pip -y && git clone https://github.com/group-08-fullstack/volunteer-management-app
 
 ### 2. 🛠️ Create and activate a virtual environment         
+### On macOS/Linux:
          cd volunteer-management-app && cd Backend
          apt install python3.10-venv -y
          python3 -m venv venv
          source venv/bin/activate
+### On Windows:  
+         venv\Scripts\activate
          
 ### 3. 📦 Install required dependencies
        pip install -r requirements.txt
