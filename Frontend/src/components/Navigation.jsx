@@ -67,8 +67,8 @@ export default function NavigationBar({extraLinks, title}){
                     <div className="navbar-actions">
                         {/* Create additional links provided as props*/}
                         {
-                        extraLinks.map(element => (
-                            <button className={element.className} onClick={() => navigate(element.link)}>
+                        extraLinks.map((element,index) => (
+                            <button key={index} className={element.className} onClick={() => navigate(element.link)}>
                                 {element.logo}
                                 <span className={element.className + "-text"}>{element.text}</span>
                             </button>
