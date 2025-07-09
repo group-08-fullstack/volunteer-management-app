@@ -37,7 +37,7 @@ This is the back-end API for the Volunteer Management System, built using **Flas
          flask --app app run --debug
          
 ###  5. Navigate into the Frontend folder and run the server
-        cd .. && cd Frontend && npm run dev
+        cd Frontend && npm run dev
        
 
 ###   The app will be available at: http://127.0.0.1:5000/
