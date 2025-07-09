@@ -30,14 +30,14 @@ This is the back-end API for the Volunteer Management System, built using **Flas
          venv\Scripts\activate
          
 ### 3. 📦 Install required dependencies
-       pip install -r requirements.txt
+         pip install -r requirements.txt
 
 
 ###  4. Inside the api folder, Run the Flask server using
          flask --app app run --debug
          
 ###  5. Navigate into the Frontend folder and run the server
-        cd Frontend && npm run dev
+         cd Frontend && npm run dev
        
 
 ###   The app will be available at: http://127.0.0.1:5000/
