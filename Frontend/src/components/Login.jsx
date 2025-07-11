@@ -16,6 +16,8 @@ export default function Login({ users, setLoggedInUser }) {
     const user = users.find(u => u.email === email && u.password === password && u.role === role);
     if (user) {
       setLoggedInUser(user);
+      localStorage.setItem("role",role);
+      
       if (role === 'volunteer') {
         navigate('/profile');
       } else {

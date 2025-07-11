@@ -2,11 +2,9 @@ from flask import Flask
 from flask_cors import CORS
 from flask_restful import Resource, Api
 
-  
 
 # Import api functions here, to be added
 from notification import Notification
-
   
 
 app = Flask(__name__)
