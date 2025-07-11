@@ -41,9 +41,7 @@ export default function NavigationBar({extraLinks, title}){
     const navigate = useNavigate()
     
     // Get the user data from localStorage to determine which dashboard to link to
-    const userString = localStorage.getItem("currentUser");
-    // Parse it
-    const currentUser = userString ? JSON.parse(userString) : null;
+    const role = localStorage.getItem("role");
 
     // Function to handle logout
     const handleLogout = () => {
@@ -77,7 +75,7 @@ export default function NavigationBar({extraLinks, title}){
 
                         {/* Home button */}
                         <button
-                            onClick={() => currentUser.role == "volunteer" ? navigate("/volunteerdash") : navigate("/admindash") }
+                            onClick={() => role == "volunteer" ? navigate("/volunteerdash") : navigate("/admindash") }
                             className="home-button"
                         >
                             <Home size={20} />
