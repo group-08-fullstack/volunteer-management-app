@@ -5,6 +5,7 @@ from flask_restful import Resource, Api
 
 # Import api functions here, to be added
 from notification import Notification
+from volunteerHistory import VolHistory
   
 
 app = Flask(__name__)
@@ -14,10 +15,7 @@ CORS(app)
 
 # setup flask_restful
 api = Api(app)
-
-@app.route("/")
-def hello_world():
-    return "<p>Hello, World!</p>"
-
+ 
 # Section to add api endpoints to app
 api.add_resource(Notification, '/api/notification/')
+api.add_resource(VolHistory, "/api/history/")

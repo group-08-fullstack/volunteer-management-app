@@ -3,8 +3,8 @@ import {Bell, RefreshCcw } from 'lucide-react';
 import './Notification.css';
 import { deleteNotification,
     getUserNotifications,
-    markNotificationAsRead,
-    markNotificationAsUnread} from '../helpers/notificationHelpers.js';
+    FlipReadStatus,
+    } from '../helpers/notificationHelpers.js';
 
 
 export default function Notificationbutton() {
@@ -22,7 +22,7 @@ export default function Notificationbutton() {
 
         // Make api call to backend endpoint to retrieve all user notifications
         let data = await getUserNotifications();
-        
+
         setNotifications(data); // update notification state
 
         // Count unread notifications where read === false
@@ -44,12 +44,8 @@ export default function Notificationbutton() {
             // For each element determine if its the desired one
             const updated = prev.map(notification => {
                 if (notification.id === id) {
-                    // Call the appropriate helper function based on current read status
-                    if (notification.read) {
-                        markNotificationAsUnread(id);
-                    } else {
-                        markNotificationAsRead(id);
-                    }
+                    // Change read status with backend API call
+                    FlipReadStatus(id, notification);
 
                     // Return updated notification. 
                     // In other words, return the notification with every attribute the same but the read attribute
