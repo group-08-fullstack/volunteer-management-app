@@ -21,7 +21,7 @@ export default function Login({ users, setLoggedInUser }) {
         "role" : role
       }
 
-      // Make API call to backend to login user
+      // Make API call to login endpoint
       const result = await login(UserLogin);
 
       if (result){

@@ -46,8 +46,10 @@ export default function NavigationBar({extraLinks, title}){
     // Function to handle logout
     const handleLogout = () => {
         // Clear any authentication tokens or user data
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('userData');
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user_email');
+        localStorage.removeItem('user_role');
         
         // Navigate to login page
         navigate('/login');
