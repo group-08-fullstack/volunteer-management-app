@@ -10,7 +10,8 @@ export async function createNotification(receiverId,data){
      const response = await fetch(`http://127.0.0.1:5000/api/notification/?receiverId=${receiverId}`, {
         method: "POST",
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "Authorization" : `Bearer ${localStorage.getItem("access_token")}`
         },
         body: JSON.stringify(data)
     });
@@ -24,7 +25,10 @@ export async function createNotification(receiverId,data){
 export async function getUserNotifications(receiverId){
    
     const response = await fetch("http://127.0.0.1:5000/api/notification/", {
-        method: "GET"
+        method: "GET",
+        headers: {
+            "Authorization" : `Bearer ${localStorage.getItem("access_token")}`
+        },
     });
 
     const parsed = await response.json();
@@ -39,7 +43,9 @@ export async function FlipReadStatus(notificationId,data){
     const response = await fetch(`http://127.0.0.1:5000/api/notification/?notiId=${notificationId}`, {
         method: "PATCH",
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "Authorization" : `Bearer ${localStorage.getItem("access_token")}`
+
         },
         body : JSON.stringify({ "read": !data["read"] })
     });
@@ -53,7 +59,10 @@ export async function FlipReadStatus(notificationId,data){
 // Delete a notification
 export async function deleteNotification(notificationId) {
     const response = await fetch(`http://127.0.0.1:5000/api/notification/?notiId=${notificationId}`, {
-        method: "DELETE"
+        method: "DELETE",
+         headers: {
+            "Authorization" : `Bearer ${localStorage.getItem("access_token")}`
+        },
     });
 
     const parsed = await response.json();

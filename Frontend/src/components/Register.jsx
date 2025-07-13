@@ -22,10 +22,11 @@ export default function Register({ users, setUsers }) {
     }
 
     // Make API call to register endpoint
-    console.log("About to call register with:", UserRegister);
     const result = await register(UserRegister);
   
     if (result){
+      const newUser = { email, password, role };
+      setUsers([...users, newUser]);
       navigate('/login');
     }
 

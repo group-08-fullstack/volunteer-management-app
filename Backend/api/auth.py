@@ -52,7 +52,6 @@ class Login(Resource):
         
 
 # API endpoint to create new access token using refresh token
-
 class RefreshToken(Resource):
     
     @jwt_required(refresh=True)
@@ -61,4 +60,4 @@ class RefreshToken(Resource):
 
         new_access_token = create_access_token(identity=identity)
 
-        return jsonify({"message": "Login successful", "access_token" : new_access_token}, 200)
+        return {"message": "New token created", "access_token" : new_access_token}, 200

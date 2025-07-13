@@ -15,6 +15,9 @@ function App() {
   const [users, setUsers] = useState([]); // Store registered users
   const [loggedInUser, setLoggedInUser] = useState(null);
 
+  // Grab user access_token
+  session = localStorage.getItem("access_token");
+
   return (
     <Router>
       <Routes>

@@ -25,6 +25,8 @@ export default function Login({ users, setLoggedInUser }) {
       const result = await login(UserLogin);
 
       if (result){
+        const user = users.find(u => u.email === email && u.password === password && u.role === role);
+        setLoggedInUser(user)
         if(role == "volunteer"){
           navigate("/profile")
         }

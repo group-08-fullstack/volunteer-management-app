@@ -1,6 +1,8 @@
 from flask_restful import Resource
 from datetime import datetime
 from flask import request
+from flask_jwt_extended import jwt_required, get_jwt_identity
+
 
 # Define needed inputs
 
@@ -99,9 +101,11 @@ data = [
 
 
 class VolHistory(Resource):
+    @jwt_required()
     def get(self):
         return data, 200
     
+    @jwt_required()
     def post(self):
         newEntry = request.get_json()
 

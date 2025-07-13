@@ -4,6 +4,7 @@ import './VolunteerDash.css';
 import * as VhHelpers from '../helpers/volunteerHistoryHelpers.js';
 import NavigationBar from './Navigation.jsx';
 import { ArrowUpDown } from 'lucide-react';
+import {checkTokenTime} from "../helpers/authHelpers"
 
 export default function VolunteerHistoryTable(){
 
@@ -43,6 +44,9 @@ export default function VolunteerHistoryTable(){
     // Get volunteer history data once on mount
     useEffect(() => {
         async function fetchVolutneerHistory(){
+            // First validate that user JWT token is still vaild
+            await checkTokenTime();
+
             const res = await VhHelpers.getVolunteerHistory();
 
             // Paginate response

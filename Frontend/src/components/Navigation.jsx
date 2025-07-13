@@ -41,7 +41,7 @@ export default function NavigationBar({extraLinks, title}){
     const navigate = useNavigate()
     
     // Get the user data from localStorage to determine which dashboard to link to
-    const role = localStorage.getItem("role");
+    const role = localStorage.getItem("user_role");
 
     // Function to handle logout
     const handleLogout = () => {

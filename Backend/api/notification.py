@@ -12,12 +12,14 @@ notifications = [
 
 
 class Notification(Resource):
+    @jwt_required()
     def get(self):
 
         # Database query would go here
 
         return notifications, 200
-
+    
+    @jwt_required()
     def post(self):
         receiverId = request.args.get('receiverId')
         data = request.get_json()
@@ -49,7 +51,8 @@ class Notification(Resource):
         notifications.append(data)
 
         return {"Msg": "Success"}, 201
-
+    
+    @jwt_required()
     def delete(self):
         # Extract notificationId from url parameters
         notiId = request.args.get('notiId')
@@ -70,7 +73,8 @@ class Notification(Resource):
     
 
         return {"Msg": "Data deleted"}, 202
-        
+    
+    @jwt_required()
     def patch(self):
         notiId = request.args.get('notiId')
         data = request.get_json()

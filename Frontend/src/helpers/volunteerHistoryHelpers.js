@@ -9,7 +9,11 @@
 export async function getVolunteerHistory(){
   
  const response = await fetch("http://127.0.0.1:5000/api/history/", {
-        method: "GET"
+        method: "GET",
+        headers: {
+          "Authorization" : `Bearer ${localStorage.getItem("access_token")}`
+        }
+        
     });
 
     const parsed = await response.json();
@@ -24,6 +28,7 @@ export async function addHistoryEntry(data){
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization" : `Bearer ${localStorage.getItem("access_token")}`
         },
         body: JSON.stringify(data)
     });
