@@ -2,6 +2,13 @@ from flask import Flask
 from flask_cors import CORS
 from flask_restful import Resource, Api
 
+import os
+from dotenv import load_dotenv
+
+from flask_jwt_extended import JWTManager
+
+# Load in env
+load_dotenv()
 
 # Import api functions here, to be added
 from notification import Notification
@@ -16,9 +23,13 @@ CORS(app)
 
 # setup flask_restful
 api = Api(app)
+
+# Setup JWT authentication
+app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY") # Grab enviroment variable
+jwt = JWTManager(app)
  
 # Section to add api endpoints to app
 api.add_resource(Notification, '/api/notification/')
 api.add_resource(VolHistory, "/api/history/")
-api.add_resource(Register, '/api/auth/register')
-api.add_resource(Login, '/api/auth/login')
+api.add_resource(Register, '/api/auth/register/')
+api.add_resource(Login, '/api/auth/login/')

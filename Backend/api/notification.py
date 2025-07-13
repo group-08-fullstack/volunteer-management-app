@@ -1,4 +1,4 @@
-from flask_restful import Resource,reqparse
+from flask_restful import Resource
 from flask import request
 
 notifications = [
@@ -9,6 +9,7 @@ notifications = [
 ]
 
 
+
 class Notification(Resource):
     def get(self):
 
@@ -17,25 +18,46 @@ class Notification(Resource):
         return notifications, 200
 
     def post(self):
-        # Extract receiverId from url parameters
         receiverId = request.args.get('receiverId')
-        # Receive the data from the post
         data = request.get_json()
 
-        # Increment id and assign to new notification
-        curId = len(notifications) + 1
-        data["id"] = curId
+        # Validate receiverId
+        if not receiverId:
+            return {"error": "Missing receiverId parameter"}, 400
 
-        # Add the new notification to the array and print receiverId,
-        # to simulate database interactions
-        print(receiverId)
+        # Validate body structure
+        required_fields = ["message", "date", "read"]
+        if not data:
+            return {"error": "Missing request body"}, 400
+
+        for field in required_fields:
+            if field not in data:
+                return {"error": f"Missing field '{field}'"}, 400
+
+        # Check if correct types
+        if not isinstance(data["message"], str):
+            return {"error": "'message' must be a string"}, 400
+        if not isinstance(data["date"], str):
+            return {"error": "'date' must be a string in MM/DD/YYYY format"}, 400
+        if not isinstance(data["read"], bool):
+            return {"error": "'read' must be a boolean"}, 400
+
+        # Assign new ID and append
+        curId = len(notifications)
+        data["id"] = curId
         notifications.append(data)
-         
-        return {"Msg" : "Success"}, 201
+
+        return {"Msg": "Success"}, 201
 
     def delete(self):
         # Extract notificationId from url parameters
         notiId = request.args.get('notiId')
+
+        # Validate notiId
+        if not notiId:
+            return {"error": "Missing notiId parameter"}, 400
+        if not notiId.isdigit():
+            return {"error": "notiId must be a number"}, 400
 
         # Remove notificaion from the array,
         # to simulate database interactions 
@@ -44,23 +66,33 @@ class Notification(Resource):
                 removeIndex = i 
                 notifications.pop(removeIndex)
                 break
-        
+    
 
         return {"Msg": "Data deleted"}, 202
-    
+        
     def patch(self):
-        # Extract notificationId from url parameters
         notiId = request.args.get('notiId')
         data = request.get_json()
 
-        # Change the notificaion read status,
-        # simulate database interactions 
-        for i in range (0, len(notifications)):
-            if (notifications[i]["id"] == int(notiId)):
-                changeIndex = i 
-                notifications[changeIndex]["read"] = data["read"]
-                print(notifications[changeIndex]["read"])
-                break
+        # Validate notiId
+        if not notiId:
+            return {"error": "Missing notiId parameter"}, 400
+        if not notiId.isdigit():
+            return {"error": "notiId must be a number"}, 400
 
+        notiId = int(notiId)
 
-        return {"Msg" : "Success"}, 200
+        # Validate request body
+        if not data or "read" not in data:
+            return {"error": "'read' field is required"}, 400
+        if not isinstance(data["read"], bool):
+            return {"error": "'read' must be a boolean"}, 400
+
+        # Simulate DB update
+        for i, noti in enumerate(notifications):
+            if noti["id"] == notiId:
+                notifications[i]["read"] = data["read"]
+                print(notifications[i]["read"])
+                return {"Msg": "Success"}, 200
+
+        return {"error": "Notification not found"}, 404

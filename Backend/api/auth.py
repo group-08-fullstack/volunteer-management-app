@@ -1,6 +1,8 @@
 from flask_restful import Resource, reqparse
+from flask_jwt_extended import create_access_token, create_refresh_token
+from flask_jwt_extended import get_jwt_identity
+from flask_jwt_extended import jwt_required
 from flask import jsonify
-
 
 users = []
 
@@ -39,8 +41,19 @@ class Login(Resource):
         # Find user by email, password, and role
         user = next((u for u in users if u['email'] == email and u['password'] == password and u['role'] == role), None)
         if user:
-            # Return user info except password
+            # Return user JWT token
             user_info = {k: v for k, v in user.items() if k != 'password'}
-            return {"message": "Login successful", "user": user_info}, 200
+            access_token = create_access_token(identity=user_info["email"])
+            refresh_token = create_refresh_token(identity=user_info["email"])
+            return {"message": "Login successful", "tokens" : {"access_token" : access_token, "refresh_token" : refresh_token} , "user": user_info}, 200
         else:
             return {"message": "Invalid credentials or role"}, 401
+        
+
+# Function to create new access token
+def createNewAccessToken():
+    identity = get_jwt_identity()
+
+    new_access_token = create_access_token(identity=identity)
+
+    return jsonify({"message": "Login successful", "access_token" : new_access_token}, 200)
