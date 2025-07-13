@@ -23,7 +23,7 @@ export default function VolunteerMatch() {
       name: 'Food Drive',
       description: 'Help distribute food to those in need',
       location: 'Community Center',
-      requiredSkills: ['Food Handling', 'Communication'],
+      requiredSkills: ['Food Handling', 'Bilingual'],
       urgency: 'High',
       date: '2025-08-15'
     },
