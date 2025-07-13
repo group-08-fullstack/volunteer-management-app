@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Lock, UserCheck, Mail } from 'lucide-react';
+import {login} from '../helpers/authHelpers';
 
 export default function Login({ users, setLoggedInUser }) {
   const [email, setEmail] = useState('');
@@ -16,7 +17,8 @@ export default function Login({ users, setLoggedInUser }) {
     const user = users.find(u => u.email === email && u.password === password && u.role === role);
     if (user) {
       setLoggedInUser(user);
-      localStorage.setItem("role",role);
+      // Make API call to backend to login in user
+      login();
       
       if (role === 'volunteer') {
         navigate('/profile');

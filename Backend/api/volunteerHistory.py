@@ -97,6 +97,7 @@ data = [
     }
 ]
 
+
 class VolHistory(Resource):
     def get(self):
         return data, 200
@@ -158,6 +159,7 @@ class VolHistory(Resource):
         if not isinstance(participation["numeric"], int):
             return {"error": "'participationStatus.numeric' must be an integer"}, 400
 
+        
         # Passed all validations
         data.append(newEntry)
         return {"Msg": "Success"}, 201

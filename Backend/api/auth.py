@@ -50,10 +50,14 @@ class Login(Resource):
             return {"message": "Invalid credentials or role"}, 401
         
 
-# Function to create new access token
-def createNewAccessToken():
-    identity = get_jwt_identity()
+# API endpoint to create new access token using refresh token
 
-    new_access_token = create_access_token(identity=identity)
+class RefreshToken(Resource):
+    
+    @jwt_required(refresh=True)
+    def post(self):
+        identity = get_jwt_identity()
 
-    return jsonify({"message": "Login successful", "access_token" : new_access_token}, 200)
+        new_access_token = create_access_token(identity=identity)
+
+        return jsonify({"message": "Login successful", "access_token" : new_access_token}, 200)
