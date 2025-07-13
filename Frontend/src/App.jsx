@@ -21,7 +21,7 @@ function App() {
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/register" element={<Register users={users} setUsers={setUsers} />} />
         <Route path="/login" element={<Login users={users} setLoggedInUser={setLoggedInUser} />} />
-        <Route path="/profile" element={loggedInUser ? <ProfileForm user={loggedInUser} /> : <Navigate to="/login" />} />
+        <Route path="/profile" element= {<ProfileForm user={loggedInUser}/>}/>
         <Route path="/volunteerdash" element={<VolunteerDash />} />
         <Route path="/volunteermatch" element={<VolunteerMatch />} />
         <Route path="/admindash" element={<AdminDash />} /> 

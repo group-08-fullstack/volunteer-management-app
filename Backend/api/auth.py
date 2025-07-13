@@ -46,6 +46,7 @@ class Login(Resource):
             access_token = create_access_token(identity=user_info["email"])
             refresh_token = create_refresh_token(identity=user_info["email"])
             return {"message": "Login successful", "tokens" : {"access_token" : access_token, "refresh_token" : refresh_token} , "user": user_info}, 200
+        
         else:
             return {"message": "Invalid credentials or role"}, 401
         
