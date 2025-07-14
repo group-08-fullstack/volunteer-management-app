@@ -124,7 +124,7 @@ export async function checkTokenTime(){
 
     else{
       // Token still valid
-      console.log("Token still fresh, no need to refresh.");
+      console.log("Token is valid");
     }
     
 };

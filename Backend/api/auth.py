@@ -2,7 +2,7 @@ from flask_restful import Resource, reqparse
 from flask_jwt_extended import create_access_token, create_refresh_token
 from flask_jwt_extended import get_jwt_identity
 from flask_jwt_extended import jwt_required
-from flask import jsonify
+from passlib.hash import sha256_crypt
 
 users = []
 
@@ -16,7 +16,7 @@ class Register(Resource):
     def post(self):
         args = parser.parse_args()
         email = args['email'].lower()
-        password = args['password']
+        password = sha256_crypt.encrypt(args['password']) # Encrpyt password immediately
         role = args['role']
 
         # Check if user already exists
@@ -38,8 +38,8 @@ class Login(Resource):
         password = args['password']
         role = args['role']
 
-        # Find user by email, password, and role
-        user = next((u for u in users if u['email'] == email and u['password'] == password and u['role'] == role), None)
+        # Find user by email, password (Use to sha256_crypt.verify() to verify is password matches), and role
+        user = next((u for u in users if u['email'] == email and sha256_crypt.verify(password,u['password']) and u['role'] == role), None)
         if user:
             # Return user JWT token
             user_info = {k: v for k, v in user.items() if k != 'password'}

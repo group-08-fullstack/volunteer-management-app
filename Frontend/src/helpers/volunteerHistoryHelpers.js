@@ -1,12 +1,10 @@
-/*
-  Logic for these function(s) is incomplete due to no backend implementation.
-  Each function will eventually make API calls to Flask backend endpoints
-  to retrieve the corresponding volunteer history data.
-*/
-
+import {checkTokenTime} from "../helpers/authHelpers"
 
 // Fetches the user's full volunteer history from the backend
 export async function getVolunteerHistory(){
+  // First validate that user JWT token is still vaild
+  await checkTokenTime();
+
   
  const response = await fetch("http://127.0.0.1:5000/api/history/", {
         method: "GET",
@@ -23,6 +21,9 @@ export async function getVolunteerHistory(){
 
 // Fetches the user's full volunteer history from the backend
 export async function addHistoryEntry(data){
+  // First validate that user JWT token is still vaild
+  await checkTokenTime();
+
   
     await fetch("http://127.0.0.1:5000/api/history/", {
         method: "POST",

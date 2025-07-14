@@ -44,8 +44,6 @@ export default function VolunteerHistoryTable(){
     // Get volunteer history data once on mount
     useEffect(() => {
         async function fetchVolutneerHistory(){
-            // First validate that user JWT token is still vaild
-            await checkTokenTime();
 
             const res = await VhHelpers.getVolunteerHistory();
 

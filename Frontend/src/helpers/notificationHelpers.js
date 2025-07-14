@@ -1,12 +1,11 @@
-/*
-  Logic for these functions is incomplete due to no backend implementation.
-  Each function will eventually make API calls to Flask backend endpoints
-  to retrieve or modify the corresponding notification data.
-*/
+import {checkTokenTime} from "../helpers/authHelpers"
 
 
 // Create a notification
 export async function createNotification(receiverId,data){
+    // First validate that user JWT token is still vaild
+    await checkTokenTime();
+
      const response = await fetch(`http://127.0.0.1:5000/api/notification/?receiverId=${receiverId}`, {
         method: "POST",
         headers: {
@@ -23,6 +22,8 @@ export async function createNotification(receiverId,data){
 
 // Get all notifications for a user
 export async function getUserNotifications(receiverId){
+    // First validate that user JWT token is still vaild
+    await checkTokenTime();
    
     const response = await fetch("http://127.0.0.1:5000/api/notification/", {
         method: "GET",
@@ -40,6 +41,10 @@ export async function getUserNotifications(receiverId){
 
 // Mark as read/unread
 export async function FlipReadStatus(notificationId,data){
+
+    // First validate that user JWT token is still vaild
+    await checkTokenTime();
+
     const response = await fetch(`http://127.0.0.1:5000/api/notification/?notiId=${notificationId}`, {
         method: "PATCH",
         headers: {
@@ -58,6 +63,10 @@ export async function FlipReadStatus(notificationId,data){
 
 // Delete a notification
 export async function deleteNotification(notificationId) {
+
+    // First validate that user JWT token is still vaild
+    await checkTokenTime();
+
     const response = await fetch(`http://127.0.0.1:5000/api/notification/?notiId=${notificationId}`, {
         method: "DELETE",
          headers: {
@@ -68,8 +77,3 @@ export async function deleteNotification(notificationId) {
     const parsed = await response.json();
 }
 
-
-// Get the count of unread notifications
-export async function getUnreadCount(receiverId){
-    return null;
-}
