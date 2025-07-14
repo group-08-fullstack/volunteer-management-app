@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Lock, UserCheck, Mail } from 'lucide-react';
+import {login} from '../helpers/authHelpers';
 
 export default function Login({ users, setLoggedInUser }) {
   const [email, setEmail] = useState('');
@@ -9,24 +10,32 @@ export default function Login({ users, setLoggedInUser }) {
 
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
-    e.preventDefault();
+  async function handleLogin(event){
+      // setLoggedInUser(user);
+      event.preventDefault(); 
 
-     // Check if the user exists with matching email, password,role
-    const user = users.find(u => u.email === email && u.password === password && u.role === role);
-    if (user) {
-      setLoggedInUser(user);
-      localStorage.setItem("role",role);
-      
-      if (role === 'volunteer') {
-        navigate('/profile');
-      } else {
-        navigate('/admindash');
+      // Create data object to send with login API request
+      const UserLogin = {
+        "email" : email,
+        "password" : password,
+        "role" : role
       }
-    } else {
-      alert('Invalid credentials or incorrect role selected.');
-    }
-  };
+
+      // Make API call to login endpoint
+      const result = await login(UserLogin);
+
+      if (result){
+        const user = users.find(u => u.email === email && u.password === password && u.role === role);
+        setLoggedInUser(user)
+        if(role == "volunteer"){
+          navigate("/profile")
+        }
+        else{
+          navigate("/admindash")
+        }
+      }
+       
+  }
 
   const handleNavigateToRegister = (e) => {
   e.preventDefault();

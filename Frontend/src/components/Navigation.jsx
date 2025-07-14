@@ -41,13 +41,15 @@ export default function NavigationBar({extraLinks, title}){
     const navigate = useNavigate()
     
     // Get the user data from localStorage to determine which dashboard to link to
-    const role = localStorage.getItem("role");
+    const role = localStorage.getItem("user_role");
 
     // Function to handle logout
     const handleLogout = () => {
         // Clear any authentication tokens or user data
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('userData');
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user_email');
+        localStorage.removeItem('user_role');
         
         // Navigate to login page
         navigate('/login');

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Lock, UserPlus, Mail } from 'lucide-react';
+import {register} from '../helpers/authHelpers';
+
 
 export default function Register({ users, setUsers }) {
   const [email, setEmail] = useState('');
@@ -9,20 +11,25 @@ export default function Register({ users, setUsers }) {
 
   const navigate = useNavigate();
 
-  const handleRegister = (e) => {
-    e.preventDefault();
+  async function handleRegister(event){
+    event.preventDefault(); 
 
-    const existingUser = users.find((user) => user.email === email);
-    if (existingUser) {
-      alert('User with this email already exists.');
-      return;
+    // Create data object to send with register API request
+    const UserRegister = {
+      "email" : email,
+      "password" : password,
+      "role" : role
     }
 
-    const newUser = { email, password, role };
-    setUsers([...users, newUser]);
+    // Make API call to register endpoint
+    const result = await register(UserRegister);
+  
+    if (result){
+      const newUser = { email, password, role };
+      setUsers([...users, newUser]);
+      navigate('/login');
+    }
 
-    alert('Registration successful!');
-    navigate('/login');
   };
 
   const handleNavigateToLogin = (e) => {
