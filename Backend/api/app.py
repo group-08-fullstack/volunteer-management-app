@@ -15,6 +15,7 @@ load_dotenv()
 from notification import Notification
 from volunteerHistory import VolHistory
 from auth import Register, Login,RefreshToken
+from matching import MatchVolunteer
   
 
 app = Flask(__name__)
@@ -37,3 +38,4 @@ api.add_resource(VolHistory, "/api/history/")
 api.add_resource(Register, '/api/auth/register/')
 api.add_resource(Login, '/api/auth/login/')
 api.add_resource(RefreshToken,'/api/auth/refresh/')
+api.add_resource(MatchVolunteer, "/api/matching/match/")
