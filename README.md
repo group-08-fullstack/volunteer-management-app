@@ -42,5 +42,8 @@ This is the back-end API for the Volunteer Management System, built using **Flas
 
 ###   The app will be available at: http://127.0.0.1:5000/
 
+## 🗂️ Project Structure
+![alt text](https://github.com/group-08-fullstack/volunteer-management-app/blob/main/Frontend/tree-structure.png)
+
 
 
