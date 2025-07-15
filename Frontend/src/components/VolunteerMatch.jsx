@@ -57,21 +57,40 @@ export default function VolunteerMatch() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [matchResult, setMatchResult] = useState(null);
 
-  const handleMatch = () => {
+  const handleMatch = async () => {
     if (!selectedVolunteer || !selectedEvent) {
       alert('Please select both a volunteer and an event.');
       return;
     }
 
-    sendNotification(
-      selectedVolunteer.email,
-      `You have been matched to the event: ${selectedEvent.name}`
-    );
-
-    setMatchResult({
-      volunteer: selectedVolunteer,
-      event: selectedEvent
+    try {
+    const response = await fetch('http://localhost:5000/api/matching/match/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        volunteer_email: selectedVolunteer.email,
+        event_name: selectedEvent.name
+      }),
     });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        alert('Error: ' + (errData.message || response.statusText));
+        return;
+      }
+
+      const data = await response.json();
+
+      sendNotification(data.volunteer.email, `You have been matched to the event: ${data.event.name}`);
+
+      setMatchResult({
+        volunteer: data.volunteer,
+        event: data.event
+      });
+
+    } catch (error) {
+      alert('Failed to match volunteer: ' + error.message);
+    }
   };
 
 
