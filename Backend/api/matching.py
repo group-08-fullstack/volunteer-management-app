@@ -26,7 +26,7 @@ class MatchVolunteer(Resource):
             "date": "2025-09-01"
         }
     ]
-
+    @jwt_required()
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument("volunteer_email", required=True, help="Volunteer email is required")
