@@ -18,6 +18,8 @@ from . import notification
 from . import volunteerHistory
 from . import auth
 from . import matching
+from . import eventlist
+
   
 
 app = Flask(__name__)
@@ -41,3 +43,5 @@ api.add_resource(auth.Register, '/api/auth/register/')
 api.add_resource(auth.Login, '/api/auth/login/')
 api.add_resource(auth.RefreshToken,'/api/auth/refresh/')
 api.add_resource(matching.MatchVolunteer, "/api/matching/match/")
+api.add_resource(eventlist.EventList, '/api/eventlist/')
+api.add_resource(eventlist.Event, '/api/eventlist/<int:event_id>')
