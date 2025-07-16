@@ -58,40 +58,51 @@ export default function VolunteerMatch() {
   const [matchResult, setMatchResult] = useState(null);
 
   const handleMatch = async () => {
-    if (!selectedVolunteer || !selectedEvent) {
-      alert('Please select both a volunteer and an event.');
-      return;
-    }
+  if (!selectedVolunteer || !selectedEvent) {
+    alert('Please select both a volunteer and an event.');
+    return;
+  }
 
-    try {
+  const token = localStorage.getItem('access_token'); 
+
+  if (!token) {
+    alert('You are not authenticated. Please log in.');
+    return;
+  }
+
+  try {
     const response = await fetch('http://localhost:5000/api/matching/match/', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` 
+      },
       body: JSON.stringify({
         volunteer_email: selectedVolunteer.email,
         event_name: selectedEvent.name
       }),
     });
 
-      if (!response.ok) {
-        const errData = await response.json();
-        alert('Error: ' + (errData.message || response.statusText));
-        return;
-      }
-
-      const data = await response.json();
-
-      sendNotification(data.volunteer.email, `You have been matched to the event: ${data.event.name}`);
-
-      setMatchResult({
-        volunteer: data.volunteer,
-        event: data.event
-      });
-
-    } catch (error) {
-      alert('Failed to match volunteer: ' + error.message);
+    if (!response.ok) {
+      const errData = await response.json();
+      alert('Error: ' + (errData.message || response.statusText));
+      return;
     }
-  };
+
+    const data = await response.json();
+
+    sendNotification(data.volunteer.email, `You have been matched to the event: ${data.event.name}`);
+
+    setMatchResult({
+      volunteer: data.volunteer,
+      event: data.event
+    });
+
+  } catch (error) {
+    alert('Failed to match volunteer: ' + error.message);
+  }
+};
+
 
 
   const containerStyle = {
