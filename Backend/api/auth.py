@@ -16,7 +16,7 @@ class Register(Resource):
     def post(self):
         args = parser.parse_args()
         email = args['email'].lower()
-        password = sha256_crypt.encrypt(args['password']) # Encrpyt password immediately
+        password = sha256_crypt.hash(args['password']) # Encrpyt password immediately
         role = args['role']
 
         # Check if user already exists

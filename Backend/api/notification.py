@@ -44,7 +44,6 @@ class Notification(Resource):
             return {"error": "'date' must be a string in MM/DD/YYYY format"}, 400
         if not isinstance(data["read"], bool):
             return {"error": "'read' must be a boolean"}, 400
-
         # Assign new ID and append
         curId = len(notifications)
         data["id"] = curId
@@ -71,8 +70,7 @@ class Notification(Resource):
                 notifications.pop(removeIndex)
                 break
     
-
-        return {"Msg": "Data deleted"}, 202
+        return {"Msg": "Data deleted"}, 200
     
     @jwt_required()
     def patch(self):
