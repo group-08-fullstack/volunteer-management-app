@@ -16,6 +16,8 @@ from notification import Notification
 from volunteerHistory import VolHistory
 from auth import Register, Login,RefreshToken
 from matching import MatchVolunteer
+from Backend.api.eventlist import EventList, Event
+
   
 
 app = Flask(__name__)
@@ -39,3 +41,5 @@ api.add_resource(Register, '/api/auth/register/')
 api.add_resource(Login, '/api/auth/login/')
 api.add_resource(RefreshToken,'/api/auth/refresh/')
 api.add_resource(MatchVolunteer, "/api/matching/match/")
+api.add_resource(EventList, '/api/eventlist/')
+api.add_resource(Event, '/api/eventlist/<int:event_id>')
