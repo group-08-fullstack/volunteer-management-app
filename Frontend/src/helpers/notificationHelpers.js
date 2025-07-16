@@ -2,7 +2,7 @@ import {checkTokenTime} from "../helpers/authHelpers"
 
 
 // Create a notification
-export async function createNotification(receiverId,data){
+export async function sendNotification(receiverId,data){
     // First validate that user JWT token is still vaild
     await checkTokenTime();
 
@@ -15,7 +15,6 @@ export async function createNotification(receiverId,data){
         body: JSON.stringify(data)
     });
 
-    
     return null;
 }
 
@@ -71,7 +70,7 @@ export async function deleteNotification(notificationId) {
         method: "DELETE",
          headers: {
             "Authorization" : `Bearer ${localStorage.getItem("access_token")}`
-        },
+        }
     });
 
     const parsed = await response.json();

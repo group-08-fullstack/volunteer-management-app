@@ -9,14 +9,16 @@ from dotenv import load_dotenv
 from flask_jwt_extended import JWTManager
 
 # Load in env
-load_dotenv()
+basedir = os.path.abspath(os.path.dirname(__file__))
+dotenv_path = os.path.join(basedir, '.env')
+load_dotenv(dotenv_path)
 
 # Import api functions here, to be added
-from notification import Notification
-from volunteerHistory import VolHistory
-from auth import Register, Login,RefreshToken
-from matching import MatchVolunteer
-from Backend.api.eventlist import EventList, Event
+from . import notification
+from . import volunteerHistory
+from . import auth
+from . import matching
+from . import eventlist
 
   
 
@@ -35,11 +37,11 @@ app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(days=30)
 jwt = JWTManager(app)
  
 # Section to add api endpoints to app
-api.add_resource(Notification, '/api/notification/')
-api.add_resource(VolHistory, "/api/history/")
-api.add_resource(Register, '/api/auth/register/')
-api.add_resource(Login, '/api/auth/login/')
-api.add_resource(RefreshToken,'/api/auth/refresh/')
-api.add_resource(MatchVolunteer, "/api/matching/match/")
-api.add_resource(EventList, '/api/eventlist/')
-api.add_resource(Event, '/api/eventlist/<int:event_id>')
+api.add_resource(notification.Notification, '/api/notification/')
+api.add_resource(volunteerHistory.VolHistory, "/api/history/")
+api.add_resource(auth.Register, '/api/auth/register/')
+api.add_resource(auth.Login, '/api/auth/login/')
+api.add_resource(auth.RefreshToken,'/api/auth/refresh/')
+api.add_resource(matching.MatchVolunteer, "/api/matching/match/")
+api.add_resource(eventlist.EventList, '/api/eventlist/')
+api.add_resource(eventlist.Event, '/api/eventlist/<int:event_id>')

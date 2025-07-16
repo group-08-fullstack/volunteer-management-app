@@ -31,3 +31,10 @@ node_modules/
 # Enviroment variables
 backend/api/.env
 
+# Don't commit cache
+__pycache__/
+*.pyc
+
+# Ingore pytest
+.pytest_cache/
+.coverage
