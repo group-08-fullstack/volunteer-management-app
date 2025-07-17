@@ -14,7 +14,11 @@ notifications = [
 class Notification(Resource):
     @jwt_required()
     def get(self):
+        user = request.args.get('user')
 
+        if not user:
+            return 400
+        
         # Database query would go here
 
         return notifications, 200
@@ -77,25 +81,29 @@ class Notification(Resource):
         notiId = request.args.get('notiId')
         data = request.get_json()
 
+
         # Validate notiId
         if not notiId:
             return {"error": "Missing notiId parameter"}, 400
         if not notiId.isdigit():
             return {"error": "notiId must be a number"}, 400
+        
 
         notiId = int(notiId)
+
+        # notiId out of bounds
+        if notiId>= len(notifications):
+            return {"error": "Notification dpes not exist"}, 404
+
 
         # Validate request body
         if not data or "read" not in data:
             return {"error": "'read' field is required"}, 400
         if not isinstance(data["read"], bool):
             return {"error": "'read' must be a boolean"}, 400
-
         # Simulate DB update
         for i, noti in enumerate(notifications):
             if noti["id"] == notiId:
                 notifications[i]["read"] = data["read"]
                 print(notifications[i]["read"])
                 return {"Msg": "Success"}, 200
-
-        return {"error": "Notification not found"}, 404

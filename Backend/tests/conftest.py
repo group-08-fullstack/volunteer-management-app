@@ -10,6 +10,7 @@ def client():
 
 @pytest.fixture
 def user():
+    # Generate random user test email
     rand_int = random.randint(1, 10000)
     return {"email": f"test{str(rand_int)}", "password": "test", "role": "admin"}
 
