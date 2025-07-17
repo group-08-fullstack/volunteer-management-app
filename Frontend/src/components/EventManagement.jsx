@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Calendar, MapPin, Users, X,UserCheck, History } from 'lucide-react';
+import { Calendar, MapPin, Users, X, UserCheck, History } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import NavigationBar from './Navigation';
+import { useEffect } from 'react';
 
 export default function EventManagementPage() {
   const [removeMode, setRemoveMode] = useState(false);
@@ -13,42 +14,48 @@ export default function EventManagementPage() {
     {
       className: "nav-button",          // CSS class for styling
       link: "/volunteermatch",                     // Path to navigate to
-      logo:  <UserCheck size={16} />,          // lucide-react icon component
+      logo: <UserCheck size={16} />,          // lucide-react icon component
       text: "Volunteer Matching"                       // Label displayed next to the icon
     },
     {
       className: "nav-button",          // CSS class for styling
       link: null,                     // Path to navigate to
-      logo:  <History size={16} />,          // lucide-react icon component
+      logo: <History size={16} />,          // lucide-react icon component
       text: " Event History"                       // Label displayed next to the icon
     },
-  ];  
-  const [events, setEvents] = useState([
-    {
-      id: 1,
-      event: 'Senior Center Visit',
-      date: 'July 5, 2025',
-      time: '2:00 PM - 5:00 PM',
-      location: 'Golden Years Senior Center',
-      volunteers: 8
-    },
-    {
-      id: 2,
-      event: 'Park Restoration',
-      date: 'July 12, 2025',
-      time: '9:00 AM - 1:00 PM',
-      location: 'Riverside Park',
-      volunteers: 15
-    },
-    {
-      id: 3,
-      event: 'Youth Mentoring',
-      date: 'July 18, 2025',
-      time: '4:00 PM - 6:00 PM',
-      location: 'Community Youth Center',
-      volunteers: 5
-    }
-  ]);
+  ];
+
+  const [events, setEvents] = useState([]);
+  /*useEffect(() => {
+  fetch("http://localhost:5000/api/eventlist/")
+    .then(response => response.json())
+    .then(data => setEvents(data))
+    .catch(error => console.error("Failed to fetch events:", error));
+ }, []);*/
+
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+
+    fetch("http://localhost:5000/api/eventlist/", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("Unauthorized or failed to fetch");
+        }
+        return response.json();
+      })
+      .then(data => setEvents(data))
+      .catch(error => {
+        console.error("Failed to fetch events:", error);
+        alert("Failed to load events. You may need to log in again.");
+      });
+  }, []);
+
+
 
   const handleCreateEvent = () => {
     navigate('/createevent');
@@ -57,7 +64,24 @@ export default function EventManagementPage() {
   const handleRemoveEvent = (id) => {
     const confirmed = window.confirm('Are you sure you want to remove this event?');
     if (confirmed) {
-      setEvents(events.filter(event => event.id !== id));
+      // setEvents(events.filter(event => event.id !== id));
+      const token = localStorage.getItem("access_token");
+
+      fetch(`http://localhost:5000/api/event/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then(res => {
+          if (res.ok) {
+            setEvents(events.filter(event => event.id !== id));
+          } else {
+            alert("Failed to delete event.");
+          }
+        })
+        .catch(err => console.error("Delete failed:", err));
+
     }
   };
 
@@ -252,7 +276,7 @@ export default function EventManagementPage() {
       <div className="event-management-container">
         {/* Navbar */}
         {/* Naviagation bar imported from Navigation.jsx */}
-        <NavigationBar extraLinks={extraLinks} title={"Admin Portal"}/>
+        <NavigationBar extraLinks={extraLinks} title={"Admin Portal"} />
 
         {/* Main Content */}
         <div className="main-content">
@@ -267,8 +291,8 @@ export default function EventManagementPage() {
               <button onClick={handleCreateEvent} className="action-button create-button">
                 Create Event
               </button>
-              <button 
-                onClick={() => setRemoveMode(!removeMode)} 
+              <button
+                onClick={() => setRemoveMode(!removeMode)}
                 className={`action-button remove-button ${removeMode ? 'cancel' : ''}`}
               >
                 {removeMode ? 'Cancel' : 'Remove Event'}

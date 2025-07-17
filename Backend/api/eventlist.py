@@ -1,6 +1,7 @@
 from flask_restful import Resource, reqparse
 from flask import jsonify
 from flask_jwt_extended import jwt_required
+from flask_jwt_extended import get_jwt_identity
 
 # In-memory event list
 events = [
@@ -42,6 +43,7 @@ event_parser.add_argument('volunteers', type=int, required=True)
 class EventList(Resource):
     @jwt_required()
     def get(self):
+        identity = get_jwt_identity() 
         return jsonify(events)
 
     @jwt_required()

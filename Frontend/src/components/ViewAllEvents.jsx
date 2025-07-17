@@ -1,60 +1,41 @@
-import React, { useState } from 'react';
-import { Calendar, MapPin, Users, X,UserCheck, History } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { MapPin, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import NavigationBar from './Navigation';
 
 export default function ViewAllEvents() {
-  
   const navigate = useNavigate();
 
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Array containing props to be sent to navigationbar component
-  /*const extraLinks = [
-    {
-      className: "nav-button",          // CSS class for styling
-      link: "/volunteermatch",                     // Path to navigate to
-      logo:  <UserCheck size={16} />,          // lucide-react icon component
-      text: "Volunteer Matching"                       // Label displayed next to the icon
-    },
-    {
-      className: "nav-button",          // CSS class for styling
-      link: null,                     // Path to navigate to
-      logo:  <History size={16} />,          // lucide-react icon component
-      text: " Event History"                       // Label displayed next to the icon
-    },
-  ];  */
-  const [events, setEvents] = useState([
-    {
-      id: 1,
-      event: 'Senior Center Visit',
-      date: 'July 5, 2025',
-      time: '2:00 PM - 5:00 PM',
-      location: 'Golden Years Senior Center',
-      volunteers: 8
-    },
-    {
-      id: 2,
-      event: 'Park Restoration',
-      date: 'July 12, 2025',
-      time: '9:00 AM - 1:00 PM',
-      location: 'Riverside Park',
-      volunteers: 15
-    },
-    {
-      id: 3,
-      event: 'Youth Mentoring',
-      date: 'July 18, 2025',
-      time: '4:00 PM - 6:00 PM',
-      location: 'Community Youth Center',
-      volunteers: 5
-    }
-  ]);
+  useEffect(() => {
+    const token = localStorage.getItem("access_token"); // If your backend needs auth
 
+    fetch("http://localhost:5000/api/eventlist/", {
+      headers: {
+        Authorization: `Bearer ${token}`, // remove if not needed
+      },
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("Failed to fetch events or unauthorized");
+        }
+        return response.json();
+      })
+      .then(data => {
+        setEvents(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        setError(err.message);
+        setLoading(false);
+      });
+  }, []);
 
-
- 
-
-
+  if (loading) return <p>Loading events...</p>;
+  if (error) return <p>Error loading events: {error}</p>;
 
   return (
     <>
@@ -64,93 +45,24 @@ export default function ViewAllEvents() {
           background-color: #f9fafb;
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", sans-serif;
         }
-
         .main-content {
           width: 100%;
           padding: 2rem;
           max-width: 1200px;
           margin: 0 auto;
         }
-
-        .page-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 2rem;
-        }
-
-        .page-title-section {
-          display: flex;
-          align-items: center;
-        }
-
-        .page-title {
-          font-size: 1.875rem;
-          font-weight: bold;
-          color: #111827;
-          margin: 0;
-          margin-left: 0.75rem;
-        }
-
-        .page-actions {
-          display: flex;
-          gap: 0.75rem;
-        }
-
-        .action-button {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 0.75rem 1.5rem;
-          border: none;
-          border-radius: 0.375rem;
-          cursor: pointer;
-          font-size: 0.875rem;
-          font-weight: 500;
-          transition: background-color 0.2s;
-        }
-
-        .create-button {
-          background-color: #10b981;
-          color: white;
-        }
-
-        .create-button:hover {
-          background-color: #059669;
-        }
-
-        .remove-button {
-          background-color: #ef4444;
-          color: white;
-        }
-
-        .remove-button:hover {
-          background-color: #dc2626;
-        }
-
-        .remove-button.cancel {
-          background-color: #6b7280;
-        }
-
-        .remove-button.cancel:hover {
-          background-color: #4b5563;
-        }
-
         .events-container {
           background-color: white;
           border-radius: 0.5rem;
           box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
           padding: 1.5rem;
         }
-
         .events-list {
           display: flex;
           flex-direction: column;
           gap: 1rem;
         }
-
         .event-item {
-          position: relative;
           border-left: 4px solid #10b981;
           padding: 1rem;
           background-color: #f9fafb;
@@ -159,102 +71,47 @@ export default function ViewAllEvents() {
           transition: all 0.2s;
           user-select: none;
         }
-
         .event-item:hover {
           box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
           background-color: #f3f4f6;
         }
-
-        .event-item.remove-mode {
-          cursor: default;
-        }
-
         .event-title {
           font-size: 1rem;
           font-weight: 600;
           color: #111827;
           margin: 0 0 0.5rem 0;
         }
-
         .event-details {
           font-size: 0.875rem;
           color: #6b7280;
         }
-
         .event-details-row {
           display: flex;
           align-items: center;
           gap: 1rem;
           margin-bottom: 0.25rem;
         }
-
         .event-detail-with-icon {
           display: flex;
           align-items: center;
           gap: 0.25rem;
         }
-
-        .remove-event-button {
-          position: absolute;
-          top: 0.5rem;
-          right: 0.5rem;
-          background: none;
-          border: none;
-          cursor: pointer;
-          padding: 0.25rem;
-          color: #ef4444;
-          border-radius: 0.25rem;
-          transition: background-color 0.2s;
-        }
-
-        .remove-event-button:hover {
-          background-color: #fef2f2;
-        }
-
         .no-events-message {
           text-align: center;
           color: #6b7280;
           font-size: 0.875rem;
           padding: 2rem;
         }
-
-        @media (max-width: 768px) {
-          .navbar-content {
-            flex-direction: column;
-            gap: 1rem;
-            height: auto;
-            padding: 1rem 0;
-          }
-          
-          .main-content {
-            padding: 1rem;
-          }
-
-          .page-header {
-            flex-direction: column;
-            gap: 1rem;
-            align-items: stretch;
-          }
-
-          .page-actions {
-            justify-content: center;
-          }
-        }
       `}</style>
 
       <div className="view-all-event-container">
-        {/* Navbar */}
-        {/* Naviagation bar imported from Navigation.jsx */}
-        {/*<NavigationBar extraLinks={extraLinks} title={"Upcomming Events"}/>*/}
-         <NavigationBar extraLinks={[]} title={"Upcomming Events"}/>
-        {/* Main Content */}
+        <NavigationBar extraLinks={[]} title={"Upcoming Events"} />
+
         <div className="main-content">
-          {/* Page Header */}
+          <h2 style={{ paddingBottom: '20px', textAlign: 'center' }}>
+            Check out the latest events to help your community
+          </h2>
 
-          <h2 style={{ paddingBottom: '20px' ,textAlign:'center'}}>Check out the latest events to help your community</h2>
-          
-
-          {/* Events Container */}
           <div className="events-container">
             {events.length === 0 ? (
               <div className="no-events-message">No upcoming events.</div>
@@ -263,10 +120,8 @@ export default function ViewAllEvents() {
                 {events.map(event => (
                   <div
                     key={event.id}
-                    onClick={() => {
-                      if (!removeMode) alert(`You are entering ${event.event} event detail page`);
-                    }}
                     className="event-item"
+                    onClick={() => alert(`You are entering ${event.event} event detail page`)}
                   >
                     <h4 className="event-title">{event.event}</h4>
                     <div className="event-details">
