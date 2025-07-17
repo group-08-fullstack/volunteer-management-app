@@ -1,6 +1,6 @@
 from flask_restful import Resource
 from flask import request
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 notifications = [
     { "message": "Edit profile Reminder", "date": "7/10/2025", "read": False, "id": 0 },
@@ -14,7 +14,7 @@ notifications = [
 class Notification(Resource):
     @jwt_required()
     def get(self):
-        userEmail = request.args.get('user')
+        userEmail = get_jwt_identity()
 
         if not userEmail:
             return 400

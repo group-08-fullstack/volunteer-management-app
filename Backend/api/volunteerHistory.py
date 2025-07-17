@@ -103,6 +103,8 @@ data = [
 class VolHistory(Resource):
     @jwt_required()
     def get(self):
+        userEmail = get_jwt_identity()
+        
         return data, 200
     
     @jwt_required()
@@ -150,7 +152,7 @@ class VolHistory(Resource):
         try:
             datetime.strptime(newEntry["eventDate"], "%Y-%m-%d")
         except ValueError:
-            return {"error": "'eventDate' must be in 'YYYY-MM-DD' format"}, 400
+            return {"error": "'eventDate' must be in 'YYYY-MM-DD' format"}, 500
 
         # Check participationStatus
         participation = newEntry["participationStatus"]

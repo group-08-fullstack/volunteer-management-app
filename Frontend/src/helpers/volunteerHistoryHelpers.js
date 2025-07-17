@@ -6,7 +6,7 @@ export async function getVolunteerHistory(){
   await checkTokenTime();
 
   
- const response = await fetch("http://127.0.0.1:5000/api/history/", {
+ const response = await fetch(`http://127.0.0.1:5000/api/history/?user=${localStorage.getItem("user_email")}`, {
         method: "GET",
         headers: {
           "Authorization" : `Bearer ${localStorage.getItem("access_token")}`

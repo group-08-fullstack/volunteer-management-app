@@ -1,20 +1,20 @@
 
 class TestGetNotifications:
 
-    def test_getNotification(self,client, access_token,user):
-        response = client.get(f"/api/notification/?user{user['email']}", headers={"Authorization": f"Bearer {access_token}"})
+    def test_(self,client, access_token):
+        response = client.get(f"/api/notification/", headers={"Authorization": f"Bearer {access_token}"})
         assert response.status_code == 200
 
-    def test_getNotification_unauthorized(self,client, access_token,user):
-        response = client.get(f"/api/notification/?user{user['email']}")
+    def test__unauthorized(self,client, access_token):
+        response = client.get(f"/api/notification/")
         assert response.status_code == 500
 
-    def test_getNotification_no_user(self,client, access_token,user):
+    def test__no_user(self,client, access_token):
         response = client.get(f"/api/notification/", headers={"Authorization": f"Bearer {access_token}"})
         assert response.status_code == 200
 
 class TestPostNotifications:
-    def test_postNotification(self,client, user, access_token):
+    def test_(self,client, user, access_token):
         notification = {"message": "Edit profile Reminder", "date": "7/10/2025", "read": False}
         response = client.post(
             f"/api/notification/?receiverId={user['email']}",
@@ -22,14 +22,16 @@ class TestPostNotifications:
             json=notification
         )
         assert response.status_code == 201
-    def test_postNotification_unauthorized(self,client, user, access_token):
+
+    def test__unauthorized(self,client, user, access_token):
         notification = {"message": "Edit profile Reminder", "date": "7/10/2025", "read": False}
         response = client.post(
             f"/api/notification/?receiverId={user['email']}",
             json=notification
         )
         assert response.status_code == 500
-    def test_postNotification_no_Id(self,client, user, access_token):
+
+    def test__no_Id(self,client, user, access_token):
         notification = {"message": "Edit profile Reminder", "date": "7/10/2025", "read": False}
         response = client.post(
             f"/api/notification/",
@@ -37,7 +39,8 @@ class TestPostNotifications:
             json=notification
         )
         assert response.status_code == 400
-    def test_postNotification_required_fields(self,client, user, access_token):
+
+    def test__required_fields(self,client, user, access_token):
         notification = {"date": "7/10/2025", "read": False}
         response = client.post(
             f"/api/notification/?receiverId={user['email']}",
@@ -46,7 +49,7 @@ class TestPostNotifications:
         )
         assert response.status_code == 400
 
-    def test_postNotification_correct_message_type(self,client, user, access_token):
+    def test__correct_message_type(self,client, user, access_token):
         notification = {"message": False, "date": "7/10/2025", "read": False}
         response = client.post(
             f"/api/notification/?receiverId={user['email']}",
@@ -54,7 +57,8 @@ class TestPostNotifications:
             json=notification
         )
         assert response.status_code == 400
-    def test_postNotification_correct_data_type(self,client, user, access_token):
+
+    def test__correct_data_type(self,client, user, access_token):
         notification = {"message": "Edit profile Reminder", "date": 7/10/2025, "read": False}
         response = client.post(
             f"/api/notification/?receiverId={user['email']}",
@@ -62,7 +66,8 @@ class TestPostNotifications:
             json=notification
         )
         assert response.status_code == 400
-    def test_postNotification_correct_read_type(self,client, user, access_token):
+
+    def test__correct_read_type(self,client, user, access_token):
         notification = {"message": "Edit profile Reminder", "date": "7/10/2025", "read": "False"}
         response = client.post(
             f"/api/notification/?receiverId={user['email']}",
@@ -74,7 +79,7 @@ class TestPostNotifications:
 
 
 class TestDeleteNotifications:
-    def test_delteteNotification(self,client,access_token):
+    def test_(self,client,access_token):
         notiId = "5"
         response = client.delete(
             f"/api/notification/?notiId={notiId}",
@@ -82,7 +87,7 @@ class TestDeleteNotifications:
         )
     
         assert response.status_code == 200
-    def test_delteteNotification_unauthorized(self,client,access_token):
+    def test__unauthorized(self,client,access_token):
         notiId = "5"
         response = client.delete(
             f"/api/notification/?notiId={notiId}"
@@ -90,7 +95,7 @@ class TestDeleteNotifications:
     
         assert response.status_code == 500
 
-    def test_delteteNotification_no_id(self,client,access_token):
+    def test__no_id(self,client,access_token):
         notiId = "5"
         response = client.delete(
             f"/api/notification/",
@@ -98,7 +103,7 @@ class TestDeleteNotifications:
         )
     
         assert response.status_code == 400
-    def test_delteteNotification_id_notDigit(self,client,access_token):
+    def test__id_notDigit(self,client,access_token):
         notiId = "five"
         response = client.delete(
             f"/api/notification/?notiId={notiId}",
@@ -108,7 +113,7 @@ class TestDeleteNotifications:
         assert response.status_code == 400
 
 class TestPatchNotifications:
-    def test_patchNotification(self,client,access_token):
+    def test_(self,client,access_token):
         notiId = "0"
         response = client.patch(
             f"/api/notification/?notiId={notiId}",
@@ -118,7 +123,7 @@ class TestPatchNotifications:
     
         assert response.status_code == 200
 
-    def test_patchNotification_unauthorized(self,client,access_token):
+    def test__unauthorized(self,client,access_token):
         notiId = "0"
         response = client.patch(
             f"/api/notification/?notiId={notiId}",
@@ -127,7 +132,7 @@ class TestPatchNotifications:
     
         assert response.status_code == 500
 
-    def test_patchNotification_no_id(self,client,access_token):
+    def test__no_id(self,client,access_token):
         notiId = "0"
         response = client.patch(
             f"/api/notification/",
@@ -137,7 +142,7 @@ class TestPatchNotifications:
     
         assert response.status_code == 400
 
-    def test_patchNotification_id_notDigit(self,client,access_token):
+    def test__id_notDigit(self,client,access_token):
         notiId = "zero"
         response = client.patch(
             f"/api/notification/?notiId={notiId}",
@@ -147,7 +152,7 @@ class TestPatchNotifications:
     
         assert response.status_code == 400
 
-    def test_patchNotification_no_data(self,client,access_token):
+    def test__no_data(self,client,access_token):
         notiId = "0"
         response = client.patch(
             f"/api/notification/?notiId={notiId}",
@@ -156,7 +161,7 @@ class TestPatchNotifications:
     
         assert response.status_code == 415
 
-    def test_patchNotification_read_notBool(self,client,access_token):
+    def test__read_notBool(self,client,access_token):
         notiId = "0"
         response = client.patch(
             f"/api/notification/?notiId={notiId}",
@@ -166,7 +171,7 @@ class TestPatchNotifications:
     
         assert response.status_code == 400
 
-    def test_patchNotification_notification_not_found(self,client,access_token):
+    def test__notification_not_found(self,client,access_token):
         notiId = "10"
         response = client.patch(
             f"/api/notification/?notiId={notiId}",
