@@ -22,7 +22,7 @@ class TestNotifications:
             headers={"Authorization": f"Bearer {access_token}"}
         )
     
-        assert response.status_code == 200
+        assert response.status_code == 202
 
     # def test_patchNotification(self,client,access_token):
     #     notiId = "0"
