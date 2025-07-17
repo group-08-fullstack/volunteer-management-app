@@ -1,7 +1,7 @@
 import pytest
 from flask import Flask
 from flask_jwt_extended import create_access_token
-from api.app import app  # Update this import based on your actual Flask app location
+from api.app import app 
 
 @pytest.fixture
 def client():
@@ -51,7 +51,7 @@ def test_create_event_missing_fields(client, access_token):
     response = client.post("/api/eventlist/", json=incomplete_event, headers={
         "Authorization": f"Bearer {access_token}"
     })
-    assert response.status_code == 400  # Bad Request
+    assert response.status_code == 400 
 
 def test_delete_event(client, access_token):
     response = client.post("/api/eventlist/", json={

@@ -11,11 +11,11 @@ export default function ViewAllEvents() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token"); // If your backend needs auth
+    const token = localStorage.getItem("access_token");
 
     fetch("http://localhost:5000/api/eventlist/", {
       headers: {
-        Authorization: `Bearer ${token}`, // remove if not needed
+        Authorization: `Bearer ${token}`, 
       },
     })
       .then(response => {
