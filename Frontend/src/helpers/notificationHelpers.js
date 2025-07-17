@@ -20,11 +20,11 @@ export async function sendNotification(receiverId,data){
 
 
 // Get all notifications for a user
-export async function getUserNotifications(receiverId){
+export async function getUserNotifications(){
     // First validate that user JWT token is still vaild
     await checkTokenTime();
    
-    const response = await fetch("http://127.0.0.1:5000/api/notification/", {
+    const response = await fetch(`http://127.0.0.1:5000/api/notification/?user=${localStorage.getItem("user_email")}`, {
         method: "GET",
         headers: {
             "Authorization" : `Bearer ${localStorage.getItem("access_token")}`

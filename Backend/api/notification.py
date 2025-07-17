@@ -14,9 +14,9 @@ notifications = [
 class Notification(Resource):
     @jwt_required()
     def get(self):
-        user = request.args.get('user')
+        userEmail = request.args.get('user')
 
-        if not user:
+        if not userEmail:
             return 400
         
         # Database query would go here
