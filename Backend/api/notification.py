@@ -3,11 +3,11 @@ from flask import request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 notifications = [
-    { "message": "Edit profile Reminder", "date": "7/10/2025", "read": False, "id": 0 },
-    { "message": "New Event assigned", "date": "6/29/2025", "read": False, "id": 1 },
-    { "message": "Event updated", "date": "6/28/2025", "read": False, "id": 2 },
-    { "message": "Welcome!", "date": "6/28/2025", "read": False, "id": 3 },
-]
+    { "receiver" : "Testuser1", "message": "Welcome!", "date": "6/28/2025", "read": False, "id": 0 },
+    { "receiver" : "Testuser1", "message": "Edit profile Reminder", "date": "7/10/2025", "read": False ,"id": 1 },
+      {"receiver" : "Testuser1", "message": "New Event: Food Drive", "date": "6/29/2025", "read": False,"id": 2 },
+    {"receiver" : "Testuser1",  "message": "Event updated : Food Drive", "date": "6/28/2025", "read": False, "id": 3 },
+    ]
 
 
 
@@ -25,15 +25,10 @@ class Notification(Resource):
     
     @jwt_required()
     def post(self):
-        receiverId = request.args.get('receiverId')
         data = request.get_json()
 
-        # Validate receiverId
-        if not receiverId:
-            return {"error": "Missing receiverId parameter"}, 400
-
         # Validate body structure
-        required_fields = ["message", "date", "read"]
+        required_fields = ["receiver","message", "date", "read"]
         if not data:
             return {"error": "Missing request body"}, 400
 
@@ -42,12 +37,15 @@ class Notification(Resource):
                 return {"error": f"Missing field '{field}'"}, 400
 
         # Check if correct types
+        if not isinstance(data["receiver"], str):
+            return {"error": "'receiver' must be a string"}, 400
         if not isinstance(data["message"], str):
             return {"error": "'message' must be a string"}, 400
         if not isinstance(data["date"], str):
             return {"error": "'date' must be a string in MM/DD/YYYY format"}, 400
         if not isinstance(data["read"], bool):
             return {"error": "'read' must be a boolean"}, 400
+
         # Assign new ID and append
         curId = len(notifications)
         data["id"] = curId

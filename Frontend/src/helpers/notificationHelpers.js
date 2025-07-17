@@ -2,11 +2,11 @@ import {checkTokenTime} from "../helpers/authHelpers"
 
 
 // Create a notification
-export async function sendNotification(receiverId,data){
+export async function createNotification(data){
     // First validate that user JWT token is still vaild
     await checkTokenTime();
 
-     const response = await fetch(`http://127.0.0.1:5000/api/notification/?receiverId=${receiverId}`, {
+    await fetch(`http://127.0.0.1:5000/api/notification/`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -14,8 +14,6 @@ export async function sendNotification(receiverId,data){
         },
         body: JSON.stringify(data)
     });
-
-    return null;
 }
 
 
@@ -32,7 +30,6 @@ export async function getUserNotifications(){
     });
 
     const parsed = await response.json();
-
 
     return parsed;
 }
@@ -53,9 +50,6 @@ export async function FlipReadStatus(notificationId,data){
         },
         body : JSON.stringify({ "read": !data["read"] })
     });
-
-    const parsed = await response.json();
-    console.log(parsed);
 }
 
 
@@ -72,7 +66,5 @@ export async function deleteNotification(notificationId) {
             "Authorization" : `Bearer ${localStorage.getItem("access_token")}`
         }
     });
-
-    const parsed = await response.json();
 }
 

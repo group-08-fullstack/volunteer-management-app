@@ -7,6 +7,7 @@ import { deleteNotification,
     } from '../helpers/notificationHelpers.js';
 
 
+
 export default function Notificationbutton() {
     // State to track whether the dropdown menu is visible
     const [showDropDown, setShowDropDown] = useState(false);
@@ -120,7 +121,7 @@ export default function Notificationbutton() {
                 {/* Div container to hold notifications */}
                 <div className='notification-div'>
                     {/* For each element with notifications create a NotificationItem component*/}
-                    {notifications.map((notification) => (
+                    {notifications.toReversed().map((notification) => (
                         <NotificationItem key = {notification.id} data={notification}  onToggleRead={() => toggleRead(notification.id)} onDelete={() => handleDelete(notification.id)}/>
                     ))}
                 </div>

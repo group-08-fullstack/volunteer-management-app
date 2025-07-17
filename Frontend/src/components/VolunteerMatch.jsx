@@ -2,10 +2,14 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavigationBar from './Navigation';
 import {History,Settings} from 'lucide-react';
+import { createNotification } from '../helpers/notificationHelpers';
 
 
 // notification
-function sendNotification(email, message) {
+async function sendNotification(email,data, message) {
+
+  const newNotification = { "receiver" : data.volunteer.email, "message" : `New event assigned: ${data.event.name}`, "date" : data.event.date, "read" : false};
+  await createNotification(newNotification);
   alert(`Notification to ${email}: ${message}`);
 }
 
@@ -91,7 +95,7 @@ export default function VolunteerMatch() {
 
     const data = await response.json();
 
-    sendNotification(data.volunteer.email, `You have been matched to the event: ${data.event.name}`);
+    sendNotification(data.volunteer.email, data,`You have been matched to the event: ${data.event.name}`);
 
     setMatchResult({
       volunteer: data.volunteer,
