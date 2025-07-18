@@ -1,117 +1,114 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavigationBar from './Navigation';
-import {History,Settings} from 'lucide-react';
+import { History, Settings } from 'lucide-react';
 import { createNotification } from '../helpers/notificationHelpers';
-import {checkTokenTime} from "../helpers/authHelpers"
+import { checkTokenTime } from "../helpers/authHelpers";
 
-
-
-// notification
-async function sendNotification(email,data, message) {
-
-  const newNotification = { "receiver" : data.volunteer.email, "message" : `New event assigned: ${data.event.name}`, "date" : data.event.date, "read" : false};
+// Notification helper
+async function sendNotification(email, data, message) {
+  const newNotification = {
+    receiver: data.volunteer.email,
+    message: `New event assigned: ${data.event.name}`,
+    date: data.event.date,
+    read: false
+  };
   await createNotification(newNotification);
   alert(`Notification to ${email}: ${message}`);
 }
 
 export default function VolunteerMatch() {
   const navigate = useNavigate();
-
-  const volunteers = [
-    { email: 'alice@yahoo.com', name: 'Alice Johnson' },
-    { email: 'bob@yahoo.com', name: 'Bob Smith' },
-    { email: 'carol@yahoo.com', name: 'Carol Williams' }
-  ];
-
-  const events = [
-    {
-      name: 'Food Drive',
-      description: 'Help distribute food to those in need',
-      location: 'Community Center',
-      requiredSkills: ['Food Handling', 'Bilingual'],
-      urgency: 'High',
-      date: '2025-08-15'
-    },
-    {
-      name: 'Animal Shelter Support',
-      description: 'Assist with animal care and adoption events',
-      location: 'Animal Shelter',
-      requiredSkills: ['Animal Handling'],
-      urgency: 'Medium',
-      date: '2025-09-01'
-    }
-  ];
-
-  // Array containing props to be sent to navigationbar component
-  const extraLinks = [
-    {
-      className: "nav-button",          // CSS class for styling
-      link: "/eventmanagement",                     // Path to navigate to
-      logo:  <Settings size={16} />,          // lucide-react icon component
-      text: "Event Management"                       // Label displayed next to the icon
-    },
-    {
-      className: "nav-button",          // CSS class for styling
-      link: null,                     // Path to navigate to
-      logo:  <History size={16} />,          // lucide-react icon component
-      text: " Event History"                       // Label displayed next to the icon
-    },
-  ];  
-
+  const [volunteers, setVolunteers] = useState([]);
+  const [events, setEvents] = useState([]);
   const [selectedVolunteer, setSelectedVolunteer] = useState(null);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [matchResult, setMatchResult] = useState(null);
 
+  const extraLinks = [
+    {
+      className: "nav-button",
+      link: "/eventmanagement",
+      logo: <Settings size={16} />,
+      text: "Event Management"
+    },
+    {
+      className: "nav-button",
+      link: null,
+      logo: <History size={16} />,
+      text: " Event History"
+    },
+  ];
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const token = localStorage.getItem('access_token');
+      await checkTokenTime();
+
+      try {
+        const response = await fetch('http://localhost:5000/api/matching/match/', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch volunteers/events.');
+        }
+
+        const data = await response.json();
+        setVolunteers(data.volunteers);
+        setEvents(data.events);
+      } catch (error) {
+        alert('Error fetching data: ' + error.message);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   const handleMatch = async () => {
-  if (!selectedVolunteer || !selectedEvent) {
-    alert('Please select both a volunteer and an event.');
-    return;
-  }
-
-  const token = localStorage.getItem('access_token'); 
-   // First validate that user JWT token is still vaild
-  await checkTokenTime();
-
-  if (!token) {
-    alert('You are not authenticated. Please log in.');
-    return;
-  }
-
-  try {
-    const response = await fetch('http://localhost:5000/api/matching/match/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}` 
-      },
-      body: JSON.stringify({
-        volunteer_email: selectedVolunteer.email,
-        event_name: selectedEvent.name
-      }),
-    });
-
-    if (!response.ok) {
-      const errData = await response.json();
-      alert('Error: ' + (errData.message || response.statusText));
+    if (!selectedVolunteer || !selectedEvent) {
+      alert('Please select both a volunteer and an event.');
       return;
     }
 
-    const data = await response.json();
+    const token = localStorage.getItem('access_token');
+    await checkTokenTime();
 
-    sendNotification(data.volunteer.email, data,`You have been matched to the event: ${data.event.name}`);
+    if (!token) {
+      alert('You are not authenticated. Please log in.');
+      return;
+    }
 
-    setMatchResult({
-      volunteer: data.volunteer,
-      event: data.event
-    });
+    try {
+      const response = await fetch('http://localhost:5000/api/matching/match/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          volunteer_email: selectedVolunteer.email,
+          event_name: selectedEvent.name
+        }),
+      });
 
-  } catch (error) {
-    alert('Failed to match volunteer: ' + error.message);
-  }
-};
+      if (!response.ok) {
+        const errData = await response.json();
+        alert('Error: ' + (errData.message || response.statusText));
+        return;
+      }
 
-
+      const data = await response.json();
+      sendNotification(data.volunteer.email, data, `You have been matched to the event: ${data.event.name}`);
+      setMatchResult({ volunteer: data.volunteer, event: data.event });
+    } catch (error) {
+      alert('Failed to match volunteer: ' + error.message);
+    }
+  };
 
   const containerStyle = {
     maxWidth: '600px',
