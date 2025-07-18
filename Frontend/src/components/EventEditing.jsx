@@ -515,7 +515,7 @@ export default function EventEditingForm() {
               <div className="form-group full-width">
                 <label className="form-label">
                   <FileText size={16} />
-                  Event Description*
+                  Event Description
                 </label>
                 <textarea
                   className="form-textarea"
@@ -567,7 +567,7 @@ export default function EventEditingForm() {
 
             <div className="submit-section">
               <button type="button" className="submit-button" onClick={handleSubmit}>
-                Create Event
+                  Save
               </button>
               <button type="button" className="cancel-button" onClick={handleCancel}>
                 Cancel
