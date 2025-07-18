@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import NavigationBar from './Navigation';
 import {History,Settings} from 'lucide-react';
 import { createNotification } from '../helpers/notificationHelpers';
+import {checkTokenTime} from "../helpers/authHelpers"
+
 
 
 // notification
@@ -68,6 +70,8 @@ export default function VolunteerMatch() {
   }
 
   const token = localStorage.getItem('access_token'); 
+   // First validate that user JWT token is still vaild
+  await checkTokenTime();
 
   if (!token) {
     alert('You are not authenticated. Please log in.');
