@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MapPin, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import NavigationBar from './Navigation';
+import { checkTokenTime } from '../helpers/authHelpers';
 
 export default function ViewAllEvents() {
   const navigate = useNavigate();
@@ -12,6 +13,12 @@ export default function ViewAllEvents() {
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
+
+    // First validate that user JWT token is still vaild 
+        async function awaitChecktokenTime() {
+            await checkTokenTime();
+        }
+        awaitChecktokenTime();
 
     fetch("http://localhost:5000/api/eventlist/", {
       headers: {
