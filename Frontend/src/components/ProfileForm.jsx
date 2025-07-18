@@ -4,7 +4,8 @@ import { User, MapPin, Calendar, Award, FileText, Home } from 'lucide-react';
 import { 
   getUserProfile, 
   createProfile, 
-  updateProfile, 
+  updateProfile,
+  deleteProfile, 
   getSkillsOptions, 
   getStatesOptions 
 } from '../helpers/profilehelpers';
@@ -168,6 +169,7 @@ export default function ProfileForm() {
       setIsLoading(false);
     }
   };
+
 
   return (
     <>
@@ -689,7 +691,8 @@ export default function ProfileForm() {
                 ? (isEditMode ? 'Updating...' : 'Saving...') 
                 : (isEditMode ? 'Update Profile' : 'Save Profile')
               }
-            </button>
+              </button>
+
           </div>
         </div>
       </div>

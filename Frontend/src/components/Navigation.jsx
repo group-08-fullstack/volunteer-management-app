@@ -89,7 +89,7 @@ export default function NavigationBar({extraLinks, title}){
             
                         {/* Account */}
                         <button
-                            onClick={() => null}
+                            onClick={() => role == "volunteer" ? navigate("/profile") : navigate("/admindash")}
                             className="icon-button"
                         >
                             <User size={20} />

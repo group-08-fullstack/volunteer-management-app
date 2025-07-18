@@ -105,11 +105,13 @@ class VolHistory(Resource):
     def get(self):
         userEmail = get_jwt_identity()
         
+        # This will return data where the userEmail is in database
         return data, 200
     
     @jwt_required()
     def post(self):
         newEntry = request.get_json()
+        userEmail = get_jwt_identity()
 
         # Check for presence of data
         if not newEntry:
@@ -167,5 +169,7 @@ class VolHistory(Resource):
 
         
         # Passed all validations
+        # This would be added to the user history in the database
+        newEntry['user'] = userEmail
         data.append(newEntry)
         return {"Msg": "Success"}, 201
