@@ -1,19 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, MapPin, Calendar, Award, FileText, Home } from 'lucide-react';
-
-// Multi-select options
-const skillsOptions = [
-  { value: 'bilingual', label: 'Bilingual' },
-  { value: 'animal_handling', label: 'Animal Handling' },
-  { value: 'food_handling', label: 'Food Handling' },
-];
-
-const stateOptions = [
-  { value: 'CA', label: 'California' },
-  { value: 'NY', label: 'New York' },
-  { value: 'TX', label: 'Texas' },
-];
+import { 
+  getUserProfile, 
+  createProfile, 
+  updateProfile, 
+  getSkillsOptions, 
+  getStatesOptions 
+} from '../helpers/profilehelpers';
 
 const Select = ({ options, isMulti, placeholder, onChange, value }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -74,8 +68,37 @@ export default function ProfileForm() {
   });
 
   const navigate = useNavigate();
-
   const [dateInput, setDateInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+
+  // ✅ FIXED: Use helper function and correct token
+  useEffect(() => {
+    const loadExistingProfile = async () => {
+      try {
+        const profileData = await getUserProfile();
+        if (profileData) {
+          setForm({
+            fullName: profileData.fullName || '',
+            address1: profileData.address1 || '',
+            address2: profileData.address2 || '',
+            city: profileData.city || '',
+            state: profileData.state || '',
+            zip: profileData.zip || '',
+            skills: profileData.skills || [],
+            preferences: profileData.preferences || '',
+            availability: profileData.availability || []
+          });
+          setIsEditMode(true);
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error);
+        // Continue with empty form for new profile
+      }
+    };
+
+    loadExistingProfile();
+  }, []);
 
   // Add a new availability date
   const handleAddDate = () => {
@@ -105,10 +128,17 @@ export default function ProfileForm() {
     { value: 'tutoring', label: 'Tutoring/Teaching' },
   ];
 
-  // Handle form submission
-  const handleSubmit = (e) => {
+  const stateOptions = [
+    { value: 'CA', label: 'California' },
+    { value: 'NY', label: 'New York' },
+    { value: 'TX', label: 'Texas' },
+  ];
+
+  // ✅ FIXED: Use helper functions instead of raw fetch
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Validation
     if (form.availability.length === 0) {
       alert('Please add at least one availability date.');
       return;
@@ -119,12 +149,27 @@ export default function ProfileForm() {
       return;
     }
 
-    // Simulate saving profile
-    alert('Profile saved successfully!');
-    navigate('/volunteerdash');
+    setIsLoading(true);
+
+    try {
+      let result;
+      if (isEditMode) {
+        result = await updateProfile(form);
+      } else {
+        result = await createProfile(form);
+      }
+      
+      alert(`Profile ${isEditMode ? 'updated' : 'created'} successfully!`);
+      navigate('/volunteerdash');
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      alert(`Error: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-   return (
+  return (
     <>
       <style>{`
         .profile-container {
@@ -342,56 +387,6 @@ export default function ProfileForm() {
           color: #1d4ed8;
         }
 
-        .select-container {
-          position: relative;
-          width: 100%;
-        }
-
-        .select-display {
-          width: 100%;
-          padding: 0.75rem;
-          border: 1px solid #d1d5db;
-          border-radius: 0.375rem;
-          font-size: 0.875rem;
-          background-color: white;
-          cursor: pointer;
-          transition: border-color 0.2s;
-          box-sizing: border-box;
-        }
-
-        .select-display:hover {
-          border-color: #9ca3af;
-        }
-
-        .select-dropdown {
-          position: absolute;
-          top: 100%;
-          left: 0;
-          right: 0;
-          background-color: white;
-          border: 1px solid #d1d5db;
-          border-radius: 0.375rem;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-          z-index: 10;
-          max-height: 200px;
-          overflow-y: auto;
-        }
-
-        .select-option {
-          padding: 0.75rem;
-          cursor: pointer;
-          transition: background-color 0.2s;
-        }
-
-        .select-option:hover {
-          background-color: #f3f4f6;
-        }
-
-        .select-option.selected {
-          background-color: #dbeafe;
-          color: #1d4ed8;
-        }
-
         .availability-section {
           display: flex;
           flex-direction: column;
@@ -477,6 +472,11 @@ export default function ProfileForm() {
           background-color: #1d4ed8;
         }
 
+        .submit-button:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
         @media (max-width: 768px) {
           .profile-form {
             grid-template-columns: 1fr;
@@ -493,14 +493,18 @@ export default function ProfileForm() {
         {/* Header */}
         <div className="profile-header">
           <h1 className="profile-brand">Volunteer Portal</h1>
-          <p className="profile-subtitle">Complete your volunteer profile</p>
+          <p className="profile-subtitle">
+            {isEditMode ? 'Update your volunteer profile' : 'Complete your volunteer profile'}
+          </p>
         </div>
 
         {/* Profile Card */}
         <div className="profile-card">
           <div className="card-header">
             <User color="#3b82f6" size={24} />
-            <h2 className="card-title">Volunteer Profile</h2>
+            <h2 className="card-title">
+              {isEditMode ? 'Update Profile' : 'Volunteer Profile'}
+            </h2>
           </div>
 
           <div onSubmit={handleSubmit} className="profile-form">
@@ -609,7 +613,7 @@ export default function ProfileForm() {
               />
             </div>
 
-               {/* Skills - Now as dropdown */}
+            {/* Skills */}
             <div className="form-group full-width">
               <label className="form-label">
                 <Award size={16} />
@@ -678,8 +682,13 @@ export default function ProfileForm() {
             <button 
               type="button" 
               onClick={handleSubmit} 
-              className="submit-button">
-              Save Profile
+              className="submit-button"
+              disabled={isLoading}
+            >
+              {isLoading 
+                ? (isEditMode ? 'Updating...' : 'Saving...') 
+                : (isEditMode ? 'Update Profile' : 'Save Profile')
+              }
             </button>
           </div>
         </div>
