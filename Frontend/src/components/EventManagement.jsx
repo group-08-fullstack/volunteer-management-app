@@ -71,6 +71,10 @@ export default function EventManagementPage() {
     navigate('/createevent');
   };
 
+   const handleEventEditing = () =>{
+    navigate('/eventediting')
+  }
+
   const handleRemoveEvent = (id) => {
     const confirmed = window.confirm('Are you sure you want to remove this event?');
     if (confirmed) {
@@ -320,7 +324,7 @@ export default function EventManagementPage() {
                   <div
                     key={event.id}
                     onClick={() => {
-                      if (!removeMode) alert(`You are entering ${event.event} event editing page`);
+                      if (!removeMode) handleEventEditing();
                     }}
                     className={`event-item ${removeMode ? 'remove-mode' : ''}`}
                   >
