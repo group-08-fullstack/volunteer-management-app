@@ -1,6 +1,5 @@
 from flask_restful import Resource, reqparse
-from flask_jwt_extended import jwt_required
-
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 # hard-coded database
 class MatchVolunteer(Resource):
@@ -28,6 +27,14 @@ class MatchVolunteer(Resource):
             "date": "2025-09-01"
         }
     ]
+
+    @jwt_required()
+    def get(self):
+        return {
+            "volunteers": self.volunteers,
+            "events": self.events
+        }, 200
+
     @jwt_required()
     def post(self):
         parser = reqparse.RequestParser()
