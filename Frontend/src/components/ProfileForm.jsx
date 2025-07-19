@@ -14,6 +14,11 @@ const Select = ({ options, isMulti, placeholder, onChange, value }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selected, setSelected] = useState(value || (isMulti ? [] : null));
 
+  // ✅ Sync selected state when value prop changes
+  useEffect(() => {
+    setSelected(value || (isMulti ? [] : null));
+  }, [value, isMulti]);
+
   const handleOptionClick = (option) => {
     if (isMulti) {
       const newSelected = selected.some(s => s.value === option.value)
@@ -73,12 +78,42 @@ export default function ProfileForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
 
-  // ✅ FIXED: Use helper function and correct token
+  // ✅ REMOVED hardcoded options, now using state
+  const [skillsOptions, setSkillsOptions] = useState([]);
+  const [stateOptions, setStateOptions] = useState([]);
+  const [optionsLoading, setOptionsLoading] = useState(true);
+
+  // ✅ Load options from helper functions
+  useEffect(() => {
+    const loadOptions = async () => {
+      try {
+        setOptionsLoading(true);
+        const [skills, states] = await Promise.all([
+          getSkillsOptions(),
+          getStatesOptions()
+        ]);
+        setSkillsOptions(skills);
+        setStateOptions(states);
+      } catch (error) {
+        console.error('Error loading options:', error);
+        // Set fallback options if API fails
+      } finally {
+        setOptionsLoading(false);
+      }
+    };
+
+    loadOptions();
+  }, []);
+
+  // ✅ Load existing profile
   useEffect(() => {
     const loadExistingProfile = async () => {
       try {
         const profileData = await getUserProfile();
         if (profileData) {
+          console.log('Loaded profile data:', profileData);
+          console.log('Skills from profile:', profileData.skills);
+          
           setForm({
             fullName: profileData.fullName || '',
             address1: profileData.address1 || '',
@@ -120,22 +155,7 @@ export default function ProfileForm() {
     }));
   };
 
-  // Multi-select options
-  const skillsOptions = [
-    { value: 'bilingual', label: 'Bilingual' },
-    { value: 'animal_handling', label: 'Animal Handling' },
-    { value: 'food_handling', label: 'Food Handling' },
-    { value: 'first_aid', label: 'First Aid Certified' },
-    { value: 'tutoring', label: 'Tutoring/Teaching' },
-  ];
-
-  const stateOptions = [
-    { value: 'CA', label: 'California' },
-    { value: 'NY', label: 'New York' },
-    { value: 'TX', label: 'Texas' },
-  ];
-
-  // ✅ FIXED: Use helper functions instead of raw fetch
+  // ✅ Use helper functions instead of raw fetch
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -170,6 +190,17 @@ export default function ProfileForm() {
     }
   };
 
+  // ✅ Show loading state while options are loading
+  if (optionsLoading) {
+    return (
+      <div className="profile-container">
+        <div className="profile-header">
+          <h1 className="profile-brand">Volunteer Portal</h1>
+          <p className="profile-subtitle">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -615,7 +646,7 @@ export default function ProfileForm() {
               />
             </div>
 
-            {/* Skills */}
+            {/* ✅ Skills - Now using dynamic options */}
             <div className="form-group full-width">
               <label className="form-label">
                 <Award size={16} />
@@ -691,8 +722,7 @@ export default function ProfileForm() {
                 ? (isEditMode ? 'Updating...' : 'Saving...') 
                 : (isEditMode ? 'Update Profile' : 'Save Profile')
               }
-              </button>
-
+            </button>
           </div>
         </div>
       </div>

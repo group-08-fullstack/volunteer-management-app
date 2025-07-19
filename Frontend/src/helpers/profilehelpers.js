@@ -88,29 +88,54 @@ export async function deleteProfile() {
     return true;
 }
 
-// ✅ FIXED: Return hardcoded skills instead of API call
+// ✅ UPDATED: Get skills from backend API
 export async function getSkillsOptions(){
-    // Return hardcoded skills since /api/profile/skills/ doesn't exist
-    return [
-        { value: 'bilingual', label: 'Bilingual' },
-        { value: 'animal_handling', label: 'Animal Handling' },
-        { value: 'food_handling', label: 'Food Handling' },
-        { value: 'first_aid', label: 'First Aid Certified' },
-        { value: 'tutoring', label: 'Tutoring/Teaching' },
-    ];
+    try {
+        const response = await fetch(`http://127.0.0.1:5000/api/profile/skills/`, {
+            method: "GET"
+            // No auth required for reference data
+        });
+
+        if (response.ok) {
+            const parsed = await response.json();
+            return parsed.skills;
+        } else {
+            console.error('Failed to load skills from API, using fallback');
+            // Return fallback skills if API fails
+            return [
+            ];
+        }
+    } catch (error) {
+        console.error('Network error loading skills, using fallback:', error);
+        // Return fallback skills if network fails
+        return [
+
+        ];
+    }
 }
 
-// ✅ FIXED: Return hardcoded states instead of API call
+// ✅ UPDATED: Get states from backend API
 export async function getStatesOptions(){
-    // Return hardcoded states since /api/profile/states/ doesn't exist
-    return [
-        { value: 'CA', label: 'California' },
-        { value: 'NY', label: 'New York' },
-        { value: 'TX', label: 'Texas' },
-    ];
+    try {
+        const response = await fetch(`http://127.0.0.1:5000/api/profile/states/`, {
+            method: "GET"
+            // No auth required for reference data
+        });
+
+        if (response.ok) {
+            const parsed = await response.json();
+            return parsed.states;
+        } else {
+            console.error('Failed to load states from API, using fallback');
+            // Return fallback states if API fails
+            return [
+            ];
+        }
+    } catch (error) {
+        console.error('Network error loading states, using fallback:', error);
+        // Return fallback states if network fails
+        return [
+        ];
+    }
 }
 
-// ✅ REMOVED: These functions call non-existent endpoints
-// Remove these from your ProfileForm.jsx if you're using them:
-// - searchProfiles()
-// - getAllProfiles()
