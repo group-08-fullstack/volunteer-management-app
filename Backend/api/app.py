@@ -20,9 +20,7 @@ from . import auth
 from . import matching
 from . import eventlist
 from . import profileForm
-
-
-  
+from . import admin
 
 app = Flask(__name__)
 
@@ -51,3 +49,9 @@ api.add_resource(profileForm.Profile, '/api/profile/')
 api.add_resource(profileForm.ProfileSkills, '/api/profile/skills/')   
 api.add_resource(profileForm.ProfileStates, '/api/profile/states/') 
 api.add_resource(auth.DeleteAccount, '/api/auth/delete/')
+api.add_resource(admin.AdminDashboard, '/api/admin/dashboard/')
+api.add_resource(admin.AdminVolunteers, '/api/admin/volunteers/')
+api.add_resource(admin.AdminEvents, '/api/admin/events/')
+api.add_resource(admin.AdminStatistics, '/api/admin/statistics/')
+api.add_resource(admin.AdminVolunteerDetail, '/api/admin/volunteers/<int:volunteer_id>/')
+api.add_resource(admin.AdminEventDetail, '/api/admin/events/<int:event_id>/')
