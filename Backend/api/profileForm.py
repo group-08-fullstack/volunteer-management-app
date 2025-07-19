@@ -50,12 +50,14 @@ VALID_SKILLS = [
     {"value": "animal_handling", "label": "Animal Handling"},
     {"value": "food_handling", "label": "Food Handling"},
     {"value": "first_aid", "label": "First Aid Certified"},
-    {"value": "tutoring", "label": "Tutoring/Teaching"}
+    {"value": "tutoring", "label": "Tutoring/Teaching"},
+    {"value": "cashier", "label": "Cash Handling"}
 ]
 
 # Valid state options (should match frontend)
 VALID_STATES = [
     {"value": "CA", "label": "California"},
+    {"value": "FL", "label": "Florida"},
     {"value": "NY", "label": "New York"},
     {"value": "TX", "label": "Texas"}
 ]
@@ -241,6 +243,18 @@ class Profile(Resource):
         
         return None  # No validation errors
 
+# Add these classes to the END of your profile.py file
+
+class ProfileSkills(Resource):
+    def get(self):
+        """Get available skill options"""
+        return {"skills": VALID_SKILLS}, 200
+
+
+class ProfileStates(Resource):
+    def get(self):
+        """Get available state options"""
+        return {"states": VALID_STATES}, 200
 
 class ProfileList(Resource):
     @jwt_required()
