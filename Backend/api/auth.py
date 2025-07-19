@@ -61,3 +61,16 @@ class RefreshToken(Resource):
         new_access_token = create_access_token(identity=identity)
 
         return {"message": "New token created", "access_token" : new_access_token}, 200
+
+class DeleteAccount(Resource):
+    @jwt_required()
+    def delete(self):
+        email = get_jwt_identity()
+        global users
+        user = next((u for u in users if u['email'] == email), None)
+
+        if not user:
+            return {"message": "User not found."}, 404
+
+        users = [u for u in users if u['email'] != email]
+        return {"message": f"Account for {email} deleted successfully."}, 200

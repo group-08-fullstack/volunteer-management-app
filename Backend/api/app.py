@@ -20,6 +20,8 @@ from . import auth
 from . import matching
 from . import eventlist
 from . import profileForm
+
+
   
 
 app = Flask(__name__)
@@ -46,3 +48,5 @@ api.add_resource(matching.MatchVolunteer, "/api/matching/match/")
 api.add_resource(eventlist.EventList, '/api/eventlist/')
 api.add_resource(eventlist.Event, '/api/eventlist/<int:event_id>')
 api.add_resource(profileForm.Profile, '/api/profile/')
+api.add_resource(profileForm.ProfileSkills, '/api/profile/skills/')   
+api.add_resource(profileForm.ProfileStates, '/api/profile/states/') 
