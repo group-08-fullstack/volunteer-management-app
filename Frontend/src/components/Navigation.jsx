@@ -149,7 +149,7 @@ export default function NavigationBar({ extraLinks, title }) {
                             {dropdownOpen && (
                                 <div className="dropdown-menu">
                                     {role === "volunteer" && (
-                                        <button onClick={() => navigate("/profile")}>Profile</button>
+                                        <button onClick={() => role == "volunteer" ? navigate("/profile") : navigate("/admin")}>Profile</button>
                                     )}
                                     <button onClick={handleDeleteAccount}>Delete Account</button>                     
                                 </div>
