@@ -219,7 +219,7 @@ class TestPutProfileForm:
         )
         assert response.status_code == 201
        
-        updated_account = self.valid_profile
+        updated_account = self.valid_profile.copy()
         updated_account['fullName'] = "New name"
         response = client.put(
             f"/api/profile/", 
@@ -257,7 +257,7 @@ class TestDeleteProfileform:
     }
     def test_delete(self,access_token,client):
         # Create new account first
-        profile_data = self.valid_profile
+        profile_data = self.valid_profile.copy()
         response = client.post(
             f"/api/profile/",
             headers={"Authorization": f"Bearer {access_token}"},
