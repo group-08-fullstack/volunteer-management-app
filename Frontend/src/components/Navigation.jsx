@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import NotificationButton from './Notification';
 import './Navigation.css';
 import { Calendar, MapPin, Users, Home, LogOut, UserCheck, User, History } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
 
 /* Instructions for setting up:
 
@@ -36,11 +37,30 @@ import { Calendar, MapPin, Users, Home, LogOut, UserCheck, User, History } from 
 */
 
 
+
+
+
 // Component that returns a navigation bar
-export default function NavigationBar({extraLinks, title}){
+export default function NavigationBar({ extraLinks, title }) {
     const navigate = useNavigate()
-    
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const dropdownRef = useRef(null);
+
     // Get the user data from localStorage to determine which dashboard to link to
+
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
     const role = localStorage.getItem("user_role");
 
     // Function to handle logout
@@ -50,34 +70,35 @@ export default function NavigationBar({extraLinks, title}){
         localStorage.removeItem('refresh_token');
         localStorage.removeItem('user_email');
         localStorage.removeItem('user_role');
-        
+
         // Navigate to login page
         navigate('/login');
     };
 
-    
-    return(
-            <nav className="navbar">
-                <div className="navbar-container">
-                  <div className="navbar-content">
+
+
+    return (
+        <nav className="navbar">
+            <div className="navbar-container">
+                <div className="navbar-content">
                     <div>
-                      <h1 className="navbar-title">{title}</h1>
+                        <h1 className="navbar-title">{title}</h1>
                     </div>
 
                     <div className="navbar-actions">
                         {/* Create additional links provided as props*/}
                         {
-                        extraLinks.map((element,index) => (
-                            <button key={index} className={element.className} onClick={() => navigate(element.link)}>
-                                {element.logo}
-                                <span className={element.className + "-text"}>{element.text}</span>
-                            </button>
+                            extraLinks.map((element, index) => (
+                                <button key={index} className={element.className} onClick={() => navigate(element.link)}>
+                                    {element.logo}
+                                    <span className={element.className + "-text"}>{element.text}</span>
+                                </button>
                             ))
                         }
 
                         {/* Home button */}
                         <button
-                            onClick={() => role == "volunteer" ? navigate("/volunteerdash") : navigate("/admindash") }
+                            onClick={() => role == "volunteer" ? navigate("/volunteerdash") : navigate("/admindash")}
                             className="home-button"
                         >
                             <Home size={20} />
@@ -86,15 +107,29 @@ export default function NavigationBar({extraLinks, title}){
                         {/* Notifications */}
                         {/* Imported from Notification.jsx */}
                         <NotificationButton />
-            
+
                         {/* Account */}
-                        <button
-                            onClick={() => role == "volunteer" ? navigate("/profile") : navigate("/admindash")}
-                            className="icon-button"
-                        >
-                            <User size={20} />
-                        </button>
-            
+                        <div className="dropdown-container" ref={dropdownRef}>
+                            <button
+                                onClick={() => setDropdownOpen(!dropdownOpen)}
+                                className="icon-button"
+                            >
+                                <User size={20} />
+                            </button>
+                            {dropdownOpen && (
+                                <div className="dropdown-menu">
+                                    {role === "volunteer" && (
+                                        <button onClick={() => navigate("/profile")}>Profile</button>
+                                    )}
+                                    <button onClick={() => alert("Delete account clicked!")}>Delete Account</button>
+                                </div>
+                            )}
+                        </div>
+
+
+
+
+
                         {/* Logout */}
                         <button
                             onClick={handleLogout}
@@ -104,8 +139,8 @@ export default function NavigationBar({extraLinks, title}){
                             <span className="logout-text">Logout</span>
                         </button>
                     </div>
-                  </div>
                 </div>
-              </nav>
+            </div>
+        </nav>
     )
 }
