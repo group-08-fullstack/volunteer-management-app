@@ -46,70 +46,7 @@ export default function AdminDashboard() {
       } catch (error) {
         console.error('Error loading dashboard data:', error);
         setError('Failed to load dashboard data');
-        
-        // Set fallback data if backend fails
-        setTopVolunteers([
-          {
-            id: 1,
-            name: 'Sarah Johnson',
-            events: 12,
-            rating: 4.7,
-            totalHours: 48,
-            expertise: 'Community Outreach'
-          },
-          {
-            id: 2,
-            name: 'Michael Chen',
-            events: 10,
-            rating: 4.8,
-            totalHours: 42,
-            expertise: 'Environmental'
-          },
-          {
-            id: 3,
-            name: 'Emily Rodriguez',
-            events: 9,
-            rating: 4.9,
-            totalHours: 36,
-            expertise: 'Youth Programs'
-          }
-        ]);
-        
-        setUpcomingEvents([
-          {
-            id: 1,
-            event: 'Senior Center Visit',
-            date: '2025-07-25',
-            time: '14:00:00',
-            endTime: '17:00:00',
-            location: 'Golden Years Senior Center',
-            volunteers: 8
-          },
-          {
-            id: 2,
-            event: 'Park Restoration',
-            date: '2025-08-01',
-            time: '09:00:00',
-            endTime: '13:00:00',
-            location: 'Riverside Park',
-            volunteers: 15
-          },
-          {
-            id: 3,
-            event: 'Youth Mentoring',
-            date: '2025-07-30',
-            time: '16:00:00',
-            endTime: '18:00:00',
-            location: 'Community Youth Center',
-            volunteers: 5
-          }
-        ]);
-        
-        setStatistics({
-          totalVolunteers: 156,
-          upcomingEvents: 8,
-          eventsToFinalize: 5
-        });
+      
       } finally {
         setLoading(false);
       }
