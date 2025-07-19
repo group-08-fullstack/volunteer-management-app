@@ -75,6 +75,36 @@ export default function NavigationBar({ extraLinks, title }) {
         navigate('/login');
     };
 
+    //handle delete account
+    const handleDeleteAccount = async () => {
+        const accessToken = localStorage.getItem("access_token");
+
+        if (!window.confirm("Are you sure you want to delete your account? This cannot be undone.")) return;
+
+        try {
+            const response = await fetch("http://localhost:5000/api/auth/delete/", {
+                method: "DELETE",
+                headers: {
+                    "Authorization": `Bearer ${accessToken}`
+                }
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert(data.message);
+                localStorage.clear();
+                window.location.href = "/login";
+            } else {
+                alert(data.message || "Failed to delete account");
+            }
+        } catch (error) {
+            console.error("Error deleting account:", error);
+            alert("Something went wrong while deleting your account.");
+        }
+    };
+
+
 
 
     return (
@@ -121,13 +151,10 @@ export default function NavigationBar({ extraLinks, title }) {
                                     {role === "volunteer" && (
                                         <button onClick={() => navigate("/profile")}>Profile</button>
                                     )}
-                                    <button onClick={() => alert("Delete account clicked!")}>Delete Account</button>
+                                    <button onClick={handleDeleteAccount}>Delete Account</button>                     
                                 </div>
                             )}
                         </div>
-
-
-
 
 
                         {/* Logout */}
