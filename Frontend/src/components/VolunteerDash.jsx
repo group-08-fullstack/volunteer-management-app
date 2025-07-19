@@ -1,75 +1,111 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, User, LogOut, Calendar, Clock, MapPin, Users } from 'lucide-react';
 import NotificationButton from './Notification';
-import NavigationBar from './Navigation';;
+import NavigationBar from './Navigation';
+import { 
+  getVolunteerDashboard,
+  getRecentVolunteerHistory,
+  getNextUpcomingEvents,
+  formatEventDate,
+  formatEventTime 
+} from '../helpers/volunteerhelpers';
 import './VolunteerDash.css';
 
 export default function VolunteerDashboard() {
-  const [volunteerName, setVolunteerName] = useState('Sarah Johnson');
-  const [notifications, setNotifications] = useState(3);
+  const [volunteerName, setVolunteerName] = useState('Loading...');
+  const [notifications, setNotifications] = useState(0);
+  const [volunteerHistory, setVolunteerHistory] = useState([]);
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [statistics, setStatistics] = useState({
+    total_hours: 0,
+    events_completed: 0,
+    upcoming_events: 0
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
   const navigate = useNavigate();
 
-  const extraLinks  = [];
+  const extraLinks = [];
 
-  // Sample data for demonstration
-  const volunteerHistory = [
-    {
-      id: 1,
-      event: 'Community Food Drive',
-      date: 'March 15, 2025',
-      hours: 4,
-      location: 'Downtown Community Center'
-    },
-    {
-      id: 2,
-      event: 'Beach Cleanup',
-      date: 'March 8, 2025',
-      hours: 3,
-      location: 'Sunset Beach'
-    },
-    {
-      id: 3,
-      event: 'Animal Shelter Help',
-      date: 'February 28, 2025',
-      hours: 5,
-      location: 'Happy Paws Shelter'
-    }
-  ];
+  // Load volunteer dashboard data
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Load overview data from backend
+        const dashboardData = await getVolunteerDashboard();
+        
+        // Update state with backend data
+        setVolunteerName(dashboardData.volunteer_info.name);
+        setVolunteerHistory(dashboardData.recent_history);
+        setUpcomingEvents(dashboardData.upcoming_events);
+        setStatistics(dashboardData.statistics);
+        
+      } catch (error) {
+        console.error('Error loading dashboard data:', error);
+        setError('Failed to load dashboard data');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const upcomingEvents = [
-    {
-      id: 1,
-      event: 'Senior Center Visit',
-      date: 'July 5, 2025',
-      time: '2:00 PM - 5:00 PM',
-      location: 'Golden Years Senior Center',
-      volunteers: 8
-    },
-    {
-      id: 2,
-      event: 'Park Restoration',
-      date: 'July 12, 2025',
-      time: '9:00 AM - 1:00 PM',
-      location: 'Riverside Park',
-      volunteers: 15
-    },
-    {
-      id: 3,
-      event: 'Youth Mentoring',
-      date: 'July 18, 2025',
-      time: '4:00 PM - 6:00 PM',
-      location: 'Community Youth Center',
-      volunteers: 5
-    }
-  ];
+    loadDashboardData();
+  }, []);
 
   const handleVolunteerMatching = () => {
     navigate("/volunteerhistory");
-  }
+  };
 
-  const handleViewAllEvents = ()=>{
-    navigate("/ViewAllEvents")
+  const handleViewAllEvents = () => {
+    navigate("/ViewAllEvents");
+  };
+
+  // Helper function to format date for display (fallback for older date format)
+  const formatDisplayDate = (dateString) => {
+    try {
+      if (dateString.includes('T')) {
+        return formatEventDate(dateString);
+      } else {
+        // Handle legacy format like "March 15, 2025"
+        return dateString;
+      }
+    } catch (error) {
+      return dateString; // Return as-is if formatting fails
+    }
+  };
+
+  // Helper function to format time for display (fallback for older time format)
+  const formatDisplayTime = (timeString, endTimeString) => {
+    try {
+      if (timeString && timeString.includes(':') && !timeString.includes(' ')) {
+        // New format: "14:00:00"
+        return formatEventTime(timeString, endTimeString);
+      } else {
+        // Legacy format: "2:00 PM - 5:00 PM"
+        return timeString;
+      }
+    } catch (error) {
+      return timeString; // Return as-is if formatting fails
+    }
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="volunteer-dashboard">
+        <NavigationBar extraLinks={extraLinks} title={"Volunteer Portal"}/>
+        <div className="main-content">
+          <div className="welcome-section">
+            <h2 className="welcome-title">Loading Dashboard...</h2>
+            <p className="welcome-subtitle">Please wait while we load your data</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -168,6 +204,15 @@ export default function VolunteerDashboard() {
         .welcome-subtitle {
           color: #6b7280;
           margin: 0;
+        }
+
+        .error-message {
+          background-color: #fee2e2;
+          border: 1px solid #fecaca;
+          color: #dc2626;
+          padding: 1rem;
+          border-radius: 0.5rem;
+          margin-bottom: 1rem;
         }
 
         .dashboard-grid {
@@ -342,6 +387,11 @@ export default function VolunteerDashboard() {
           .stat-label {
             color: #d1d5db !important;
           }
+
+          .error-message {
+            background-color: #fee2e2 !important;
+            color: #dc2626 !important;
+          }
         }
 
         @media (max-width: 768px) {
@@ -364,8 +414,7 @@ export default function VolunteerDashboard() {
 
       <div className="volunteer-dashboard">
 
-        {/* Navbar */}
-        {/* Naviagation bar imported from Navigation.jsx */}
+        {/* Navigation bar imported from Navigation.jsx */}
         <NavigationBar extraLinks={extraLinks} title={"Volunteer Portal"}/>
 
         {/* Main Content */}
@@ -374,6 +423,11 @@ export default function VolunteerDashboard() {
           <div className="welcome-section">
             <h2 className="welcome-title">Welcome, {volunteerName}!</h2>
             <p className="welcome-subtitle">Ready to make a difference today?</p>
+            {error && (
+              <div className="error-message">
+                {error} - Using fallback data
+              </div>
+            )}
           </div>
 
           {/* Dashboard Tiles */}
@@ -392,7 +446,7 @@ export default function VolunteerDashboard() {
                       <h4 className="item-title">{item.event}</h4>
                       <div className="item-details">
                         <div className="item-details-row">
-                          <span>{item.date}</span>
+                          <span>{formatDisplayDate(item.date)}</span>
                           <span>{item.hours} hours</span>
                         </div>
                         <div className="item-details-row with-margin">
@@ -426,8 +480,8 @@ export default function VolunteerDashboard() {
                       <h4 className="item-title">{event.event}</h4>
                       <div className="item-details">
                         <div className="item-details-row">
-                          <span>{event.date}</span>
-                          <span>{event.time}</span>
+                          <span>{formatDisplayDate(event.date)}</span>
+                          <span>{formatDisplayTime(event.time, event.endTime)}</span>
                         </div>
                         <div className="item-details-row with-margin">
                           <div className="item-detail-with-icon">
@@ -454,15 +508,15 @@ export default function VolunteerDashboard() {
           {/* Quick Stats */}
           <div className="stats-grid">
             <div className="stat-card">
-              <div className="stat-number blue">24</div>
+              <div className="stat-number blue">{statistics.total_hours}</div>
               <div className="stat-label">Total Hours Volunteered</div>
             </div>
             <div className="stat-card">
-              <div className="stat-number green">7</div>
+              <div className="stat-number green">{statistics.events_completed}</div>
               <div className="stat-label">Events Completed</div>
             </div>
             <div className="stat-card">
-              <div className="stat-number purple">3</div>
+              <div className="stat-number purple">{statistics.upcoming_events}</div>
               <div className="stat-label">Upcoming Events</div>
             </div>
           </div>

@@ -21,6 +21,7 @@ from . import matching
 from . import eventlist
 from . import profileForm
 from . import admin
+from . import volunteer
 
 app = Flask(__name__)
 
@@ -55,3 +56,9 @@ api.add_resource(admin.AdminEvents, '/api/admin/events/')
 api.add_resource(admin.AdminStatistics, '/api/admin/statistics/')
 api.add_resource(admin.AdminVolunteerDetail, '/api/admin/volunteers/<int:volunteer_id>/')
 api.add_resource(admin.AdminEventDetail, '/api/admin/events/<int:event_id>/')
+api.add_resource(volunteer.VolunteerDashboard, '/api/volunteer/dashboard/')
+api.add_resource(volunteer.VolunteerHistory, '/api/volunteer/history/')
+api.add_resource(volunteer.VolunteerUpcomingEvents, '/api/volunteer/events/')
+api.add_resource(volunteer.VolunteerProfile, '/api/volunteer/profile/')
+api.add_resource(volunteer.VolunteerEventDetail, '/api/volunteer/events/<int:event_id>/')
+api.add_resource(volunteer.VolunteerEventRegistration, '/api/volunteer/events/<int:event_id>/register/')
