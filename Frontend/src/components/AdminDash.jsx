@@ -1,112 +1,199 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavigationBar from './Navigation';
 import { Bell, User, LogOut, Calendar, Clock, MapPin, Users, Settings, UserCheck, History, ChevronDown } from 'lucide-react';
+import { 
+  getAdminDashboard,
+  getTopVolunteers,
+  getUpcomingEvents,
+  getAdminStatistics 
+} from '../helpers/adminhelpers';
 
 export default function AdminDashboard() {
   const [adminName, setAdminName] = useState('Admin Manager');
-  const [notifications, setNotifications] = useState(5);
+  const [notifications, setNotifications] = useState(0);
   const [sortBy, setSortBy] = useState('events'); // 'events' or 'rating'
-  const navigate = useNavigate();
-  const [eventDropdownOpen, setEventDropdownOpen] = useState(false);//xxx
-
-  // Sample data for top volunteers
-  const topVolunteers = [
-    {
-      id: 1,
-      name: 'Sarah Johnson',
-      events: 12,
-      rating: 4.7,
-      totalHours: 48,
-      expertise: 'Community Outreach'
-    },
-    {
-      id: 2,
-      name: 'Michael Chen',
-      events: 10,
-      rating: 4.8,
-      totalHours: 42,
-      expertise: 'Environmental'
-    },
-    {
-      id: 3,
-      name: 'Emily Rodriguez',
-      events: 9,
-      rating: 4.9,
-      totalHours: 36,
-      expertise: 'Youth Programs'
-    },
-  ];
-
-  // Sort volunteers based on selected criteria
-  const sortedVolunteers = [...topVolunteers].sort((a, b) => {
-    if (sortBy === 'events') {
-      return b.events - a.events;
-    } else {
-      return b.rating - a.rating;
-    }
+  const [topVolunteers, setTopVolunteers] = useState([]);
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [statistics, setStatistics] = useState({
+    totalVolunteers: 0,
+    upcomingEvents: 0,
+    eventsToFinalize: 0
   });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  const navigate = useNavigate();
+  const [eventDropdownOpen, setEventDropdownOpen] = useState(false);
 
-  const upcomingEvents = [
-    {
-      id: 1,
-      event: 'Senior Center Visit',
-      date: 'July 5, 2025',
-      time: '2:00 PM - 5:00 PM',
-      location: 'Golden Years Senior Center',
-      volunteers: 8
-    },
-    {
-      id: 2,
-      event: 'Park Restoration',
-      date: 'July 12, 2025',
-      time: '9:00 AM - 1:00 PM',
-      location: 'Riverside Park',
-      volunteers: 15
-    },
-    {
-      id: 3,
-      event: 'Youth Mentoring',
-      date: 'July 18, 2025',
-      time: '4:00 PM - 6:00 PM',
-      location: 'Community Youth Center',
-      volunteers: 5
+  // Load admin dashboard data
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Load overview data from backend
+        const dashboardData = await getAdminDashboard();
+        
+        // Update state with backend data
+        setAdminName(dashboardData.admin_info.name);
+        setNotifications(dashboardData.admin_info.notifications);
+        setTopVolunteers(dashboardData.top_volunteers);
+        setUpcomingEvents(dashboardData.upcoming_events);
+        setStatistics(dashboardData.statistics);
+        
+      } catch (error) {
+        console.error('Error loading dashboard data:', error);
+        setError('Failed to load dashboard data');
+        
+        // Set fallback data if backend fails
+        setTopVolunteers([
+          {
+            id: 1,
+            name: 'Sarah Johnson',
+            events: 12,
+            rating: 4.7,
+            totalHours: 48,
+            expertise: 'Community Outreach'
+          },
+          {
+            id: 2,
+            name: 'Michael Chen',
+            events: 10,
+            rating: 4.8,
+            totalHours: 42,
+            expertise: 'Environmental'
+          },
+          {
+            id: 3,
+            name: 'Emily Rodriguez',
+            events: 9,
+            rating: 4.9,
+            totalHours: 36,
+            expertise: 'Youth Programs'
+          }
+        ]);
+        
+        setUpcomingEvents([
+          {
+            id: 1,
+            event: 'Senior Center Visit',
+            date: '2025-07-25',
+            time: '14:00:00',
+            endTime: '17:00:00',
+            location: 'Golden Years Senior Center',
+            volunteers: 8
+          },
+          {
+            id: 2,
+            event: 'Park Restoration',
+            date: '2025-08-01',
+            time: '09:00:00',
+            endTime: '13:00:00',
+            location: 'Riverside Park',
+            volunteers: 15
+          },
+          {
+            id: 3,
+            event: 'Youth Mentoring',
+            date: '2025-07-30',
+            time: '16:00:00',
+            endTime: '18:00:00',
+            location: 'Community Youth Center',
+            volunteers: 5
+          }
+        ]);
+        
+        setStatistics({
+          totalVolunteers: 156,
+          upcomingEvents: 8,
+          eventsToFinalize: 5
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDashboardData();
+  }, []);
+
+  // Handle sort change and reload data
+  const handleSortChange = async (newSortBy) => {
+    setSortBy(newSortBy);
+    try {
+      const volunteers = await getTopVolunteers(newSortBy, 3);
+      setTopVolunteers(volunteers);
+    } catch (error) {
+      console.error('Error updating volunteer sort:', error);
+      // Keep existing data if sort fails
     }
-  ];
+  };
+
+  // Helper function to format date for display
+  const formatEventDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
+  // Helper function to format time for display
+  const formatEventTime = (startTime, endTime) => {
+    const formatTime = (timeString) => {
+      const time = new Date(`2000-01-01T${timeString}`);
+      return time.toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit',
+        hour12: true 
+      });
+    };
+    
+    return `${formatTime(startTime)} - ${formatTime(endTime)}`;
+  };
+
+  const handleEventManagement = () => {
+    navigate('/eventmanagement');
+  };
 
   // Array containing props to be sent to navigationbar component
   const extraLinks = [
-  {
-    className: "nav-button",          // CSS class for styling
-    link: "/eventmanagement",                     // Path to navigate to
-    logo:  <Settings size={16} />,          // lucide-react icon component
-    text: "Event Management"                       // Label displayed next to the icon
-  },
     {
-    className: "nav-button",          // CSS class for styling
-    link: "/volunteermatch",                     // Path to navigate to
-    logo:  <UserCheck size={16} />,          // lucide-react icon component
-    text: "Volunteer Matching"                       // Label displayed next to the icon
-  },
+      className: "nav-button",
+      link: "/eventmanagement",
+      logo: <Settings size={16} />,
+      text: "Event Management"
+    },
     {
-    className: "nav-button",          // CSS class for styling
-    link: null,                     // Path to navigate to
-    logo:  <History size={16} />,          // lucide-react icon component
-    text: " Event History"                       // Label displayed next to the icon
-  },
-];
+      className: "nav-button",
+      link: "/volunteermatch",
+      logo: <UserCheck size={16} />,
+      text: "Volunteer Matching"
+    },
+    {
+      className: "nav-button",
+      link: null,
+      logo: <History size={16} />,
+      text: " Event History"
+    },
+  ];
 
-
-  const handleSortChange = (newSortBy) => {
-    setSortBy(newSortBy);
-  };
-
-  const handleEventManagement = () =>{
-    navigate('/eventmanagement')
+  // Loading state
+  if (loading) {
+    return (
+      <div className="admin-dashboard">
+        <NavigationBar extraLinks={extraLinks} title={"Admin Portal"}/>
+        <div className="main-content">
+          <div className="welcome-section">
+            <h2 className="welcome-title">Loading Dashboard...</h2>
+            <p className="welcome-subtitle">Please wait while we load your data</p>
+          </div>
+        </div>
+      </div>
+    );
   }
-
-
-
 
   return (
     <>
@@ -136,6 +223,15 @@ export default function AdminDashboard() {
         .welcome-subtitle {
           color: #6b7280;
           margin: 0;
+        }
+
+        .error-message {
+          background-color: #fee2e2;
+          border: 1px solid #fecaca;
+          color: #dc2626;
+          padding: 1rem;
+          border-radius: 0.5rem;
+          margin-bottom: 1rem;
         }
 
         .dashboard-grid {
@@ -341,6 +437,11 @@ export default function AdminDashboard() {
           .stat-label {
             color: #d1d5db !important;
           }
+
+          .error-message {
+            background-color: #fee2e2 !important;
+            color: #dc2626 !important;
+          }
         }
 
         @media (max-width: 768px) {
@@ -363,7 +464,7 @@ export default function AdminDashboard() {
 
       <div className="admin-dashboard">
         
-        {/* Naviagation bar imported from Navigation.jsx */}
+        {/* Navigation bar imported from Navigation.jsx */}
         <NavigationBar extraLinks={extraLinks} title={"Admin Portal"}/>
         
 
@@ -373,6 +474,11 @@ export default function AdminDashboard() {
           <div className="welcome-section">
             <h2 className="welcome-title">Welcome, {adminName}!</h2>
             <p className="welcome-subtitle">Manage your volunteer community and events</p>
+            {error && (
+              <div className="error-message">
+                {error} - Using fallback data
+              </div>
+            )}
           </div>
 
           {/* Dashboard Tiles */}
@@ -400,7 +506,7 @@ export default function AdminDashboard() {
 
               <div className="content-section">
                 <div className="item-list">
-                  {sortedVolunteers.map((volunteer) => (
+                  {topVolunteers.map((volunteer) => (
                     <div key={volunteer.id} className="volunteer-item">
                       <h4 className="item-title">{volunteer.name}</h4>
                       <div className="item-details">
@@ -420,7 +526,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              <button onClick={() => alert('View all volunteers')} className="view-all-button">
+              <button onClick={() => navigate('/volunteers')} className="view-all-button">
                 View All Volunteers →
               </button>
             </div>
@@ -441,8 +547,8 @@ export default function AdminDashboard() {
                       <h4 className="item-title">{event.event}</h4>
                       <div className="item-details">
                         <div className="item-details-row">
-                          <span>{event.date}</span>
-                          <span>{event.time}</span>
+                          <span>{formatEventDate(event.date)}</span>
+                          <span>{formatEventTime(event.time, event.endTime)}</span>
                         </div>
                         <div className="item-details-row with-margin">
                           <div className="item-detail-with-icon">
@@ -469,17 +575,17 @@ export default function AdminDashboard() {
           {/* Quick Stats */}
           <div className="stats-grid">
             <div className="stat-card">
-              <div className="stat-number blue">156</div>
+              <div className="stat-number blue">{statistics.totalVolunteers}</div>
               <div className="stat-label">Total Volunteers</div>
             </div>
 
             <div className="stat-card">
-              <div className="stat-number green">8</div>
+              <div className="stat-number green">{statistics.upcomingEvents}</div>
               <div className="stat-label">Upcoming Events</div>
             </div>
 
             <div className="stat-card">
-              <div className="stat-number purple">5</div>
+              <div className="stat-number purple">{statistics.eventsToFinalize}</div>
               <div className="stat-label">Events to be Finalized</div>
             </div>
           </div>
