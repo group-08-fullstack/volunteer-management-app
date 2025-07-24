@@ -65,7 +65,7 @@ Choose:
 ### 🧪 Testing the Setup
 
        mysql -u root -p
-  ### You should now be in the MySQL shell and can run SQL commands like:
+###  You should now be in the MySQL shell and can run SQL commands like:
 
        SHOW DATABASES;
 
