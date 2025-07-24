@@ -4,8 +4,6 @@ Instructions for installing **MySQL Server** and **MySQL Workbench** on **Linux*
 
 ---
 
-## 📦 What You'll Install
-
 - **MySQL Server** – The core database engine.
 - **MySQL Workbench** – A graphical interface for managing MySQL databases.
 
