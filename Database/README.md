@@ -17,13 +17,13 @@ Instructions for installing **MySQL Server** and **MySQL Workbench** on **Linux*
 ##  Ubuntu / Debian-based distributions
 
 ### 1. Install MySQL Server
-       sudo apt update && apt install mysql-server -y
+       sudo apt update && apt install mysql-server 
 ### 2. Secure MySQL Installation (optional but recommended)
        sudo mysql_secure_installation
 ### 3. Check MySQL Status
        sudo systemctl status mysql
 ### 4. Install MySQL Workbench
-       sudo apt install mysql-workbench
+       sudo snap install mysql-workbench-community
 ###  🪟 Windows
   ### 1. Download the MySQL Installer
 
