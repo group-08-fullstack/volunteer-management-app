@@ -1,3 +1,6 @@
+# Volunteer Management System – Database Implementation
+Implements secure, validated storage for user credentials, user profiles, events, volunteer history, and states using RDBMS. Includes encrypted passwords and full backend integration for data persistence and retrieval.
+
 # MySQL Server and Workbench Installation Guide
 
 Instructions for installing **MySQL Server** and **MySQL Workbench** on **Linux**, **Windows**, and **macOS**.
