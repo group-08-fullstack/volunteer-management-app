@@ -2,6 +2,7 @@ from flask import Flask
 from flask_cors import CORS
 from flask_restful import Resource, Api
 from datetime import timedelta
+from . import db
 
 import os
 from dotenv import load_dotenv
@@ -25,11 +26,18 @@ from . import volunteer
 
 app = Flask(__name__)
 
+
+
 # Allow for outside sources to make requests(In this case this is the React Front end)
 CORS(app)
 
 # setup flask_restful
 api = Api(app)
+
+# Configure database
+mysql = db.configDb(app)
+app.mysql = mysql
+print("Setup DB")
 
 # Setup JWT authentication
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY") # Grab enviroment variable

@@ -1,6 +1,7 @@
 from flask_restful import Resource
 from flask import request
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask import current_app
 
 notifications = [
     { "receiver" : "Testuser1", "message": "Welcome!", "date": "6/28/2025", "read": False, "id": 0 },
@@ -8,7 +9,6 @@ notifications = [
       {"receiver" : "Testuser1", "message": "New Event: Food Drive", "date": "6/29/2025", "read": False,"id": 2 },
     {"receiver" : "Testuser1",  "message": "Event updated : Food Drive", "date": "6/28/2025", "read": False, "id": 3 },
     ]
-
 
 
 class Notification(Resource):
@@ -26,6 +26,12 @@ class Notification(Resource):
     @jwt_required()
     def post(self):
         data = request.get_json()
+
+        # Grab current mysql instance
+        mysql = current_app.mysql
+
+        # Create cursor
+        cursor = mysql.connection.cursor()
 
         # Validate body structure
         required_fields = ["receiver","message", "date", "read"]
@@ -49,7 +55,18 @@ class Notification(Resource):
         # Assign new ID and append
         curId = len(notifications)
         data["id"] = curId
-        notifications.append(data)
+        
+        cursor.execute(
+        'INSERT INTO notifications (message, date, receiver, `read`) VALUES (%s, %s, %s, %s)',
+        (data["message"], data["date"], data["receiver"], data["read"])
+        )
+
+
+        # Save actions to db
+        mysql.connection.commit()
+
+        #Close the cursor
+        cursor.close()
 
         return {"Msg": "Success"}, 201
     
