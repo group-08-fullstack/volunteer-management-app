@@ -68,7 +68,14 @@ Choose:
        mysql -u root -p
 ###  You should now be in the MySQL shell and can run SQL commands like:
 
-       SHOW DATABASES;
+       CREATE DATABASE volunteer_management_db;
+       EXIT;
+### On terminal Run:       
+       mysql -u root -p volunteer_management_db < init_schema.sql
+
+### Replace root with your MySQL username if different.
+
+### volunteer_management_db is the target database name.
 
 
 
