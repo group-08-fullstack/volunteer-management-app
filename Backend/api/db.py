@@ -1,6 +1,14 @@
 from flask_mysqldb import MySQL
 
 # In every file that is going to change the database these lines are needed
+
+# Import
+# from flask import current_app
+# from MySQLdb.cursors import DictCursor "Optional"
+
+# Grab current mysql instance
+# mysql = current_app.mysql
+
 # Create cursor
 # cursor = mysql.connection.cursor()
 
