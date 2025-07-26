@@ -17,7 +17,7 @@ Instructions for installing **MySQL Server** and **MySQL Workbench** on **Linux*
 ##  Ubuntu / Debian-based distributions
 
 ### 1. Install MySQL Server
-       sudo apt update && apt install mysql-server 
+       sudo apt update && apt install mysql-server && pip install "Flask<2.3" && pip install flask-mysqldb
 ### 2. Secure MySQL Installation (optional but recommended)
        sudo mysql_secure_installation
 ### 3. Check MySQL Status
