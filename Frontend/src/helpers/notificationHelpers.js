@@ -57,7 +57,6 @@ export async function FlipReadStatus(notificationId,data){
 // Delete a notification
 export async function deleteNotification(notificationId) {
 
-    console.log(typeof notificationId);
     // First validate that user JWT token is still vaild
     await checkTokenTime();
 

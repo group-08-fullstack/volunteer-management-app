@@ -137,7 +137,7 @@ export default function Notificationbutton() {
 function NotificationItem({data, onToggleRead, onDelete}){
    
     return(
-        <div key={data.id} className="notification-item">
+        <div key={data.notification_id} className="notification-item">
             <p>{data.message}</p>
             <small>{data.date}</small>
 

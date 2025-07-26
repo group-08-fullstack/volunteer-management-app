@@ -6,7 +6,6 @@ from datetime import date
 from MySQLdb.cursors import DictCursor
 
 
-
 class Notification(Resource):
     @jwt_required()
     def get(self):
@@ -66,9 +65,6 @@ class Notification(Resource):
         if not isinstance(data["read"], bool):
             return {"error": "'read' must be a boolean"}, 400
 
-        # Assign new ID and append
-        curId = len(notifications)
-        data["id"] = curId
         
         cursor.execute(
         'INSERT INTO notifications (message, date, receiver, `read`) VALUES (%s, %s, %s, %s)',
