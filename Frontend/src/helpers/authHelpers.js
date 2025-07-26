@@ -124,7 +124,6 @@ export async function checkTokenTime(){
 
     else{
       // Token still valid
-      console.log("Token is valid");
     }
     
 };
