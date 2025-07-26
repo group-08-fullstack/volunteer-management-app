@@ -12,11 +12,11 @@ from flask_mysqldb import MySQL
 # #Close the cursor
 # cursor.close()
 
-def configDb(app):
+def configDb(app,password):
     # Configure and setup DB
     app.config['MYSQL_HOST'] = 'mydemoserver-quickstart.mysql.database.azure.com'
     app.config['MYSQL_USER'] = 'mydemouser'
-    app.config['MYSQL_PASSWORD'] = 'Groupnumber8!'
+    app.config['MYSQL_PASSWORD'] = password
     app.config['MYSQL_DB'] = 'volunteermgnt'
 
     return MySQL(app)

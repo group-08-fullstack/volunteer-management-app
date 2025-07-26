@@ -44,7 +44,7 @@ export default function Notificationbutton() {
         setNotifications(prev => {
             // For each element determine if its the desired one
             const updated = prev.map(notification => {
-                if (notification.id === id) {
+                if (notification.notification_id === id) {
                     // Change read status with backend API call
                     FlipReadStatus(id, notification);
 
@@ -73,10 +73,10 @@ export default function Notificationbutton() {
 
             setNotifications((prev) => {
                 // Grab notification the deleted notification
-                const notification = prev.find((n) => n.id === id);
+                const notification = prev.find((n) => n.notification_id === id);
 
                 // Update UI by filtering out the deleted notification
-                const updated = prev.filter((n) => n.id !== id);
+                const updated = prev.filter((n) => n.notification_id !== id);
 
                 // Update unread count only if the deleted notification was unread
                 if (notification && !notification.read) {
@@ -122,7 +122,7 @@ export default function Notificationbutton() {
                 <div className='notification-div'>
                     {/* For each element with notifications create a NotificationItem component*/}
                     {notifications.toReversed().map((notification) => (
-                        <NotificationItem key = {notification.id} data={notification}  onToggleRead={() => toggleRead(notification.id)} onDelete={() => handleDelete(notification.id)}/>
+                        <NotificationItem key = {notification.notification_id} data={notification}  onToggleRead={() => toggleRead(notification.notification_id)} onDelete={() => handleDelete(notification.notification_id)}/>
                     ))}
                 </div>
 

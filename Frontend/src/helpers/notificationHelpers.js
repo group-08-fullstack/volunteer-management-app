@@ -22,7 +22,7 @@ export async function getUserNotifications(){
     // First validate that user JWT token is still vaild
     await checkTokenTime();
    
-    const response = await fetch(`http://127.0.0.1:5000/api/notification/?user=${localStorage.getItem("user_email")}`, {
+    const response = await fetch(`http://127.0.0.1:5000/api/notification/`, {
         method: "GET",
         headers: {
             "Authorization" : `Bearer ${localStorage.getItem("access_token")}`
@@ -57,6 +57,7 @@ export async function FlipReadStatus(notificationId,data){
 // Delete a notification
 export async function deleteNotification(notificationId) {
 
+    console.log(typeof notificationId);
     // First validate that user JWT token is still vaild
     await checkTokenTime();
 

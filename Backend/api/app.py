@@ -35,9 +35,8 @@ CORS(app)
 api = Api(app)
 
 # Configure database
-mysql = db.configDb(app)
+mysql = db.configDb(app,os.getenv("database_password"))
 app.mysql = mysql
-print("Setup DB")
 
 # Setup JWT authentication
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY") # Grab enviroment variable

@@ -2,26 +2,40 @@ from flask_restful import Resource
 from flask import request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask import current_app
+from datetime import date
+from MySQLdb.cursors import DictCursor
 
-notifications = [
-    { "receiver" : "Testuser1", "message": "Welcome!", "date": "6/28/2025", "read": False, "id": 0 },
-    { "receiver" : "Testuser1", "message": "Edit profile Reminder", "date": "7/10/2025", "read": False ,"id": 1 },
-      {"receiver" : "Testuser1", "message": "New Event: Food Drive", "date": "6/29/2025", "read": False,"id": 2 },
-    {"receiver" : "Testuser1",  "message": "Event updated : Food Drive", "date": "6/28/2025", "read": False, "id": 3 },
-    ]
 
 
 class Notification(Resource):
     @jwt_required()
     def get(self):
+        # Grab current mysql instance
+        mysql = current_app.mysql
+
+        # Create cursor
+        cursor = mysql.connection.cursor(DictCursor)
+
+        # Get current user
         userEmail = get_jwt_identity()
 
         if not userEmail:
             return 400
         
-        # Database query would go here
+        # Database
+        cursor.execute("SELECT * FROM notifications WHERE receiver = %s", (userEmail,))
+        results = cursor.fetchall()
 
-        return notifications, 200
+        # Convert any datetime.date fields to strings
+        for row in results:
+                if isinstance(row['date'], (date)):
+                    row['date'] = row['date'].isoformat()  # Convert format
+
+        #Close the cursor
+        cursor.close()
+                
+
+        return results, 200
     
     @jwt_required()
     def post(self):
@@ -75,6 +89,12 @@ class Notification(Resource):
         # Extract notificationId from url parameters
         notiId = request.args.get('notiId')
 
+        # Grab current mysql instance
+        mysql = current_app.mysql
+
+        # Create cursor
+        cursor = mysql.connection.cursor()
+
         # Validate notiId
         if not notiId:
             return {"error": "Missing notiId parameter"}, 400
@@ -82,12 +102,15 @@ class Notification(Resource):
             return {"error": "notiId must be a number"}, 400
 
         # Remove notificaion from the array,
-        # to simulate database interactions 
-        for i in range (0, len(notifications)):
-            if (notifications[i]["id"] == int(notiId)):
-                removeIndex = i 
-                notifications.pop(removeIndex)
-                break
+        # database interactions 
+        cursor.execute("DELETE FROM notifications WHERE notification_id = %s", (notiId,))
+
+         # Save actions to db
+        mysql.connection.commit()
+
+        #Close the cursor
+        cursor.close()
+
     
         return {"Msg": "Data deleted"}, 200
     
@@ -95,6 +118,13 @@ class Notification(Resource):
     def patch(self):
         notiId = request.args.get('notiId')
         data = request.get_json()
+
+        # Grab current mysql instance
+        mysql = current_app.mysql
+
+        # Create cursor
+        cursor = mysql.connection.cursor()
+
 
 
         # Validate notiId
@@ -106,9 +136,6 @@ class Notification(Resource):
 
         notiId = int(notiId)
 
-        # notiId out of bounds
-        if notiId>= len(notifications):
-            return {"error": "Notification dpes not exist"}, 404
 
 
         # Validate request body
@@ -116,9 +143,16 @@ class Notification(Resource):
             return {"error": "'read' field is required"}, 400
         if not isinstance(data["read"], bool):
             return {"error": "'read' must be a boolean"}, 400
-        # Simulate DB update
-        for i, noti in enumerate(notifications):
-            if noti["id"] == notiId:
-                notifications[i]["read"] = data["read"]
-                print(notifications[i]["read"])
-                return {"Msg": "Success"}, 200
+        
+        # DB update
+        cursor.execute("UPDATE notifications SET `read` = %s WHERE notification_id = %s", (data["read"],notiId))
+
+        
+        # Save actions to db
+        mysql.connection.commit()
+
+        #Close the cursor
+        cursor.close()
+        
+
+        return {"Msg": "Success"}, 200
