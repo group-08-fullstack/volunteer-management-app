@@ -27,8 +27,8 @@ class Notification(Resource):
 
         # Convert any datetime.date fields to strings
         for row in results:
-                if isinstance(row['date'], (date)):
-                    row['date'] = row['date'].isoformat()  # Convert format
+                if isinstance(row['event_date'], (date)):
+                    row['event_date'] = row['event_date'].isoformat()  # Convert format
 
         #Close the cursor and db connection
         cursor.close()
@@ -69,7 +69,7 @@ class Notification(Resource):
 
         
         cursor.execute(
-        'INSERT INTO notifications (message, date, receiver, `read`) VALUES (%s, %s, %s, %s)',
+        'INSERT INTO notifications (message, event_date, receiver, `read`) VALUES (%s, %s, %s, %s)',
         (data["message"], data["date"], data["receiver"], data["read"])
         )
 
