@@ -5,21 +5,21 @@ from flask import current_app
 
 # Import
 # from flask import current_app
-# from MySQLdb.cursors import DictCursor "Optional"
 
-# Grab current mysql instance
-# mysql = current_app.mysql
+# Establish connection
+# conn = db.get_db()
 
-# Create cursor
-# cursor = mysql.connection.cursor()
+# # Create cursor
+# cursor = conn.cursor()
 
 # Make changes to db.....
 
 # Save actions to db
-# mysql.connection.commit()
+# conn.commit()
 
-# #Close the cursor
+# #Close the cursor and conn
 # cursor.close()
+# conn.close()
 
 def get_db():
 
