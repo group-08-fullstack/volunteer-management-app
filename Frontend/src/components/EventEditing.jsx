@@ -61,7 +61,7 @@ const stateOptions = [
 ];
 
 export default function EventEditingForm() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   // Form state
   const [form, setForm] = useState({
     fullName: '',
@@ -95,7 +95,7 @@ export default function EventEditingForm() {
       availability: prev.availability.filter((d) => d !== date)
     }));
   };
-  
+
   // Handle cancel action
   const handleCancel = () => {
     if (confirm('Are you sure you want to cancel? All unsaved changes will be lost.')) {
@@ -115,7 +115,7 @@ export default function EventEditingForm() {
       navigate('/eventmanagement');
     }
   };
-  
+
   // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -481,8 +481,73 @@ export default function EventEditingForm() {
                 />
               </div>
 
-              {/* Location */}
+              {/* State */}
               <div className="form-group">
+                <label className="form-label">
+                  <Users size={16} />
+                  State*
+                </label>
+                <input
+                  type="text"
+                  maxLength="100"
+                  required
+                  className="form-input"
+                  value={form.State}
+                  onChange={(e) => setForm({ ...form, State: e.target.value })}
+                  placeholder="Enter state name"
+                />
+              </div>
+
+              {/* City */}
+              <div className="form-group">
+                <label className="form-label">
+                  <Users size={16} />
+                  City*
+                </label>
+                <input
+                  type="text"
+                  maxLength="100"
+                  required
+                  className="form-input"
+                  value={form.City}
+                  onChange={(e) => setForm({ ...form, City: e.target.value })}
+                  placeholder="Enter city name"
+                />
+              </div>
+
+              {/* Zip code */}
+              <div className="form-group">
+                <label className="form-label">
+                  <Users size={16} />
+                  Zip code*
+                </label>
+                <input
+                  type="text"
+                  maxLength="100"
+                  required
+                  className="form-input"
+                  value={form.zipcode}
+                  onChange={(e) => setForm({ ...form, zipcode: e.target.value })}
+                  placeholder="Enter Zip code"
+                />
+              </div>
+
+              {/* Urgency */}
+              <div className="form-group">
+                <label className="form-label">
+                  <AlertCircle size={16} />
+                  Urgency*
+                </label>
+                <Select
+                  options={stateOptions}
+                  onChange={(selected) => setForm({ ...form, state: selected.value })}
+                  placeholder="Select urgency level"
+                />
+              </div>
+
+
+              {/* Location */}
+              <div className="form-group full-width">
                 <label className="form-label">
                   <MapPin size={16} />
                   Location*
@@ -498,16 +563,33 @@ export default function EventEditingForm() {
                 />
               </div>
 
-              {/* Urgency */}
+
+              {/* Time Range */}
               <div className="form-group">
                 <label className="form-label">
-                  <AlertCircle size={16} />
-                  Urgency*
+                  <Clock size={16} />
+                  Start Time*
                 </label>
-                <Select
-                  options={stateOptions}
-                  onChange={(selected) => setForm({ ...form, state: selected.value })}
-                  placeholder="Select urgency level"
+                <input
+                  type="time"
+                  required
+                  className="form-input"
+                  value={form.startTime || ''}
+                  onChange={(e) => setForm({ ...form, startTime: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">
+                  <Clock size={16} />
+                  End Time*
+                </label>
+                <input
+                  type="time"
+                  required
+                  className="form-input"
+                  value={form.endTime || ''}
+                  onChange={(e) => setForm({ ...form, endTime: e.target.value })}
                 />
               </div>
 
@@ -531,7 +613,7 @@ export default function EventEditingForm() {
                   <Clock size={16} />
                   Event Dates
                 </label>
-                
+
                 <div className="date-input-section">
                   <div className="date-input-group">
                     <input
@@ -567,7 +649,7 @@ export default function EventEditingForm() {
 
             <div className="submit-section">
               <button type="button" className="submit-button" onClick={handleSubmit}>
-                  Save
+                Save
               </button>
               <button type="button" className="cancel-button" onClick={handleCancel}>
                 Cancel
