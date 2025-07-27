@@ -4,7 +4,7 @@ from flask import current_app
 # In every file that is going to change the database these lines are needed
 
 # Import
-# from flask import current_app
+# from . import db
 
 # Establish connection
 # conn = db.get_db()
