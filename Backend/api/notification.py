@@ -3,17 +3,17 @@ from flask import request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask import current_app
 from datetime import date
-from MySQLdb.cursors import DictCursor
-
+from . import db
 
 class Notification(Resource):
     @jwt_required()
     def get(self):
-        # Grab current mysql instance
-        mysql = current_app.mysql
+
+        # Establish connection
+        conn = db.get_db()
 
         # Create cursor
-        cursor = mysql.connection.cursor(DictCursor)
+        cursor = conn.cursor()
 
         # Get current user
         userEmail = get_jwt_identity()
@@ -30,8 +30,9 @@ class Notification(Resource):
                 if isinstance(row['date'], (date)):
                     row['date'] = row['date'].isoformat()  # Convert format
 
-        #Close the cursor
+        #Close the cursor and db connection
         cursor.close()
+        conn.close()
                 
 
         return results, 200
@@ -40,11 +41,12 @@ class Notification(Resource):
     def post(self):
         data = request.get_json()
 
-        # Grab current mysql instance
-        mysql = current_app.mysql
+        # Establish connection
+        conn = db.get_db()
+
 
         # Create cursor
-        cursor = mysql.connection.cursor()
+        cursor = conn.cursor()
 
         # Validate body structure
         required_fields = ["receiver","message", "date", "read"]
@@ -73,10 +75,11 @@ class Notification(Resource):
 
 
         # Save actions to db
-        mysql.connection.commit()
+        conn.commit()
 
-        #Close the cursor
+        #Close the cursor and db connection
         cursor.close()
+        conn.close()
 
         return {"Msg": "Success"}, 201
     
@@ -85,11 +88,12 @@ class Notification(Resource):
         # Extract notificationId from url parameters
         notiId = request.args.get('notiId')
 
-        # Grab current mysql instance
-        mysql = current_app.mysql
+       # Establish connection
+        conn = db.get_db()
+
 
         # Create cursor
-        cursor = mysql.connection.cursor()
+        cursor = conn.cursor()
 
         # Validate notiId
         if not notiId:
@@ -102,10 +106,11 @@ class Notification(Resource):
         cursor.execute("DELETE FROM notifications WHERE notification_id = %s", (notiId,))
 
          # Save actions to db
-        mysql.connection.commit()
+        conn.commit()
 
-        #Close the cursor
+        #Close the cursor and db connection
         cursor.close()
+        conn.close()
 
     
         return {"Msg": "Data deleted"}, 200
@@ -115,11 +120,12 @@ class Notification(Resource):
         notiId = request.args.get('notiId')
         data = request.get_json()
 
-        # Grab current mysql instance
-        mysql = current_app.mysql
+        # Establish connection
+        conn = db.get_db()
+
 
         # Create cursor
-        cursor = mysql.connection.cursor()
+        cursor = conn.cursor()
 
 
 
@@ -145,10 +151,11 @@ class Notification(Resource):
 
         
         # Save actions to db
-        mysql.connection.commit()
+        conn.commit()
 
-        #Close the cursor
+        #Close the cursor and db connection
         cursor.close()
+        conn.close()
         
 
         return {"Msg": "Success"}, 200

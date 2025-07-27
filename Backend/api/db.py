@@ -1,4 +1,5 @@
-from flask_mysqldb import MySQL
+import pymysql
+from flask import current_app
 
 # In every file that is going to change the database these lines are needed
 
@@ -20,15 +21,17 @@ from flask_mysqldb import MySQL
 # #Close the cursor
 # cursor.close()
 
-def configDb(app,password):
-    # Configure and setup DB
-    app.config['MYSQL_HOST'] = 'mydemoserver-quickstart.mysql.database.azure.com'
-    app.config['MYSQL_USER'] = 'mydemouser'
-    app.config['MYSQL_PASSWORD'] = password
-    app.config['MYSQL_DB'] = 'volunteermgnt'
+def get_db():
 
-    return MySQL(app)
-
-
-
-   
+    try:
+        connection = pymysql.connect(
+            host = current_app.config['MYSQL_HOST'],
+            user = current_app.config['MYSQL_USER'],
+            password = current_app.config['MYSQL_PASSWORD'],
+            db = current_app.config['MYSQL_DB'],
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        return connection
+    except Exception as e:
+        print("Error connecting to DB:", e)
+        raise

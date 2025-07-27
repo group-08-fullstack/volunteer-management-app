@@ -2,7 +2,6 @@ from flask import Flask
 from flask_cors import CORS
 from flask_restful import Resource, Api
 from datetime import timedelta
-from . import db
 
 import os
 from dotenv import load_dotenv
@@ -34,9 +33,14 @@ CORS(app)
 # setup flask_restful
 api = Api(app)
 
-# Configure database
-mysql = db.configDb(app,os.getenv("database_password"))
-app.mysql = mysql
+# Store DB config in app
+app.config['MYSQL_HOST'] = 'mydemoserver-quickstart.mysql.database.azure.com'
+app.config['MYSQL_USER'] = 'mydemouser'
+app.config['MYSQL_PASSWORD'] = os.getenv("database_password")
+app.config['MYSQL_DB'] = 'volunteermgnt'
+
+
+
 
 # Setup JWT authentication
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY") # Grab enviroment variable
