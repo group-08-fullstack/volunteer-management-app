@@ -47,14 +47,14 @@ export function sortByField(paginatedData,setPaginatedData ,field, ascending) {
     const valB = b[field];
 
     // Date case
-    if (field === "eventDate") {
+    if (field === "event_date") {
       return ascending
         ? new Date(valA) - new Date(valB)
         : new Date(valB) - new Date(valA);
     }
 
     // Event name case
-    if (field === "eventName") {
+    if (field === "event_name") {
       return ascending
         ? valA.localeCompare(valB)
         : valB.localeCompare(valA);

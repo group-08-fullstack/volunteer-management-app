@@ -75,9 +75,9 @@ export default function VolunteerHistoryTable(){
                             Event Name
                             <button
                             className={
-                                activeSort.field === "eventName" ? "active" : "not-sorted"
+                                activeSort.field === "event_name" ? "active" : "not-sorted"
                             }
-                            onClick={() => handleSort("eventName")}
+                            onClick={() => handleSort("event_name")}
                             >
                             <ArrowUpDown size={20} />
                             </button>
@@ -124,9 +124,9 @@ export default function VolunteerHistoryTable(){
                             Event Date
                             <button
                             className={
-                                activeSort.field === "eventDate" ? "active" : "not-sorted"
+                                activeSort.field === "event_date" ? "active" : "not-sorted"
                             }
-                            onClick={() => handleSort("eventDate")}
+                            onClick={() => handleSort("event_date")}
                             >
                             <ArrowUpDown size={20} />
                             </button>
@@ -140,7 +140,7 @@ export default function VolunteerHistoryTable(){
                             className={
                                 activeSort.field === "participationStatus" ? "active" : "not-sorted"
                             }
-                            onClick={() => handleSort("participationStatus")}
+                            onClick={() => handleSort("participation_status")}
                             >
                             <ArrowUpDown size={20} />
                             </button>
@@ -154,13 +154,13 @@ export default function VolunteerHistoryTable(){
                     {paginatedData.length > 0 &&
                     paginatedData[currentPageIndex].map((event, i) => (
                         <tr key={i}>
-                        <td>{event.eventName}</td>
-                        <td>{event.eventDescription}</td>
-                        <td>{event.location}</td>
-                        <td>{event.requiredSkills.join(", ")}</td>
+                        <td>{event.event_name}</td>
+                        <td>{event.event_description}</td>
+                        <td>{event.event_location}</td>
+                        <td>{event.required_skills}</td>
                         <td>{event.urgency.text}</td>
-                        <td>{event.eventDate}</td>
-                        <td>{event.participationStatus.text}</td>
+                        <td>{event.event_date}</td>
+                        <td>{event.participation_status.text}</td>
                         </tr>
                     ))}
                 </tbody>

@@ -2,35 +2,59 @@ from flask_restful import Resource
 from datetime import datetime
 from flask import request
 from flask_jwt_extended import jwt_required, get_jwt_identity
-
-
-# Define needed inputs
-
-data = [
-    {
-        "eventName": "Community Park Cleanup",
-        "eventDescription": "Join us for a day of cleaning and beautifying the neighborhood park. Volunteers will help with trash pickup, light landscaping, and painting benches.",
-        "location": "Greenwood Community Park, 123 Elm St, Springfield",
-        "requiredSkills": ["Gardening", "Teamwork", "Painting"],
-        "urgency": {"text": "High", "numeric": 2},
-        "eventDate": "2025-07-10",
-        "participationStatus": {"text": "Registered", "numeric": 1}
-    }
-]
+from datetime import date
+from . import db
+import json
 
 
 class VolHistory(Resource):
     @jwt_required()
     def get(self):
         userEmail = get_jwt_identity()
+
+        # Establish connection
+        conn = db.get_db()
+
+        # Create cursor
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM volunteerhistory WHERE email=%s",(userEmail,))
+        results = cursor.fetchall()
+
+        # print(results[1]["urgency"])
+        # print(results[1]["participation_status"])
+
+        # Convert any datetime.date fields to strings
+        for row in results:
+                if isinstance(row['event_date'], (date)):
+                    row['event_date'] = row['event_date'].isoformat()  # Convert format
+
+        # Convert nested json, since only top level will be converted by frontend
+        for row in results:
+            row['urgency'] = json.loads(row['urgency'])
+            row['participation_status'] = json.loads(row['participation_status'])
+
+
+        # Save actions to db
+        conn.commit()
+
+        # Close the cursor and conn
+        cursor.close()
+        conn.close()
         
         # This will return data where the userEmail is in database
-        return data, 200
+        return results, 200
     
     @jwt_required()
     def post(self):
         newEntry = request.get_json()
         userEmail = get_jwt_identity()
+
+        # Establish connection
+        conn = db.get_db()
+
+        # Create cursor
+        cursor = conn.cursor()
 
         # Check for presence of data
         if not newEntry:
@@ -38,25 +62,25 @@ class VolHistory(Resource):
 
         # Required top-level fields
         required_fields = [
-            "eventName", "eventDescription", "location", 
-            "requiredSkills", "urgency", "eventDate", "participationStatus"
+            "event_name", "event_description", "event_location", 
+            "required_skills", "urgency", "event_date", "participation_status"
         ]
         for field in required_fields:
             if field not in newEntry:
                 return {"error": f"Missing field '{field}'"}, 400
 
         # Type checks
-        if not isinstance(newEntry["eventName"], str):
-            return {"error": "'eventName' must be a string"}, 400
+        if not isinstance(newEntry["event_name"], str):
+            return {"error": "'event_name' must be a string"}, 400
 
-        if not isinstance(newEntry["eventDescription"], str):
-            return {"error": "'eventDescription' must be a string"}, 400
+        if not isinstance(newEntry["event_description"], str):
+            return {"error": "'event_description' must be a string"}, 400
 
-        if not isinstance(newEntry["location"], str):
-            return {"error": "'location' must be a string"}, 400
+        if not isinstance(newEntry["event_location"], str):
+            return {"error": "'event_location' must be a string"}, 400
 
-        if not isinstance(newEntry["requiredSkills"], list) or not all(isinstance(skill, str) for skill in newEntry["requiredSkills"]):
-            return {"error": "'requiredSkills' must be a list of strings"}, 400
+        if not isinstance(newEntry["required_skills"], list) or not all(isinstance(skill, str) for skill in newEntry["required_skills"]):
+            return {"error": "'required_skills' must be a list of strings"}, 400
 
         # Check urgency
         urgency = newEntry["urgency"]
@@ -69,26 +93,36 @@ class VolHistory(Resource):
         if not isinstance(urgency["numeric"], int):
             return {"error": "'urgency.numeric' must be an integer"}, 400
 
-        # Check eventDate
+        # Check event_date
         try:
-            datetime.strptime(newEntry["eventDate"], "%Y-%m-%d")
+            datetime.strptime(newEntry["event_date"], "%Y-%m-%d")
         except ValueError:
-            return {"error": "'eventDate' must be in 'YYYY-MM-DD' format"}, 500
+            return {"error": "'event_date' must be in 'YYYY-MM-DD' format"}, 500
 
-        # Check participationStatus
-        participation = newEntry["participationStatus"]
+        # Check participation_status
+        participation = newEntry["participation_status"]
         if not isinstance(participation, dict):
-            return {"error": "'participationStatus' must be an object with 'text' and 'numeric'"}, 400
+            return {"error": "'participation_status' must be an object with 'text' and 'numeric'"}, 400
         if "text" not in participation or "numeric" not in participation:
-            return {"error": "Missing fields in 'participationStatus'"}, 400
+            return {"error": "Missing fields in 'participation_status'"}, 400
         if not isinstance(participation["text"], str):
-            return {"error": "'participationStatus.text' must be a string"}, 400
+            return {"error": "'participation_status.text' must be a string"}, 400
         if not isinstance(participation["numeric"], int):
-            return {"error": "'participationStatus.numeric' must be an integer"}, 400
+            return {"error": "'participation_status.numeric' must be an integer"}, 400
 
         
-        # Passed all validations
-        # This would be added to the user history in the database
-        newEntry['user'] = userEmail
-        data.append(newEntry)
+        # Add to database
+        cursor.execute(
+        'INSERT INTO volunteerhistory (email,event_name, event_description, event_event_location, required_skills, urgency,event_date, participation_status) VALUES (%s, %s, %s, %s)',
+        (userEmail, newEntry["event_name"], newEntry["event_description"], newEntry["event_location"],newEntry["required_skills"], newEntry["urgency"],newEntry["event_date"],newEntry["participation_status"])
+        )
+
+        # Save actions to db
+        conn.commit()
+
+        # #Close the cursor and conn
+        cursor.close()
+        conn.close()
+
+
         return {"Msg": "Success"}, 201
