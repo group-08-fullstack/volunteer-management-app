@@ -28,11 +28,11 @@ class Profile(Resource):
             
             user_id = user_result['user_id']  # This is the integer user_id
             
-            # 2. Get user profile from userprofile table
+            # 2. Get user profile from userprofile table (including new fields)
             cursor.execute("""
                 SELECT 
-                    volunteer_id, full_name, address1, address2, 
-                    city, state_name, zipcode, preferences
+                    volunteer_id, full_name, date_of_birth, phone_number,
+                    address1, address2, city, state_name, zipcode, preferences
                 FROM userprofile 
                 WHERE volunteer_id = %s
             """, (user_id,))
@@ -70,11 +70,23 @@ class Profile(Resource):
                     # If it's a date object, convert to string
                     availability.append(row['date_available'].strftime('%Y-%m-%d'))
             
-            # 5. Combine all data using consistent field names
+            # 5. Format date_of_birth and phone_number for response
+            date_of_birth = None
+            if profile['date_of_birth']:
+                if isinstance(profile['date_of_birth'], str):
+                    date_of_birth = profile['date_of_birth']
+                else:
+                    date_of_birth = profile['date_of_birth'].strftime('%Y-%m-%d')
+            
+            phone_number = str(profile['phone_number']) if profile['phone_number'] else ""
+            
+            # 6. Combine all data using consistent field names
             user_profile = {
                 "id": profile['volunteer_id'],
                 "userId": user_id,
                 "fullName": profile['full_name'],
+                "dateOfBirth": date_of_birth,
+                "phoneNumber": phone_number,
                 "address1": profile['address1'],
                 "address2": profile['address2'] or "",
                 "city": profile['city'],
@@ -82,7 +94,7 @@ class Profile(Resource):
                 "zip": profile['zipcode'],
                 "skills": skills,
                 "preferences": profile['preferences'] or "",
-                "availability": availability,  # Now properly retrieved from separate table
+                "availability": availability,
                 "createdAt": datetime.now().isoformat() + "Z",
                 "updatedAt": datetime.now().isoformat() + "Z"
             }
@@ -129,16 +141,23 @@ class Profile(Resource):
             if cursor.fetchone():
                 return {"message": "Profile already exists for this user"}, 400
             
-            # 3. Create the profile using the existing user_id
-            # Note: Remove availability from userprofile - it goes to separate table
+            # 3. Prepare phone number (convert to int or None)
+            phone_number = None
+            if data.get('phoneNumber') and data['phoneNumber'].strip():
+                phone_number = int(data['phoneNumber'])
+            
+            # 4. Create the profile using the existing user_id (including new fields)
             profile_query = """
-            INSERT INTO userprofile (volunteer_id, full_name, address1, address2, city, state_name, zipcode, preferences) 
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO userprofile (volunteer_id, full_name, date_of_birth, phone_number, 
+                                   address1, address2, city, state_name, zipcode, preferences) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
             
             profile_values = (
                 user_id,  # Use the integer user_id from UserCredentials as volunteer_id
                 data['fullName'],
+                data['dateOfBirth'],  # Should be in YYYY-MM-DD format from frontend
+                phone_number,  # Integer or None
                 data['address1'],
                 data.get('address2', ''),  # Optional field
                 data['city'],
@@ -149,7 +168,7 @@ class Profile(Resource):
             
             cursor.execute(profile_query, profile_values)
             
-            # 4. Handle skills - insert into volunteer_skills table
+            # 5. Handle skills - insert into volunteer_skills table
             if 'skills' in data and data['skills']:
                 for skill in data['skills']:
                     # Check if skill exists in skills table
@@ -172,8 +191,7 @@ class Profile(Resource):
                         (user_id, skill_id)
                     )
             
-            # 5. Handle availability dates - insert into volunteer_availability table
-            # Each date gets its own row with auto-incrementing availability_id
+            # 6. Handle availability dates - insert into volunteer_availability table
             if 'availability' in data and data['availability']:
                 for date_str in data['availability']:
                     cursor.execute(
@@ -181,7 +199,6 @@ class Profile(Resource):
                         VALUES (%s, %s)""",
                         (user_id, date_str)
                     )
-                    # availability_id will auto-increment for each insert
             
             conn.commit()
             
@@ -229,14 +246,22 @@ class Profile(Resource):
             if not existing_profile:
                 return {"error": "Profile not found"}, 404
             
-            # Update profile using your column names
+            # Prepare phone number (convert to int or None)
+            phone_number = None
+            if profile_data.get('phoneNumber') and profile_data['phoneNumber'].strip():
+                phone_number = int(profile_data['phoneNumber'])
+            
+            # Update profile using your column names (including new fields)
             cursor.execute("""
                 UPDATE userprofile 
-                SET full_name = %s, address1 = %s, address2 = %s, city = %s, 
+                SET full_name = %s, date_of_birth = %s, phone_number = %s,
+                    address1 = %s, address2 = %s, city = %s, 
                     state_name = %s, zipcode = %s, preferences = %s
                 WHERE volunteer_id = %s
             """, (
                 profile_data["fullName"],
+                profile_data["dateOfBirth"],  # Should be in YYYY-MM-DD format
+                phone_number,  # Integer or None
                 profile_data["address1"],
                 profile_data.get("address2", ""),
                 profile_data["city"],
@@ -363,8 +388,8 @@ class Profile(Resource):
         if not data:
             return {"error": "Missing JSON body"}
         
-        # Required fields
-        required_fields = ["fullName", "address1", "city", "state", "zip", "skills", "availability"]
+        # Required fields (including new dateOfBirth)
+        required_fields = ["fullName", "dateOfBirth", "address1", "city", "state", "zip", "skills", "availability"]
         for field in required_fields:
             if field not in data:
                 return {"error": f"Missing required field: {field}"}
@@ -374,6 +399,25 @@ class Profile(Resource):
             return {"error": "Full name must be a non-empty string"}
         if len(data["fullName"]) > 50:
             return {"error": "Full name must be 50 characters or less"}
+        
+        # Validate dateOfBirth (required field)
+        if not isinstance(data["dateOfBirth"], str) or not data["dateOfBirth"].strip():
+            return {"error": "Date of birth must be a non-empty string"}
+        try:
+            datetime.strptime(data["dateOfBirth"], "%Y-%m-%d")
+        except ValueError:
+            return {"error": "Date of birth must be in YYYY-MM-DD format"}
+        
+        # Validate phoneNumber (optional field)
+        if "phoneNumber" in data and data["phoneNumber"]:
+            if not isinstance(data["phoneNumber"], str):
+                return {"error": "Phone number must be a string"}
+            # Remove any formatting and check if it's all digits
+            phone_digits = re.sub(r'\D', '', data["phoneNumber"])
+            if phone_digits and not phone_digits.isdigit():
+                return {"error": "Phone number must contain only digits"}
+            if phone_digits and len(phone_digits) != 10:
+                return {"error": "Phone number must be exactly 10 digits"}
         
         # Validate address1 (matches your varchar(100))
         if not isinstance(data["address1"], str) or not data["address1"].strip():
@@ -405,7 +449,7 @@ class Profile(Resource):
             return {"error": "Zip code must be a non-empty string"}
         if len(data["zip"]) > 9:
             return {"error": "Zip code must be 9 characters or less"}
-        zip_pattern = r'^\d{5}(-\d{4})?$'
+        zip_pattern = r'^\d{5}(-\d{4})?'
         if not re.match(zip_pattern, data["zip"]):
             return {"error": "Zip code must be in format 12345 or 12345-6789"}
         
@@ -535,11 +579,11 @@ class ProfileList(Resource):
             cursor.execute("SELECT COUNT(*) as total FROM userprofile")
             total_count = cursor.fetchone()['total']
             
-            # Get basic profile info using your column names
+            # Get basic profile info using your column names (including new fields)
             cursor.execute("""
                 SELECT 
-                    volunteer_id, full_name, city, state_name, 
-                    address1, zipcode, preferences
+                    volunteer_id, full_name, date_of_birth, phone_number,
+                    city, state_name, address1, zipcode, preferences
                 FROM userprofile
                 ORDER BY volunteer_id DESC
             """)
@@ -549,9 +593,22 @@ class ProfileList(Resource):
             # Format the profiles
             formatted_profiles = []
             for profile in profiles:
+                # Format date_of_birth
+                date_of_birth = None
+                if profile['date_of_birth']:
+                    if isinstance(profile['date_of_birth'], str):
+                        date_of_birth = profile['date_of_birth']
+                    else:
+                        date_of_birth = profile['date_of_birth'].strftime('%Y-%m-%d')
+                
+                # Format phone_number
+                phone_number = str(profile['phone_number']) if profile['phone_number'] else ""
+                
                 formatted_profiles.append({
                     "id": profile['volunteer_id'],
                     "fullName": profile['full_name'],
+                    "dateOfBirth": date_of_birth,
+                    "phoneNumber": phone_number,
                     "city": profile['city'],
                     "state": profile['state_name'],
                     "address1": profile['address1'],
