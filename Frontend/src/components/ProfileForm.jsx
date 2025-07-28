@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, MapPin, Calendar, Award, FileText, Home } from 'lucide-react';
+import { User, MapPin, Calendar, Award, FileText, Home, Phone, Clock } from 'lucide-react';
 import { 
   getUserProfile, 
   createProfile, 
@@ -63,6 +63,8 @@ export default function ProfileForm() {
   // Form state
   const [form, setForm] = useState({
     fullName: '',
+    dateOfBirth: '',
+    phoneNumber: '',
     address1: '',
     address2: '',
     city: '',
@@ -82,6 +84,81 @@ export default function ProfileForm() {
   const [skillsOptions, setSkillsOptions] = useState([]);
   const [stateOptions, setStateOptions] = useState([]);
   const [optionsLoading, setOptionsLoading] = useState(true);
+
+  // Format date of birth with auto '/' insertion
+  const formatDateOfBirth = (value) => {
+    // Remove all non-digit characters
+    const digits = value.replace(/\D/g, '');
+    
+    // Apply MM/DD/YYYY format
+    if (digits.length <= 2) {
+      return digits;
+    } else if (digits.length <= 4) {
+      return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+    } else {
+      return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4, 8)}`;
+    }
+  };
+
+  // Format phone number with auto parentheses and hyphens
+  const formatPhoneNumber = (value) => {
+    // Remove all non-digit characters
+    const digits = value.replace(/\D/g, '');
+    
+    // Apply (XXX) XXX-XXXX format
+    if (digits.length <= 3) {
+      return digits;
+    } else if (digits.length <= 6) {
+      return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+    } else {
+      return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+    }
+  };
+
+  // Convert formatted date to YYYY-MM-DD for database
+  const formatDateForDatabase = (formattedDate) => {
+    if (!formattedDate || formattedDate.length !== 10) return '';
+    
+    const parts = formattedDate.split('/');
+    if (parts.length !== 3) return '';
+    
+    const [month, day, year] = parts;
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  };
+
+  // Convert YYYY-MM-DD to MM/DD/YYYY for display
+  const formatDateForDisplay = (dbDate) => {
+    if (!dbDate) return '';
+    
+    const parts = dbDate.split('-');
+    if (parts.length !== 3) return '';
+    
+    const [year, month, day] = parts;
+    return `${month}/${day}/${year}`;
+  };
+
+  // Extract digits only from phone number for database
+  const extractPhoneDigits = (formattedPhone) => {
+    return formattedPhone.replace(/\D/g, '');
+  };
+
+  // Format phone digits for display
+  const formatPhoneForDisplay = (phoneDigits) => {
+    if (!phoneDigits) return '';
+    return formatPhoneNumber(phoneDigits);
+  };
+
+  // Handle date of birth input
+  const handleDateOfBirthChange = (e) => {
+    const formatted = formatDateOfBirth(e.target.value);
+    setForm(prev => ({ ...prev, dateOfBirth: formatted }));
+  };
+
+  // Handle phone number input
+  const handlePhoneNumberChange = (e) => {
+    const formatted = formatPhoneNumber(e.target.value);
+    setForm(prev => ({ ...prev, phoneNumber: formatted }));
+  };
 
   // ✅ Load options from helper functions
   useEffect(() => {
@@ -116,6 +193,8 @@ export default function ProfileForm() {
           
           setForm({
             fullName: profileData.fullName || '',
+            dateOfBirth: formatDateForDisplay(profileData.dateOfBirth) || '',
+            phoneNumber: formatPhoneForDisplay(profileData.phoneNumber) || '',
             address1: profileData.address1 || '',
             address2: profileData.address2 || '',
             city: profileData.city || '',
@@ -155,6 +234,25 @@ export default function ProfileForm() {
     }));
   };
 
+  // Validate date of birth
+  const validateDateOfBirth = (dateString) => {
+    if (!dateString || dateString.length !== 10) return false;
+    
+    const parts = dateString.split('/');
+    if (parts.length !== 3) return false;
+    
+    const [month, day, year] = parts.map(Number);
+    const date = new Date(year, month - 1, day);
+    
+    // Check if date is valid and not in the future
+    const today = new Date();
+    return date.getFullYear() === year &&
+           date.getMonth() === month - 1 &&
+           date.getDate() === day &&
+           date <= today &&
+           year >= 1900; // Reasonable minimum year
+  };
+
   // ✅ Use helper functions instead of raw fetch
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -170,14 +268,32 @@ export default function ProfileForm() {
       return;
     }
 
+    if (!validateDateOfBirth(form.dateOfBirth)) {
+      alert('Please enter a valid date of birth in MM/DD/YYYY format.');
+      return;
+    }
+
+    // Validate phone number if provided (optional field)
+    if (form.phoneNumber && extractPhoneDigits(form.phoneNumber).length !== 10) {
+      alert('Please enter a valid 10-digit phone number or leave it blank.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
+      // Prepare data for backend
+      const formData = {
+        ...form,
+        dateOfBirth: formatDateForDatabase(form.dateOfBirth),
+        phoneNumber: extractPhoneDigits(form.phoneNumber)
+      };
+
       let result;
       if (isEditMode) {
-        result = await updateProfile(form);
+        result = await updateProfile(formData);
       } else {
-        result = await createProfile(form);
+        result = await createProfile(formData);
       }
       
       alert(`Profile ${isEditMode ? 'updated' : 'created'} successfully!`);
@@ -555,6 +671,39 @@ export default function ProfileForm() {
                 value={form.fullName}
                 onChange={(e) => setForm({ ...form, fullName: e.target.value })}
                 placeholder="Enter your full name"
+              />
+            </div>
+
+            {/* Date of Birth */}
+            <div className="form-group">
+              <label className="form-label">
+                <Clock size={16} />
+                Date of Birth*
+              </label>
+              <input
+                type="text"
+                required
+                className="form-input"
+                value={form.dateOfBirth}
+                onChange={handleDateOfBirthChange}
+                placeholder="MM/DD/YYYY"
+                maxLength="10"
+              />
+            </div>
+
+            {/* Phone Number */}
+            <div className="form-group">
+              <label className="form-label">
+                <Phone size={16} />
+                Phone Number
+              </label>
+              <input
+                type="text"
+                className="form-input"
+                value={form.phoneNumber}
+                onChange={handlePhoneNumberChange}
+                placeholder="(555) 123-4567"
+                maxLength="14"
               />
             </div>
 
