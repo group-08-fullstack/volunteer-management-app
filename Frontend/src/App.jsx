@@ -11,6 +11,7 @@ import EventForm from './components/EventForm';
 import EventManagement from './components/EventManagement';
 import ViewAllEvents from './components/ViewAllEvents';
 import EventEditing from './components/EventEditing'
+import EventHistory from './components/EventHistory'
 
 function App() {
   const [users, setUsers] = useState([]); // Store registered users
@@ -31,6 +32,7 @@ function App() {
         <Route path="/eventmanagement" element={<EventManagement />} />
         <Route path="/viewallevents" element={<ViewAllEvents />}/>
         <Route path="/eventediting" element={<EventEditing />}/>
+        <Route path="/eventhistory" element={<EventHistory />}/>
       </Routes>
     </Router>
   );

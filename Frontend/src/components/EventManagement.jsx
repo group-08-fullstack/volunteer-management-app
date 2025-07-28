@@ -21,7 +21,7 @@ export default function EventManagementPage() {
     },
     {
       className: "nav-button",          // CSS class for styling
-      link: null,                     // Path to navigate to
+      link: "/eventhistory",                     // Path to navigate to
       logo: <History size={16} />,          // lucide-react icon component
       text: " Event History"                       // Label displayed next to the icon
     },
