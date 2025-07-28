@@ -12,7 +12,8 @@ export default function Login({ users, setLoggedInUser }) {
 
   const checkUserProfile = async (token) => {
     try {
-      const response = await fetch('/api/profile/', {
+      // Use the full backend URL - adjust this to match your Flask backend URL
+      const response = await fetch('http://localhost:5000/api/profile/', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -20,7 +21,20 @@ export default function Login({ users, setLoggedInUser }) {
         }
       });
       
-      return response.ok; // Returns true if profile exists (200), false if not found (404)
+      console.log('Profile check response status:', response.status);
+      
+      if (response.status === 404) {
+        console.log('Profile not found - user needs to create profile');
+        return false;
+      } else if (response.status === 200) {
+        console.log('Profile found - user can go to dashboard');
+        return true;
+      } else {
+        console.log('Unexpected response status:', response.status);
+        const errorData = await response.json();
+        console.log('Error data:', errorData);
+        return false;
+      }
     } catch (error) {
       console.error('Error checking profile:', error);
       return false; // Assume no profile on error
@@ -65,14 +79,14 @@ export default function Login({ users, setLoggedInUser }) {
           console.log('9. Has profile result:', hasProfile);
           
           if (hasProfile) {
-            console.log('10. Navigating to volunteer dashboard');
+            console.log('10. Profile exists - navigating to volunteer dashboard');
             navigate("/volunteerdash");
           } else {
-            console.log('11. Navigating to profile creation');
+            console.log('11. No profile found - navigating to profile creation');
             navigate("/profile");
           }
-        } else {
-          console.log('12. Navigating to admin dashboard');
+        } else if (role === "admin") {
+          console.log('12. Admin login - navigating to admin dashboard');
           navigate("/admindash");
         }
       } else {
