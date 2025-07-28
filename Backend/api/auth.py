@@ -5,6 +5,8 @@ from flask_jwt_extended import (
 )
 from passlib.hash import sha256_crypt
 from . import db  
+from datetime import datetime
+import pytz
 
 # Request parser
 parser = reqparse.RequestParser()
@@ -20,6 +22,10 @@ class Register(Resource):
         password = sha256_crypt.hash(args['password'])
         role = args['role']
 
+        
+        central = pytz.timezone('US/Central')
+        central_time = datetime.now(central)
+
         conn = db.get_db()
         cursor = conn.cursor()
 
@@ -27,10 +33,10 @@ class Register(Resource):
             cursor.execute("SELECT * FROM UserCredentials WHERE email = %s", (email,))
             if cursor.fetchone():
                 return {"message": "User with this email already exists."}, 400
-
+            
             cursor.execute(
-                "INSERT INTO UserCredentials (email, password_hash, role) VALUES (%s, %s, %s)",
-                (email, password, role)
+                "INSERT INTO UserCredentials (email, password_hash, role, created_at) VALUES (%s, %s, %s, %s)",
+                (email, password, role, central_time)
             )
             conn.commit()
             return {"message": "Registration successful!"}, 201
@@ -83,10 +89,13 @@ class Login(Resource):
             conn.close()
 
 
+
 class RefreshToken(Resource):
+
     @jwt_required(refresh=True)
     def post(self):
         identity = get_jwt_identity()
+
         new_access_token = create_access_token(identity=identity)
         return {"message": "New token created", "access_token": new_access_token}, 200
 
