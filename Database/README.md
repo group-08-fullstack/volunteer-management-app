@@ -71,5 +71,8 @@ Choose:
 
        SHOW DATABASES;
 
+## 🗂️ Project Structure
+![alt text](https://github.com/group-08-fullstack/volunteer-management-app/blob/main/tree-structure.png)
+
 
 
