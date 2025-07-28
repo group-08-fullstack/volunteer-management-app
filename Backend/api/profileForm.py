@@ -3,161 +3,360 @@ from flask_restful import Resource
 from datetime import datetime
 from flask import request
 from flask_jwt_extended import jwt_required, get_jwt_identity
-
-# Sample profile data for demonstration
-profiles = [
-    {
-        "id": 1,
-        "userId": "user123",
-        "fullName": "John Smith",
-        "address1": "123 Main Street",
-        "address2": "Apt 2B",
-        "city": "Springfield",
-        "state": "CA",
-        "zip": "90210",
-        "skills": [
-            {"value": "bilingual", "label": "Bilingual"},
-            {"value": "first_aid", "label": "First Aid Certified"}
-        ],
-        "preferences": "Prefer weekend events and working with children",
-        "availability": ["2025-07-15", "2025-07-20", "2025-07-25"],
-        "createdAt": "2025-07-10T10:00:00Z",
-        "updatedAt": "2025-07-10T10:00:00Z"
-    },
-    {
-        "id": 2,
-        "userId": "user456",
-        "fullName": "Jane Doe",
-        "address1": "456 Oak Avenue",
-        "address2": "",
-        "city": "Rivertown",
-        "state": "NY",
-        "zip": "10001",
-        "skills": [
-            {"value": "animal_handling", "label": "Animal Handling"},
-            {"value": "tutoring", "label": "Tutoring/Teaching"}
-        ],
-        "preferences": "Available for long-term commitments",
-        "availability": ["2025-07-18", "2025-07-22", "2025-07-30"],
-        "createdAt": "2025-07-11T14:30:00Z",
-        "updatedAt": "2025-07-11T14:30:00Z"
-    }
-]
-
-# Valid skill options (should match frontend)
-VALID_SKILLS = [
-    {"value": "bilingual", "label": "Bilingual"},
-    {"value": "animal_handling", "label": "Animal Handling"},
-    {"value": "food_handling", "label": "Food Handling"},
-    {"value": "first_aid", "label": "First Aid Certified"},
-    {"value": "tutoring", "label": "Tutoring/Teaching"},
-    {"value": "cashier", "label": "Cash Handling"}
-]
-
-# Valid state options (should match frontend)
-VALID_STATES = [
-    {"value": "CA", "label": "California"},
-    {"value": "FL", "label": "Florida"},
-    {"value": "NY", "label": "New York"},
-    {"value": "TX", "label": "Texas"}
-]
+from . import db
 
 class Profile(Resource):
     @jwt_required()
     def get(self):
         """Get user's profile"""
-        current_user_id = get_jwt_identity()
+        user_email = get_jwt_identity()  # Get email from JWT
         
-        # Find user's profile
-        user_profile = next((p for p in profiles if p["userId"] == current_user_id), None)
+        # Establish database connection
+        conn = db.get_db()
+        cursor = conn.cursor()
         
-        if not user_profile:
-            return {"error": "Profile not found"}, 404
+        try:
+            # 1. First, get the user_id from UserCredentials table using email
+            cursor.execute(
+                "SELECT user_id FROM usercredentials WHERE email = %s", 
+                (user_email,)
+            )
+            user_result = cursor.fetchone()
             
-        return user_profile, 200
+            if not user_result:
+                return {"error": "User not found"}, 404
+            
+            user_id = user_result['user_id']  # This is the integer user_id
+            
+            # 2. Get user profile from userprofile table
+            cursor.execute("""
+                SELECT 
+                    volunteer_id, full_name, address1, address2, 
+                    city, state_name, zipcode, preferences
+                FROM userprofile 
+                WHERE volunteer_id = %s
+            """, (user_id,))
+            
+            profile = cursor.fetchone()
+            
+            if not profile:
+                return {"error": "Profile not found"}, 404
+            
+            # 3. Get user skills from volunteer_skills and skills tables
+            cursor.execute("""
+                SELECT s.skill_name as label, s.skill_name as value
+                FROM volunteer_skills vs
+                JOIN skills s ON vs.skill_id = s.skills_id
+                WHERE vs.volunteer_id = %s
+            """, (user_id,))
+            
+            skills = cursor.fetchall()
+            
+            # 4. Get user availability from volunteer_availability table
+            cursor.execute("""
+                SELECT date_available
+                FROM volunteer_availability
+                WHERE volunteer_id = %s
+                ORDER BY date_available
+            """, (user_id,))
+            
+            availability_rows = cursor.fetchall()
+            # Convert date objects to strings in YYYY-MM-DD format
+            availability = []
+            for row in availability_rows:
+                if isinstance(row['date_available'], str):
+                    availability.append(row['date_available'])
+                else:
+                    # If it's a date object, convert to string
+                    availability.append(row['date_available'].strftime('%Y-%m-%d'))
+            
+            # 5. Combine all data using consistent field names
+            user_profile = {
+                "id": profile['volunteer_id'],
+                "userId": user_id,
+                "fullName": profile['full_name'],
+                "address1": profile['address1'],
+                "address2": profile['address2'] or "",
+                "city": profile['city'],
+                "state": profile['state_name'],
+                "zip": profile['zipcode'],
+                "skills": skills,
+                "preferences": profile['preferences'] or "",
+                "availability": availability,  # Now properly retrieved from separate table
+                "createdAt": datetime.now().isoformat() + "Z",
+                "updatedAt": datetime.now().isoformat() + "Z"
+            }
+            
+            return user_profile, 200
+            
+        except Exception as e:
+            print(f"Database error getting profile: {e}")
+            return {"error": "Failed to retrieve profile"}, 500
+            
+        finally:
+            cursor.close()
+            conn.close()
     
-    @jwt_required()
+    @jwt_required()  # Require valid JWT token
     def post(self):
-        """Create a new profile"""
-        current_user_id = get_jwt_identity()
-        profile_data = request.get_json()
+        # Get the logged-in user's email from JWT token
+        user_email = get_jwt_identity()
         
-        # Check if user already has a profile
-        existing_profile = next((p for p in profiles if p["userId"] == current_user_id), None)
-        if existing_profile:
-            return {"error": "Profile already exists. Use PUT to update."}, 400
+        # Get form data from request
+        data = request.get_json()
         
-        # Validate the profile data
-        validation_result = self._validate_profile_data(profile_data)
-        if validation_result:
-            return validation_result, 400
+        conn = db.get_db()
+        cursor = conn.cursor()
         
-        # Create new profile
-        new_profile = {
-            "id": len(profiles) + 1,
-            "userId": current_user_id,
-            "fullName": profile_data["fullName"],
-            "address1": profile_data["address1"],
-            "address2": profile_data.get("address2", ""),
-            "city": profile_data["city"],
-            "state": profile_data["state"],
-            "zip": profile_data["zip"],
-            "skills": profile_data["skills"],
-            "preferences": profile_data.get("preferences", ""),
-            "availability": profile_data["availability"],
-            "createdAt": datetime.utcnow().isoformat() + "Z",
-            "updatedAt": datetime.utcnow().isoformat() + "Z"
-        }
-        
-        profiles.append(new_profile)
-        return {"message": "Profile created successfully", "profile": new_profile}, 201
+        try:
+            # 1. First, get the user_id from UserCredentials table using email
+            cursor.execute(
+                "SELECT user_id FROM usercredentials WHERE email = %s", 
+                (user_email,)
+            )
+            user_result = cursor.fetchone()
+            
+            if not user_result:
+                return {"error": "User not found"}, 404
+            
+            user_id = user_result['user_id']  # This is the integer user_id
+            
+            # 2. Check if profile already exists in userprofile table
+            cursor.execute(
+                "SELECT * FROM userprofile WHERE volunteer_id = %s", 
+                (user_id,)
+            )
+            if cursor.fetchone():
+                return {"message": "Profile already exists for this user"}, 400
+            
+            # 3. Create the profile using the existing user_id
+            # Note: Remove availability from userprofile - it goes to separate table
+            profile_query = """
+            INSERT INTO userprofile (volunteer_id, full_name, address1, address2, city, state_name, zipcode, preferences) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            
+            profile_values = (
+                user_id,  # Use the integer user_id from UserCredentials as volunteer_id
+                data['fullName'],
+                data['address1'],
+                data.get('address2', ''),  # Optional field
+                data['city'],
+                data['state'],  # This goes to state_name column
+                data['zip'],    # This goes to zipcode column
+                data.get('preferences', '')
+            )
+            
+            cursor.execute(profile_query, profile_values)
+            
+            # 4. Handle skills - insert into volunteer_skills table
+            if 'skills' in data and data['skills']:
+                for skill in data['skills']:
+                    # Check if skill exists in skills table
+                    cursor.execute("SELECT skills_id FROM skills WHERE skill_name = %s", (skill['value'],))
+                    skill_row = cursor.fetchone()
+                    
+                    if skill_row:
+                        skill_id = skill_row['skills_id']
+                    else:
+                        # Create new skill if it doesn't exist
+                        cursor.execute(
+                            "INSERT INTO skills (skill_name, skill_description) VALUES (%s, %s)",
+                            (skill['value'], skill['label'])
+                        )
+                        skill_id = cursor.lastrowid
+                    
+                    # Link skill to volunteer
+                    cursor.execute(
+                        "INSERT INTO volunteer_skills (volunteer_id, skill_id) VALUES (%s, %s)",
+                        (user_id, skill_id)
+                    )
+            
+            # 5. Handle availability dates - insert into volunteer_availability table
+            # Each date gets its own row with auto-incrementing availability_id
+            if 'availability' in data and data['availability']:
+                for date_str in data['availability']:
+                    cursor.execute(
+                        """INSERT INTO volunteer_availability (volunteer_id, date_available) 
+                        VALUES (%s, %s)""",
+                        (user_id, date_str)
+                    )
+                    # availability_id will auto-increment for each insert
+            
+            conn.commit()
+            
+            return {"message": "Profile created successfully!"}, 201
+            
+        except Exception as e:
+            conn.rollback()
+            return {"error": f"Database error creating profile: {str(e)}"}, 500
+        finally:
+            cursor.close()
+            conn.close()
     
     @jwt_required()
     def put(self):
         """Update existing profile"""
-        current_user_id = get_jwt_identity()
+        user_email = get_jwt_identity()  # This returns email, not user_id
         profile_data = request.get_json()
-        
-        # Find user's profile
-        user_profile = next((p for p in profiles if p["userId"] == current_user_id), None)
-        if not user_profile:
-            return {"error": "Profile not found"}, 404
         
         # Validate the profile data
         validation_result = self._validate_profile_data(profile_data)
         if validation_result:
             return validation_result, 400
         
-        # Update profile
-        user_profile.update({
-            "fullName": profile_data["fullName"],
-            "address1": profile_data["address1"],
-            "address2": profile_data.get("address2", ""),
-            "city": profile_data["city"],
-            "state": profile_data["state"],
-            "zip": profile_data["zip"],
-            "skills": profile_data["skills"],
-            "preferences": profile_data.get("preferences", ""),
-            "availability": profile_data["availability"],
-            "updatedAt": datetime.utcnow().isoformat() + "Z"
-        })
+        # Establish database connection
+        conn = db.get_db()
+        cursor = conn.cursor()
         
-        return {"message": "Profile updated successfully", "profile": user_profile}, 200
-    
+        try:
+            # Get the user_id from email
+            cursor.execute(
+                "SELECT user_id FROM usercredentials WHERE email = %s", 
+                (user_email,)
+            )
+            user_result = cursor.fetchone()
+            
+            if not user_result:
+                return {"error": "User not found"}, 404
+            
+            user_id = user_result['user_id']
+            
+            # Check if profile exists
+            cursor.execute("SELECT volunteer_id FROM userprofile WHERE volunteer_id = %s", (user_id,))
+            existing_profile = cursor.fetchone()
+            
+            if not existing_profile:
+                return {"error": "Profile not found"}, 404
+            
+            # Update profile using your column names
+            cursor.execute("""
+                UPDATE userprofile 
+                SET full_name = %s, address1 = %s, address2 = %s, city = %s, 
+                    state_name = %s, zipcode = %s, preferences = %s
+                WHERE volunteer_id = %s
+            """, (
+                profile_data["fullName"],
+                profile_data["address1"],
+                profile_data.get("address2", ""),
+                profile_data["city"],
+                profile_data["state"],
+                profile_data["zip"],
+                profile_data.get("preferences", ""),
+                user_id
+            ))
+            
+            # Update skills
+            self._update_user_skills(cursor, user_id, profile_data["skills"])
+            
+            # Update availability dates
+            self._update_user_availability(cursor, user_id, profile_data["availability"])
+            
+            # Commit all changes
+            conn.commit()
+            
+            return {"message": "Profile updated successfully"}, 200
+            
+        except Exception as e:
+            conn.rollback()
+            print(f"Database error updating profile: {e}")
+            return {"error": "Failed to update profile"}, 500
+            
+        finally:
+            cursor.close()
+            conn.close()
+
     @jwt_required()
     def delete(self):
         """Delete user's profile"""
-        current_user_id = get_jwt_identity()
+        user_email = get_jwt_identity()  # This returns email, not user_id
         
-        # Find and remove user's profile
-        global profiles
-        original_length = len(profiles)
-        profiles = [p for p in profiles if p["userId"] != current_user_id]
+        # Establish database connection
+        conn = db.get_db()
+        cursor = conn.cursor()
         
-        if len(profiles) == original_length:
-            return {"error": "Profile not found"}, 404
+        try:
+            # Get the user_id from email
+            cursor.execute(
+                "SELECT user_id FROM usercredentials WHERE email = %s", 
+                (user_email,)
+            )
+            user_result = cursor.fetchone()
+            
+            if not user_result:
+                return {"error": "User not found"}, 404
+            
+            user_id = user_result['user_id']
+            
+            # Check if profile exists
+            cursor.execute("SELECT volunteer_id FROM userprofile WHERE volunteer_id = %s", (user_id,))
+            profile = cursor.fetchone()
+            
+            if not profile:
+                return {"error": "Profile not found"}, 404
+            
+            # Delete related data first (due to foreign key constraints)
+            cursor.execute("DELETE FROM volunteer_skills WHERE volunteer_id = %s", (user_id,))
+            cursor.execute("DELETE FROM volunteer_availability WHERE volunteer_id = %s", (user_id,))
+            
+            # Delete profile
+            cursor.execute("DELETE FROM userprofile WHERE volunteer_id = %s", (user_id,))
+            
+            # Commit changes
+            conn.commit()
+            
+            return {"message": "Profile deleted successfully"}, 200
+            
+        except Exception as e:
+            conn.rollback()
+            print(f"Database error deleting profile: {e}")
+            return {"error": "Failed to delete profile"}, 500
+            
+        finally:
+            cursor.close()
+            conn.close()
+    
+    def _update_user_skills(self, cursor, user_id, skills):
+        """Update user skills in database using your table structure"""
+        # Delete existing skills
+        cursor.execute("DELETE FROM volunteer_skills WHERE volunteer_id = %s", (user_id,))
         
-        return {"message": "Profile deleted successfully"}, 200
+        # Insert new skills
+        for skill in skills:
+            # Get skill ID by skill name (since your skills table uses skill_name)
+            cursor.execute("SELECT skills_id FROM skills WHERE skill_name = %s", (skill["value"],))
+            skill_row = cursor.fetchone()
+            
+            if skill_row:
+                cursor.execute(
+                    "INSERT INTO volunteer_skills (volunteer_id, skill_id) VALUES (%s, %s)",
+                    (user_id, skill_row['skills_id'])
+                )
+            else:
+                # If skill doesn't exist, create it
+                cursor.execute(
+                    "INSERT INTO skills (skill_name, skill_description) VALUES (%s, %s)",
+                    (skill["value"], skill["label"])
+                )
+                # Get the new skill ID
+                new_skill_id = cursor.lastrowid
+                # Link it to the user
+                cursor.execute(
+                    "INSERT INTO volunteer_skills (volunteer_id, skill_id) VALUES (%s, %s)",
+                    (user_id, new_skill_id)
+                )
+    
+    def _update_user_availability(self, cursor, user_id, availability):
+        """Update user availability in database using your table structure"""
+        # Delete existing availability
+        cursor.execute("DELETE FROM volunteer_availability WHERE volunteer_id = %s", (user_id,))
+        
+        # Insert new availability
+        for date_str in availability:
+            cursor.execute(
+                "INSERT INTO volunteer_availability (volunteer_id, date_available) VALUES (%s, %s)",
+                (user_id, date_str)
+            )
     
     def _validate_profile_data(self, data):
         """Validate profile data and return error if invalid"""
@@ -170,41 +369,42 @@ class Profile(Resource):
             if field not in data:
                 return {"error": f"Missing required field: {field}"}
         
-        # Validate fullName
+        # Validate fullName (matches your varchar(50))
         if not isinstance(data["fullName"], str) or not data["fullName"].strip():
             return {"error": "Full name must be a non-empty string"}
         if len(data["fullName"]) > 50:
             return {"error": "Full name must be 50 characters or less"}
         
-        # Validate address1
+        # Validate address1 (matches your varchar(100))
         if not isinstance(data["address1"], str) or not data["address1"].strip():
             return {"error": "Address 1 must be a non-empty string"}
         if len(data["address1"]) > 100:
             return {"error": "Address 1 must be 100 characters or less"}
         
-        # Validate address2 (optional)
+        # Validate address2 (matches your varchar(100))
         if "address2" in data and data["address2"]:
             if not isinstance(data["address2"], str):
                 return {"error": "Address 2 must be a string"}
             if len(data["address2"]) > 100:
                 return {"error": "Address 2 must be 100 characters or less"}
         
-        # Validate city
+        # Validate city (matches your varchar(100))
         if not isinstance(data["city"], str) or not data["city"].strip():
             return {"error": "City must be a non-empty string"}
         if len(data["city"]) > 100:
             return {"error": "City must be 100 characters or less"}
         
-        # Validate state
+        # Validate state (matches your varchar(100))
         if not isinstance(data["state"], str) or not data["state"].strip():
             return {"error": "State must be a non-empty string"}
-        valid_state_values = [state["value"] for state in VALID_STATES]
-        if data["state"] not in valid_state_values:
-            return {"error": f"Invalid state. Must be one of: {', '.join(valid_state_values)}"}
+        if len(data["state"]) > 100:
+            return {"error": "State must be 100 characters or less"}
         
-        # Validate zip code
+        # Validate zip code (matches your varchar(9))
         if not isinstance(data["zip"], str) or not data["zip"].strip():
             return {"error": "Zip code must be a non-empty string"}
+        if len(data["zip"]) > 9:
+            return {"error": "Zip code must be 9 characters or less"}
         zip_pattern = r'^\d{5}(-\d{4})?$'
         if not re.match(zip_pattern, data["zip"]):
             return {"error": "Zip code must be in format 12345 or 12345-6789"}
@@ -215,17 +415,9 @@ class Profile(Resource):
         if len(data["skills"]) == 0:
             return {"error": "At least one skill must be selected"}
         
-        valid_skill_values = [skill["value"] for skill in VALID_SKILLS]
         for skill in data["skills"]:
             if not isinstance(skill, dict) or "value" not in skill or "label" not in skill:
                 return {"error": "Each skill must be an object with 'value' and 'label' properties"}
-            if skill["value"] not in valid_skill_values:
-                return {"error": f"Invalid skill value: {skill['value']}"}
-        
-        # Validate preferences (optional)
-        if "preferences" in data and data["preferences"]:
-            if not isinstance(data["preferences"], str):
-                return {"error": "Preferences must be a string"}
         
         # Validate availability
         if not isinstance(data["availability"], list):
@@ -243,22 +435,136 @@ class Profile(Resource):
         
         return None  # No validation errors
 
-# Add these classes to the END of your profile.py file
 
 class ProfileSkills(Resource):
     def get(self):
-        """Get available skill options"""
-        return {"skills": VALID_SKILLS}, 200
+        """Get available skill options from database"""
+        # Establish database connection
+        conn = db.get_db()
+        cursor = conn.cursor()
+        
+        try:
+            # Using your actual column names
+            cursor.execute("""
+                SELECT skill_name as value, skill_name as label 
+                FROM skills 
+                ORDER BY skill_name
+            """)
+            
+            skills = cursor.fetchall()
+            return {"skills": skills}, 200
+            
+        except Exception as e:
+            print(f"Database error getting skills: {e}")
+            return {"error": "Failed to retrieve skills"}, 500
+            
+        finally:
+            cursor.close()
+            conn.close()
 
 
 class ProfileStates(Resource):
     def get(self):
         """Get available state options"""
-        return {"states": VALID_STATES}, 200
+        # Return all US states
+        states = [
+            {"value": "AL", "label": "Alabama"},
+            {"value": "AK", "label": "Alaska"},
+            {"value": "AZ", "label": "Arizona"},
+            {"value": "AR", "label": "Arkansas"},
+            {"value": "CA", "label": "California"},
+            {"value": "CO", "label": "Colorado"},
+            {"value": "CT", "label": "Connecticut"},
+            {"value": "DE", "label": "Delaware"},
+            {"value": "FL", "label": "Florida"},
+            {"value": "GA", "label": "Georgia"},
+            {"value": "HI", "label": "Hawaii"},
+            {"value": "ID", "label": "Idaho"},
+            {"value": "IL", "label": "Illinois"},
+            {"value": "IN", "label": "Indiana"},
+            {"value": "IA", "label": "Iowa"},
+            {"value": "KS", "label": "Kansas"},
+            {"value": "KY", "label": "Kentucky"},
+            {"value": "LA", "label": "Louisiana"},
+            {"value": "ME", "label": "Maine"},
+            {"value": "MD", "label": "Maryland"},
+            {"value": "MA", "label": "Massachusetts"},
+            {"value": "MI", "label": "Michigan"},
+            {"value": "MN", "label": "Minnesota"},
+            {"value": "MS", "label": "Mississippi"},
+            {"value": "MO", "label": "Missouri"},
+            {"value": "MT", "label": "Montana"},
+            {"value": "NE", "label": "Nebraska"},
+            {"value": "NV", "label": "Nevada"},
+            {"value": "NH", "label": "New Hampshire"},
+            {"value": "NJ", "label": "New Jersey"},
+            {"value": "NM", "label": "New Mexico"},
+            {"value": "NY", "label": "New York"},
+            {"value": "NC", "label": "North Carolina"},
+            {"value": "ND", "label": "North Dakota"},
+            {"value": "OH", "label": "Ohio"},
+            {"value": "OK", "label": "Oklahoma"},
+            {"value": "OR", "label": "Oregon"},
+            {"value": "PA", "label": "Pennsylvania"},
+            {"value": "RI", "label": "Rhode Island"},
+            {"value": "SC", "label": "South Carolina"},
+            {"value": "SD", "label": "South Dakota"},
+            {"value": "TN", "label": "Tennessee"},
+            {"value": "TX", "label": "Texas"},
+            {"value": "UT", "label": "Utah"},
+            {"value": "VT", "label": "Vermont"},
+            {"value": "VA", "label": "Virginia"},
+            {"value": "WA", "label": "Washington"},
+            {"value": "WV", "label": "West Virginia"},
+            {"value": "WI", "label": "Wisconsin"},
+            {"value": "WY", "label": "Wyoming"}
+        ]
+        return {"states": states}, 200
+
 
 class ProfileList(Resource):
     @jwt_required()
     def get(self):
-        """Get all profiles (admin only - you might want to add role checking)"""
-        # This endpoint might be useful for admin dashboard
-        return {"profiles": profiles, "total": len(profiles)}, 200
+        """Get all profiles (admin only)"""
+        # Establish database connection
+        conn = db.get_db()
+        cursor = conn.cursor()
+        
+        try:
+            # Get profile count
+            cursor.execute("SELECT COUNT(*) as total FROM userprofile")
+            total_count = cursor.fetchone()['total']
+            
+            # Get basic profile info using your column names
+            cursor.execute("""
+                SELECT 
+                    volunteer_id, full_name, city, state_name, 
+                    address1, zipcode, preferences
+                FROM userprofile
+                ORDER BY volunteer_id DESC
+            """)
+            
+            profiles = cursor.fetchall()
+            
+            # Format the profiles
+            formatted_profiles = []
+            for profile in profiles:
+                formatted_profiles.append({
+                    "id": profile['volunteer_id'],
+                    "fullName": profile['full_name'],
+                    "city": profile['city'],
+                    "state": profile['state_name'],
+                    "address1": profile['address1'],
+                    "zipcode": profile['zipcode'],
+                    "preferences": profile['preferences']
+                })
+            
+            return {"profiles": formatted_profiles, "total": total_count}, 200
+            
+        except Exception as e:
+            print(f"Database error getting profile list: {e}")
+            return {"error": "Failed to retrieve profiles"}, 500
+            
+        finally:
+            cursor.close()
+            conn.close()
