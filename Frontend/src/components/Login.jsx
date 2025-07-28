@@ -10,37 +10,85 @@ export default function Login({ users, setLoggedInUser }) {
 
   const navigate = useNavigate();
 
+  const checkUserProfile = async (token) => {
+    try {
+      const response = await fetch('/api/profile/', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      return response.ok; // Returns true if profile exists (200), false if not found (404)
+    } catch (error) {
+      console.error('Error checking profile:', error);
+      return false; // Assume no profile on error
+    }
+  };
+
   async function handleLogin(event){
-      // setLoggedInUser(user);
-      event.preventDefault(); 
+    event.preventDefault(); 
+    console.log('1. Login attempt started');
 
-      // Create data object to send with login API request
-      const UserLogin = {
-        "email" : email,
-        "password" : password,
-        "role" : role
-      }
+    // Create data object to send with login API request
+    const UserLogin = {
+      "email" : email,
+      "password" : password,
+      "role" : role
+    }
+    console.log('2. Login data:', UserLogin);
 
-      // Make API call to login endpoint
-      const result = await login(UserLogin);
+    // Make API call to login endpoint
+    const result = await login(UserLogin);
+    console.log('3. Login result:', result);
 
-      if (result){
+    if (result) {
+      console.log('4. Login successful, getting token from localStorage');
+      
+      // Your login helper already stores the token in localStorage
+      const accessToken = localStorage.getItem('access_token');
+      console.log('5. Access token from localStorage:', accessToken ? 'Token found' : 'No token');
+      
+      if (accessToken) {
+        console.log('6. Token found, setting user and checking profile');
+        
+        // Set logged in user (keeping your existing logic)
         const user = users.find(u => u.email === email && u.password === password && u.role === role);
-        setLoggedInUser(user)
-        if(role == "volunteer"){
-          navigate("/profile")
+        setLoggedInUser(user);
+        console.log('7. User set:', user);
+        
+        if (role === "volunteer") {
+          console.log('8. Checking volunteer profile');
+          // Check if volunteer has a profile
+          const hasProfile = await checkUserProfile(accessToken);
+          console.log('9. Has profile result:', hasProfile);
+          
+          if (hasProfile) {
+            console.log('10. Navigating to volunteer dashboard');
+            navigate("/volunteerdash");
+          } else {
+            console.log('11. Navigating to profile creation');
+            navigate("/profile");
+          }
+        } else {
+          console.log('12. Navigating to admin dashboard');
+          navigate("/admindash");
         }
-        else{
-          navigate("/admindash")
-        }
+      } else {
+        console.error('No access token found in localStorage');
+        alert('Login error: No token stored');
       }
-       
-  }
+    } else {
+      console.log('13. Login failed');
+      alert('Invalid credentials or login failed');
+    }
+}
 
   const handleNavigateToRegister = (e) => {
-  e.preventDefault();
-  navigate('/register');
-};
+    e.preventDefault();
+    navigate('/register');
+  };
 
   return (
     <>
