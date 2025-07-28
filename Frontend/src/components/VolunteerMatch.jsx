@@ -34,7 +34,7 @@ export default function VolunteerMatch() {
     },
     {
       className: "nav-button",
-      link: null,
+      link: "/eventhistory",
       logo: <History size={16} />,
       text: " Event History"
     },

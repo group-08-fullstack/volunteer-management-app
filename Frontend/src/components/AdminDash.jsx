@@ -111,7 +111,7 @@ export default function AdminDashboard() {
     },
     {
       className: "nav-button",
-      link: null,
+      link: "/EventHistory",
       logo: <History size={16} />,
       text: " Event History"
     },
