@@ -2,68 +2,90 @@ from flask_restful import Resource, reqparse
 from flask import jsonify
 from flask_jwt_extended import jwt_required
 from flask_jwt_extended import get_jwt_identity
+from . import db
 
-# In-memory event list
-events = [
-    {
-        "id": 1,
-        "event": "Senior Center Visit",
-        "date": "July 5, 2025",
-        "time": "2:00 PM - 5:00 PM",
-        "location": "Golden Years Senior Center",
-        "volunteers": 8
-    },
-    {
-        "id": 2,
-        "event": "Park Restoration",
-        "date": "July 12, 2025",
-        "time": "9:00 AM - 1:00 PM",
-        "location": "Riverside Park",
-        "volunteers": 15
-    },
-    {
-        "id": 3,
-        "event": "Youth Mentoring",
-        "date": "July 18, 2025",
-        "time": "4:00 PM - 6:00 PM",
-        "location": "Community Youth Center",
-        "volunteers": 5
-    }
-]
+
 
 # Argument parser for POST
 event_parser = reqparse.RequestParser()
-event_parser.add_argument('event', type=str, required=True)
-event_parser.add_argument('date', type=str, required=True)
-event_parser.add_argument('time', type=str, required=True)
+event_parser.add_argument('eventName', type=str, required=True)
+event_parser.add_argument('skills', type=list, location='json', required=True)
+event_parser.add_argument('state', type=str, required=True)
+event_parser.add_argument('city', type=str, required=True)
+event_parser.add_argument('zipcode', type=str, required=True)
+event_parser.add_argument('urgency', type=str, required=True)
 event_parser.add_argument('location', type=str, required=True)
-event_parser.add_argument('volunteers', type=int, required=True)
+event_parser.add_argument('time', type=str, required=True)
+event_parser.add_argument('description', type=str, required=True)
+event_parser.add_argument('date', type=str, required=True)
 
-# GET and POST for event list
+
 class EventList(Resource):
     @jwt_required()
     def get(self):
-        identity = get_jwt_identity() 
-        return jsonify(events)
+     conn = db.get_db()
+     cursor = conn.cursor()
 
+     cursor.execute('SELECT * FROM eventdetails')
+     rows = cursor.fetchall()
+
+    
+     events = []
+     for row in rows:
+        event = {
+            "id": row[0],  
+            "eventName": row[1],
+            "requiredSkills": row[2].split(",") if row[2] else [],
+            "state": row[3],
+            "city": row[4],
+            "zipcode": row[5],
+            "urgency": row[6],
+            "location": row[7],
+            "time": row[8],
+            "description": row[9],
+            "date": row[10]
+        }
+        events.append(event)
+
+     cursor.close()
+     conn.close()
+
+     return jsonify(events)
+
+   
+    
     @jwt_required()
     def post(self):
+        conn = db.get_db()
+        cursor = conn.cursor()
         args = event_parser.parse_args()
-        new_event = {
-            "id": max(event["id"] for event in events) + 1 if events else 1,
-            "event": args["event"],
-            "date": args["date"],
-            "time": args["time"],
-            "location": args["location"],
-            "volunteers": args["volunteers"]
-        }
-        events.append(new_event)
-        return {"message": "Event created successfully!", "event": new_event}, 201
 
-# DELETE individual event
+        try:
+
+            event_duration_int = int(args["time"])
+            cursor.execute(
+             'INSERT INTO eventdetails (event_name, required_skills, state, city, zipcode, urgency, event_location, event_duration, event_description, date) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
+            (args["eventName"], ",".join(args["skills"]), args["state"], args["city"], args["zipcode"], args["urgency"], args["location"], event_duration_int, args["description"], args["date"])
+            )
+            conn.commit()
+
+        except Exception as e:
+           conn.rollback()
+           cursor.close()
+           conn.close()
+           return {"message": "Error submitting event", "error": str(e)}, 500
+     
+
+        cursor.close()
+        conn.close()
+        return {"message": "Event saved to database!"}, 201
+   
+
 class Event(Resource):
     @jwt_required()
     def delete(self, event_id):
+        conn = db.get_db()
+        cursor = conn.cursor()
         global events
         events = [e for e in events if e["id"] != event_id]
         return {"message": f"Event {event_id} deleted."}, 200

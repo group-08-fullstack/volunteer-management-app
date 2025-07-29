@@ -64,15 +64,17 @@ export default function EventCreationForm() {
   const navigate = useNavigate();
   // Form state
   const [form, setForm] = useState({
-    fullName: '',
-    address1: '',
-    address2: '',
-    city: '',
-    state: '',
-    zip: '',
+    eventName: '',
     skills: [],
-    preferences: '',
-    availability: []
+    state: '',
+    city: '',
+    zip: '',
+    urgency: [],
+    location: '',
+    availability: [],
+    startTime: '',
+    endTime: '',
+    description: []
   });
 
   const [dateInput, setDateInput] = useState('');
@@ -101,15 +103,17 @@ export default function EventCreationForm() {
     if (confirm('Are you sure you want to cancel? All unsaved changes will be lost.')) {
       // Reset form or navigate away
       setForm({
-        fullName: '',
-        address1: '',
-        address2: '',
-        city: '',
-        state: '',
-        zip: '',
+        eventName: '',
         skills: [],
-        preferences: '',
-        availability: []
+        state: '',
+        city: '',
+        zip: '',
+        urgency: [],
+        location: '',
+        availability: [],
+        startTime: [],
+        endTime: [],
+        description: ''
       });
       setDateInput('');
       navigate('/eventmanagement');
@@ -117,21 +121,44 @@ export default function EventCreationForm() {
   };
 
   // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (form.availability.length === 0) {
-      alert('Please add at least one availability date.');
-      return;
-    }
+    const token = localStorage.getItem("jwtToken");
 
-    if (form.skills.length === 0) {
-      alert('Please select at least one skill.');
-      return;
-    }
+    try {
+      const res = await fetch("/api/eventlist", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          eventname: form.eventName,
+          skills: form.skills,
+          state: form.state,
+          city: form.city,
+          zipcode: form.zip,
+          urgency: form.urgency,
+          location: form.location,
+          time: `${form.startTime} - ${form.endTime}`,
+          description: form.description,
+          date: form.availability[0],
+        })
+      });
 
-    alert('Event created successfully!');
+      if (!res.ok) throw new Error("Failed to create event");
+
+      const data = await res.json();
+      alert("Event created successfully!");
+      navigate("/eventmanagement");
+    } catch (err) {
+      console.error(err);
+      alert("Error submitting event");
+    }
   };
+
+
 
   return (
     <>
@@ -466,8 +493,8 @@ export default function EventCreationForm() {
                   maxLength="100"
                   required
                   className="form-input"
-                  value={form.fullName}
-                  onChange={(e) => setForm({ ...form, fullName: e.target.value })}
+                  value={form.eventName}
+                  onChange={(e) => setForm({ ...form, eventName: e.target.value })}
                   placeholder="Enter event name"
                 />
               </div>
@@ -499,8 +526,8 @@ export default function EventCreationForm() {
                   maxLength="100"
                   required
                   className="form-input"
-                  value={form.State}
-                  onChange={(e) => setForm({ ...form, State: e.target.value })}
+                  value={form.state}
+                  onChange={(e) => setForm({ ...form, state: e.target.value })}
                   placeholder="Enter state name"
                 />
               </div>
@@ -516,8 +543,8 @@ export default function EventCreationForm() {
                   maxLength="100"
                   required
                   className="form-input"
-                  value={form.City}
-                  onChange={(e) => setForm({ ...form, City: e.target.value })}
+                  value={form.city}
+                  onChange={(e) => setForm({ ...form, city: e.target.value })}
                   placeholder="Enter city name"
                 />
               </div>
@@ -533,8 +560,8 @@ export default function EventCreationForm() {
                   maxLength="100"
                   required
                   className="form-input"
-                  value={form.zipcode}
-                  onChange={(e) => setForm({ ...form, zipcode: e.target.value })}
+                  value={form.zip}
+                  onChange={(e) => setForm({ ...form, zip: e.target.value })}
                   placeholder="Enter Zip code"
                 />
               </div>
@@ -550,7 +577,7 @@ export default function EventCreationForm() {
                 </label>
                 <Select
                   options={stateOptions}
-                  onChange={(selected) => setForm({ ...form, state: selected.value })}
+                  onChange={(selected) => setForm({ ...form, urgency: selected.value })}
                   placeholder="Select urgency level"
                 />
               </div>
@@ -566,8 +593,8 @@ export default function EventCreationForm() {
                   maxLength="100"
                   required
                   className="form-input"
-                  value={form.city}
-                  onChange={(e) => setForm({ ...form, city: e.target.value })}
+                  value={form.location}
+                  onChange={(e) => setForm({ ...form, location: e.target.value })}
                   placeholder="Enter event location"
                 />
               </div>
@@ -613,8 +640,8 @@ export default function EventCreationForm() {
                 <textarea
                   className="form-textarea"
                   placeholder="Enter detailed event description"
-                  value={form.preferences}
-                  onChange={(e) => setForm({ ...form, preferences: e.target.value })}
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
                 />
               </div>
 
