@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, MapPin, Users, AlertCircle, FileText, Clock } from 'lucide-react';
 
-// Mock Select component for multi-select (simplified version)
+
 const Select = ({ options, isMulti, placeholder, onChange, value }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selected, setSelected] = useState(value || (isMulti ? [] : null));
@@ -62,13 +62,13 @@ const stateOptions = [
 
 export default function EventCreationForm() {
   const navigate = useNavigate();
-  // Form state
+ 
   const [form, setForm] = useState({
-    eventName: '',
+    eventname: '',
     skills: [],
     state: '',
     city: '',
-    zip: '',
+    zipcode: '',
     urgency: [],
     location: '',
     availability: [],
@@ -133,11 +133,11 @@ export default function EventCreationForm() {
           Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
-          eventname: form.eventName,
+          eventname: form.eventname,
           skills: form.skills,
           state: form.state,
           city: form.city,
-          zipcode: form.zip,
+          zipcode: form.zipcode,
           urgency: form.urgency,
           location: form.location,
           duration: form.duration,
@@ -492,8 +492,8 @@ export default function EventCreationForm() {
                   maxLength="100"
                   required
                   className="form-input"
-                  value={form.eventName}
-                  onChange={(e) => setForm({ ...form, eventName: e.target.value })}
+                  value={form.eventname}
+                  onChange={(e) => setForm({ ...form, eventname: e.target.value })}
                   placeholder="Enter event name"
                 />
               </div>
@@ -559,8 +559,8 @@ export default function EventCreationForm() {
                   maxLength="100"
                   required
                   className="form-input"
-                  value={form.zip}
-                  onChange={(e) => setForm({ ...form, zip: e.target.value })}
+                  value={form.zipcode}
+                  onChange={(e) => setForm({ ...form, zipcode: e.target.value })}
                   placeholder="Enter Zip code"
                 />
               </div>
