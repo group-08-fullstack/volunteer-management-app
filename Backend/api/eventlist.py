@@ -15,7 +15,7 @@ event_parser.add_argument('city', type=str, required=True)
 event_parser.add_argument('zipcode', type=str, required=True)
 event_parser.add_argument('urgency', type=str, required=True)
 event_parser.add_argument('location', type=str, required=True)
-event_parser.add_argument('time', type=str, required=True)
+event_parser.add_argument('duration', type=str, required=True)
 event_parser.add_argument('description', type=str, required=True)
 event_parser.add_argument('date', type=str, required=True)
 
@@ -41,7 +41,7 @@ class EventList(Resource):
             "zipcode": row[5],
             "urgency": row[6],
             "location": row[7],
-            "time": row[8],
+            "duration": row[8],
             "description": row[9],
             "date": row[10]
         }
@@ -65,7 +65,7 @@ class EventList(Resource):
             event_duration_int = int(args["time"])
             cursor.execute(
              'INSERT INTO eventdetails (event_name, required_skills, state, city, zipcode, urgency, event_location, event_duration, event_description, date) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
-            (args["eventName"], ",".join(args["skills"]), args["state"], args["city"], args["zipcode"], args["urgency"], args["location"], event_duration_int, args["description"], args["date"])
+            (args["eventName"], ",".join(args["skills"]), args["state"], args["city"], args["zipcode"], args["urgency"], args["location"], args["duration"], args["description"], args["date"])
             )
             conn.commit()
 

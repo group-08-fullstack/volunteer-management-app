@@ -72,8 +72,7 @@ export default function EventCreationForm() {
     urgency: [],
     location: '',
     availability: [],
-    startTime: '',
-    endTime: '',
+    duration: '',
     description: []
   });
 
@@ -141,7 +140,7 @@ export default function EventCreationForm() {
           zipcode: form.zip,
           urgency: form.urgency,
           location: form.location,
-          time: `${form.startTime} - ${form.endTime}`,
+          duration: form.duration,
           description: form.description,
           date: form.availability[0],
         })
@@ -583,7 +582,7 @@ export default function EventCreationForm() {
               </div>
 
               {/* Location */}
-              <div className="form-group full-width">
+              <div className="form-group ">
                 <label className="form-label">
                   <MapPin size={16} />
                   Location*
@@ -603,32 +602,23 @@ export default function EventCreationForm() {
               {/* Time Range */}
               <div className="form-group">
                 <label className="form-label">
-                  <Clock size={16} />
-                  Start Time*
+                <MapPin size={16} />
+                  Duration*
                 </label>
                 <input
-                  type="time"
+                  type="text"
+                  maxLength="100"
                   required
                   className="form-input"
-                  value={form.startTime || ''}
-                  onChange={(e) => setForm({ ...form, startTime: e.target.value })}
+                  value={form.duration}
+                  onChange={(e) => setForm({ ...form, duration: e.target.value })}
+                  placeholder="Enter event duration in hours"
                 />
               </div>
 
-              <div className="form-group">
-                <label className="form-label">
-                  <Clock size={16} />
-                  End Time*
-                </label>
-                <input
-                  type="time"
-                  required
-                  className="form-input"
-                  value={form.endTime || ''}
-                  onChange={(e) => setForm({ ...form, endTime: e.target.value })}
-                />
-              </div>
 
+             
+              
 
 
               {/* Event Description */}
