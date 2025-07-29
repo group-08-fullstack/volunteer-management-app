@@ -62,7 +62,7 @@ const stateOptions = [
 
 export default function EventCreationForm() {
   const navigate = useNavigate();
- 
+
   const [form, setForm] = useState({
     eventname: '',
     skills: [],
@@ -73,7 +73,7 @@ export default function EventCreationForm() {
     location: '',
     availability: [],
     duration: '',
-    description: []
+    description: ''
   });
 
   const [dateInput, setDateInput] = useState('');
@@ -102,16 +102,15 @@ export default function EventCreationForm() {
     if (confirm('Are you sure you want to cancel? All unsaved changes will be lost.')) {
       // Reset form or navigate away
       setForm({
-        eventName: '',
+        eventname: '',
         skills: [],
         state: '',
         city: '',
-        zip: '',
+        zipcode: '',
         urgency: [],
         location: '',
         availability: [],
-        startTime: [],
-        endTime: [],
+        duration: '',
         description: ''
       });
       setDateInput('');
@@ -602,7 +601,7 @@ export default function EventCreationForm() {
               {/* Time Range */}
               <div className="form-group">
                 <label className="form-label">
-                <MapPin size={16} />
+                  <MapPin size={16} />
                   Duration*
                 </label>
                 <input
@@ -615,10 +614,6 @@ export default function EventCreationForm() {
                   placeholder="Enter event duration in hours"
                 />
               </div>
-
-
-             
-              
 
 
               {/* Event Description */}
