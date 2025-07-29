@@ -21,13 +21,34 @@ class Notification(Resource):
             return 400
         
         # Database
-        cursor.execute("SELECT * FROM notifications WHERE receiver = %s", (userEmail,))
-        results = cursor.fetchall()
+
+        try:
+            # Get the user_id from UserCredentials table using email
+            cursor.execute(
+                "SELECT user_id FROM usercredentials WHERE email = %s", 
+                (userEmail,)
+            )
+            user_result = cursor.fetchone()
+
+            if not user_result:
+                return {"error": "User not found"}, 404
+            
+            user_id = user_result['user_id']
+
+            # Select all notifications
+            cursor.execute("SELECT * FROM notifications WHERE user_id = %s", (user_id,))
+            results = cursor.fetchall()
+            
+        except Exception as e:
+            print(f"Database error: {e}")
+            return {"error": "Failed"}, 500
+    
+
 
         # Convert any datetime.date fields to strings
         for row in results:
                 if isinstance(row['event_date'], (date)):
-                    row['event_date'] = row['event_date'].isoformat()  # Convert format
+                    row['event_date'] = row['event_date'].isoformat()  # Convert to string
 
         #Close the cursor and db connection
         cursor.close()
@@ -62,15 +83,31 @@ class Notification(Resource):
         if not isinstance(data["message"], str):
             return {"error": "'message' must be a string"}, 400
         if not isinstance(data["date"], str):
-            return {"error": "'date' must be a string in MM/DD/YYYY format"}, 400
+            return {"error": "'date' must be a string in YYYY-MM-DD format"}, 400
         if not isinstance(data["read"], bool):
             return {"error": "'read' must be a boolean"}, 400
-
         
-        cursor.execute(
-        'INSERT INTO notifications (message, event_date, receiver, `read`) VALUES (%s, %s, %s, %s)',
-        (data["message"], data["date"], data["receiver"], data["read"])
-        )
+        try:
+            # Get the user_id from UserCredentials table using email
+            cursor.execute(
+                "SELECT user_id FROM usercredentials WHERE email = %s", 
+                (data["receiver"],)
+            )
+            user_result = cursor.fetchone()
+
+            if not user_result:
+                return {"error": "User not found"}, 404
+            
+            user_id = user_result['user_id']
+
+            
+            cursor.execute(
+            'INSERT INTO notifications (message, event_date, user_id, `read`) VALUES (%s, %s, %s, %s)',
+            (data["message"], data["date"], user_id, data["read"])
+            )
+        except Exception as e:
+            print(f"Database error: {e}")
+            return {"error": "Failed"}, 500
 
 
         # Save actions to db

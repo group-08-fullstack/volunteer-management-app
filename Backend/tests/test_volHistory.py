@@ -20,7 +20,7 @@ class TestPostVolHistory:
             "participationStatus": {"text": "Registered", "numeric": 1}
         }
         response = client.post(f"/api/history/", headers={"Authorization": f"Bearer {access_token}"}, json=data)
-        assert response.status_code == 201
+        assert response.status_code == 201 
 
     def test_post_unauthorized(self,client):
         response = client.post(f"/api/history/")

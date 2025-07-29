@@ -19,7 +19,8 @@ export async function login(data){
       alert(parsed.message);
       // Set user data in local storage
       localStorage.setItem("access_token", parsed.tokens.access_token);
-      localStorage.setItem("refresh_token", parsed.tokens.refresh_token)
+      localStorage.setItem("refresh_token", parsed.tokens.refresh_token);
+      localStorage.setItem("user_id", parsed.user.user_id);
       localStorage.setItem("user_email", parsed.user.email);
       localStorage.setItem("user_role", parsed.user.role);
 

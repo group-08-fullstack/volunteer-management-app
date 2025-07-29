@@ -18,21 +18,38 @@ class VolHistory(Resource):
         # Create cursor
         cursor = conn.cursor()
 
-        cursor.execute("SELECT * FROM volunteerhistory WHERE email=%s",(userEmail,))
-        results = cursor.fetchall()
+        try:
+            # Get the user_id from UserCredentials table using email
+            cursor.execute(
+                "SELECT user_id FROM usercredentials WHERE email = %s", 
+                (userEmail,)
+            )
+            user_result = cursor.fetchone()
 
-        # print(results[1]["urgency"])
-        # print(results[1]["participation_status"])
+            if not user_result:
+                return {"error": "User not found"}, 404
+            
+            user_id = user_result['user_id']
 
-        # Convert any datetime.date fields to strings
-        for row in results:
-                if isinstance(row['event_date'], (date)):
-                    row['event_date'] = row['event_date'].isoformat()  # Convert format
 
-        # Convert nested json, since only top level will be converted by frontend
-        for row in results:
-            row['urgency'] = json.loads(row['urgency'])
-            row['participation_status'] = json.loads(row['participation_status'])
+            cursor.execute("SELECT * FROM volunteerhistory WHERE volunteer_id=%s",(user_id,))
+            results = cursor.fetchall()
+
+             # Convert any datetime.date fields to strings
+            for row in results:
+                    if isinstance(row['event_date'], (date)):
+                        row['event_date'] = row['event_date'].isoformat()  # Convert format
+
+            # Convert nested json, since only top level will be converted by frontend
+            for row in results:
+                row['urgency'] = json.loads(row['urgency'])
+                row['participation_status'] = json.loads(row['participation_status'])
+
+        except Exception as e:
+            print(f"Database error: {e}")
+            return {"error": "Failed"}, 500
+
+
 
 
         # Save actions to db
