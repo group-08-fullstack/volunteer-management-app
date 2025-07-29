@@ -103,22 +103,37 @@ class RefreshToken(Resource):
 class DeleteAccount(Resource):
     @jwt_required()
     def delete(self):
+        
         email = get_jwt_identity()
 
         conn = db.get_db()
         cursor = conn.cursor()
 
         try:
-            cursor.execute("SELECT * FROM UserCredentials WHERE email = %s", (email,))
-            if not cursor.fetchone():
+            
+            cursor.execute("SELECT user_id FROM UserCredentials WHERE email = %s", (email,))
+            user = cursor.fetchone()
+            if not user:
                 return {"message": "User not found."}, 404
+            
+            user_id = user['user_id']
 
-            cursor.execute("DELETE FROM UserCredentials WHERE email = %s", (email,))
+           
+            cursor.execute("DELETE FROM userprofile WHERE volunteer_id = %s", (user_id,))
+
+            # Delete user credentials
+            cursor.execute("DELETE FROM UserCredentials WHERE user_id = %s", (user_id,))
+
+            
             conn.commit()
-            return {"message": f"Account for {email} deleted successfully."}, 200
+            return {"message": f"Account and profile for {email} deleted successfully."}, 200
+        
         except Exception as e:
+            
             conn.rollback()
             return {"error": str(e)}, 500
+        
         finally:
+           
             cursor.close()
             conn.close()
