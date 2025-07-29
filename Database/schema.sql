@@ -28,21 +28,24 @@ CREATE TABLE userprofile (
 
 -- Event details
 CREATE TABLE eventdetails (
-    event_id INT NOT NULL AUTO_INCREMENT,
-    event_name VARCHAR(100) NOT NULL,
-    required_skills TEXT NOT NULL,
-    state VARCHAR(45) NOT NULL,
-    city VARCHAR(45) NOT NULL,
-    zipcode VARCHAR(45) NOT NULL,
-    urgency ENUM('Low', 'Medium', 'High') NOT NULL,
-    event_location TEXT NOT NULL,
-    event_duration INT NOT NULL,
-    event_description TEXT NOT NULL,
-    date DATE NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    event_status VARCHAR(45),
-    PRIMARY KEY (event_id)
+  event_id INT NOT NULL AUTO_INCREMENT,
+  event_name VARCHAR(100) NOT NULL,
+  required_skills TEXT NOT NULL,
+  address VARCHAR(45) NOT NULL,
+  state VARCHAR(45) NOT NULL,
+  city VARCHAR(45) NOT NULL,
+  zipcode VARCHAR(45) NOT NULL,
+  urgency ENUM('Low', 'Medium', 'High') NOT NULL,
+  location_name TEXT NOT NULL,
+  event_duration INT NOT NULL,
+  event_description TEXT NOT NULL,
+  date DATE NOT NULL,
+  created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  event_status ENUM('Pending', 'Finalized', 'Completed') DEFAULT 'Pending',
+  volunteers_needed INT NOT NULL,
+  PRIMARY KEY (event_id)
 );
+
 
 -- Notifications
 CREATE TABLE notifications (
