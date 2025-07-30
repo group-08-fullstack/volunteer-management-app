@@ -3,11 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import NavigationBar from './Navigation';
 import { History, Settings, Calendar, MapPin, Users, AlertCircle, FileText, Clock, User, Award, Phone, Mail } from 'lucide-react';
 import { createNotification } from '../helpers/notificationHelpers';
-import { addHistoryEntry } from '../helpers/volunteerHistoryHelpers';
 import { checkTokenTime } from "../helpers/authHelpers";
 
 // Notification helper
-async function sendNotification(email, data) {
+async function sendNotification(data) {
   const newNotification = {
     receiver: data.volunteer.email,
     message: `New event assigned: ${data.event.name}`,
@@ -15,19 +14,9 @@ async function sendNotification(email, data) {
     read: false
   };
   await createNotification(newNotification);
-  alert(`Notification sent to ${receiver}`);
+  alert(`Notification sent to ${data.volunteer.email}`);
 }
 
-// Volunteer history helper
-async function addVolunteerHistory(volunteer_email,event_id){
-  const newEntry = {
-    "event_id" : event_id,
-    "volunteer_email" : volunteer_email,
-    "participation_status" : "Registered"
-  }
-
-  await addHistoryEntry(newEntry);
-}
 
 export default function VolunteerMatch() {
   const navigate = useNavigate();
@@ -195,8 +184,7 @@ export default function VolunteerMatch() {
       }
 
       const data = await response.json();
-      sendNotification(data.volunteer.email, data);
-      addVolunteerHistory(selectedEvent.id,selectedVolunteer.email);
+      sendNotification(data);
       setMatchResult({ volunteer: data.volunteer, event: data.event });
       
       // Reset the page after successful match

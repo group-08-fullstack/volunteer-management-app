@@ -196,13 +196,11 @@ class MatchVolunteer(Resource):
                 # Insert without participation_status - let database use default value
                 cursor.execute("""
                     INSERT INTO volunteerhistory
-                    (event_id, volunteer_id, email, event_name)
-                    VALUES (%s, %s, %s, %s)
+                    (event_id, volunteer_id)
+                    VALUES (%s, %s)
                 """, (
                     event_row['event_id'], 
                     volunteer_row['user_id'], 
-                    volunteer_row['email'], 
-                    event_name_truncated
                 ))
                 
                 conn.commit()
