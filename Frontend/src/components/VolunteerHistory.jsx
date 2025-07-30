@@ -124,9 +124,9 @@ export default function VolunteerHistoryTable(){
                             Event Date
                             <button
                             className={
-                                activeSort.field === "event_date" ? "active" : "not-sorted"
+                                activeSort.field === "date" ? "active" : "not-sorted"
                             }
-                            onClick={() => handleSort("event_date")}
+                            onClick={() => handleSort("date")}
                             >
                             <ArrowUpDown size={20} />
                             </button>
@@ -138,7 +138,7 @@ export default function VolunteerHistoryTable(){
                             Participation Status
                             <button
                             className={
-                                activeSort.field === "participationStatus" ? "active" : "not-sorted"
+                                activeSort.field === "participation_status" ? "active" : "not-sorted"
                             }
                             onClick={() => handleSort("participation_status")}
                             >

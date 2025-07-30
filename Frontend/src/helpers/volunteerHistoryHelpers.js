@@ -47,7 +47,7 @@ export function sortByField(paginatedData,setPaginatedData ,field, ascending) {
     const valB = b[field];
 
     // Date case
-    if (field === "event_date") {
+    if (field === "date") {
       return ascending
         ? new Date(valA) - new Date(valB)
         : new Date(valB) - new Date(valA);
@@ -60,8 +60,30 @@ export function sortByField(paginatedData,setPaginatedData ,field, ascending) {
         : valB.localeCompare(valA);
     }
 
-    // Numeric case (urgency and status)
-    return ascending ? valA.numeric - valB.numeric : valB.numeric - valA.numeric;
+    // participation_status case
+    if (field === "participation_status"){
+      const ParticipationStatus = ['Did Not Show','Pending', 'Registered', 'Volunteered'];
+      
+      const indexOfA = ParticipationStatus.indexOf(valA);
+      const indexOfB = ParticipationStatus.indexOf(valB);
+
+      return ascending ? indexOfB - indexOfA: indexOfA - indexOfB;
+
+
+    }
+
+     // urgency case
+    if (field === "urgency"){
+      const ParticipationStatus = ['Low', 'Medium', 'High'];
+      
+      const indexOfA = ParticipationStatus.indexOf(valA);
+      const indexOfB = ParticipationStatus.indexOf(valB);
+
+      return ascending ? indexOfB - indexOfA: indexOfA - indexOfB;
+
+
+    }
+
   });
 
   // 3. Re-paginate (e.g., 5 per page)

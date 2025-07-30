@@ -74,7 +74,6 @@ class VolHistory(Resource):
     @jwt_required()
     def post(self):
         newEntry = request.get_json()
-        userEmail = get_jwt_identity()
 
         # Establish connection
         conn = db.get_db()
@@ -88,60 +87,49 @@ class VolHistory(Resource):
 
         # Required top-level fields
         required_fields = [
-            "event_name", "event_description", "event_location", 
-            "required_skills", "urgency", "event_date", "participation_status"
+            "event_id", "volunteer_email", "participation_status"
         ]
         for field in required_fields:
             if field not in newEntry:
                 return {"error": f"Missing field '{field}'"}, 400
 
         # Type checks
-        if not isinstance(newEntry["event_name"], str):
-            return {"error": "'event_name' must be a string"}, 400
-
-        if not isinstance(newEntry["event_description"], str):
-            return {"error": "'event_description' must be a string"}, 400
-
-        if not isinstance(newEntry["event_location"], str):
-            return {"error": "'event_location' must be a string"}, 400
-
-        if not isinstance(newEntry["required_skills"], list) or not all(isinstance(skill, str) for skill in newEntry["required_skills"]):
-            return {"error": "'required_skills' must be a list of strings"}, 400
-
-        # Check urgency
-        urgency = newEntry["urgency"]
-        if not isinstance(urgency, dict):
-            return {"error": "'urgency' must be an object with 'text' and 'numeric'"}, 400
-        if "text" not in urgency or "numeric" not in urgency:
-            return {"error": "Missing fields in 'urgency'"}, 400
-        if not isinstance(urgency["text"], str):
-            return {"error": "'urgency.text' must be a string"}, 400
-        if not isinstance(urgency["numeric"], int):
-            return {"error": "'urgency.numeric' must be an integer"}, 400
-
-        # Check event_date
-        try:
-            datetime.strptime(newEntry["event_date"], "%Y-%m-%d")
-        except ValueError:
-            return {"error": "'event_date' must be in 'YYYY-MM-DD' format"}, 500
+        if not isinstance(newEntry["event_id"], int):
+            return {"error": "'event_id' must be a int"}, 400
+        
+        if not isinstance(newEntry["volunteer_email"], str):
+            return {"error": "'volunteer_email' must be a string"}, 400
 
         # Check participation_status
         participation = newEntry["participation_status"]
-        if not isinstance(participation, dict):
-            return {"error": "'participation_status' must be an object with 'text' and 'numeric'"}, 400
-        if "text" not in participation or "numeric" not in participation:
-            return {"error": "Missing fields in 'participation_status'"}, 400
-        if not isinstance(participation["text"], str):
-            return {"error": "'participation_status.text' must be a string"}, 400
-        if not isinstance(participation["numeric"], int):
-            return {"error": "'participation_status.numeric' must be an integer"}, 400
+        if not isinstance(participation, str):
+            return {"error": "'participation_status' must be a string"}, 400
 
         
         # Add to database
-        cursor.execute(
-        'INSERT INTO volunteerhistory (email,event_name, event_description, event_event_location, required_skills, urgency,event_date, participation_status) VALUES (%s, %s, %s, %s)',
-        (userEmail, newEntry["event_name"], newEntry["event_description"], newEntry["event_location"],newEntry["required_skills"], newEntry["urgency"],newEntry["event_date"],newEntry["participation_status"])
-        )
+
+        try:
+            # Get the user_id from UserCredentials table using email
+            cursor.execute(
+                "SELECT user_id FROM usercredentials WHERE email = %s", 
+                (newEntry["volunteer_email"],)
+            )
+            user_result = cursor.fetchone()
+
+            if not user_result:
+                return {"error": "User not found"}, 404
+            
+            volunteer_id = user_result['user_id']
+
+            cursor.execute(
+            'INSERT INTO volunteerhistory (event_id,volunteer_id, participation_status) VALUES (%s, %s, %s)',
+            (newEntry["event_id"],volunteer_id,newEntry["participation_status"])
+            )
+
+        except Exception as e:
+            print(f"Database error: {e}")
+            return {"error": str(e)}, 500
+
 
         # Save actions to db
         conn.commit()
