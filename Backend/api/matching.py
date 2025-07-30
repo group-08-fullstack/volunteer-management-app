@@ -128,7 +128,8 @@ class MatchVolunteer(Resource):
                     location_name,
                     urgency,
                     state,
-                    event_status
+                    event_status,
+                    volunteers_needed
                 FROM eventdetails
                 WHERE event_name = %s
             """, (args["event_name"],))
@@ -140,6 +141,10 @@ class MatchVolunteer(Resource):
             # Check if event is still pending
             if event_row['event_status'] != 'Pending':
                 return {"message": "Event is not available for assignment (not pending status)"}, 400
+
+            # Check if event still needs volunteers
+            if event_row['volunteers_needed'] <= 0:
+                return {"message": "Event is already fully staffed"}, 400
 
             # Check if volunteer is in the same state as the event
             if volunteer_row['state_name'] != event_row['state']:
@@ -181,30 +186,33 @@ class MatchVolunteer(Resource):
             if not availability_match:
                 return {"message": f"Volunteer is not available on the event date ({event_date_str}). Available dates: {[str(av['date_available']) for av in all_availability]}"}, 400
 
-            # Insert assignment record into volunteerhistory table
+            # Insert assignment record into volunteerhistory table (only event_id and volunteer_id)
             try:
-                # Truncate event_name to fit TINYTEXT (255 characters max)
-                event_name_truncated = event_row['event_name'][:255] if event_row['event_name'] else ''
-                
                 print(f"Inserting into volunteerhistory:")
                 print(f"  event_id: {event_row['event_id']}")
                 print(f"  volunteer_id: {volunteer_row['user_id']}")
-                print(f"  email: {volunteer_row['email']}")
-                print(f"  event_name: {event_name_truncated}")
                 print(f"  participation_status: Using database default (Registered)")
                 
-                # Insert without participation_status - let database use default value
+                # Insert only event_id and volunteer_id - let database use defaults for participation_status
                 cursor.execute("""
                     INSERT INTO volunteerhistory
                     (event_id, volunteer_id)
                     VALUES (%s, %s)
                 """, (
                     event_row['event_id'], 
-                    volunteer_row['user_id'], 
+                    volunteer_row['user_id']
                 ))
                 
+                # Update volunteers_needed count (subtract 1)
+                cursor.execute("""
+                    UPDATE eventdetails 
+                    SET volunteers_needed = volunteers_needed - 1
+                    WHERE event_id = %s
+                """, (event_row['event_id'],))
+                
                 conn.commit()
-                print(f"Successfully inserted volunteer {volunteer_row['email']} to event {event_name_truncated} in volunteerhistory")
+                print(f"Successfully inserted volunteer {volunteer_row['email']} to event {event_row['event_name']} in volunteerhistory")
+                print(f"Updated volunteers_needed count for event {event_row['event_id']}")
                 
             except Exception as assignment_error:
                 print(f"Error inserting into volunteerhistory: {assignment_error}")
@@ -268,17 +276,18 @@ class FilteredVolunteers(Resource):
         try:
             # First get the event details
             cursor.execute("""
-                SELECT date, state
+                SELECT date, state, volunteers_needed
                 FROM eventdetails 
                 WHERE event_id = %s AND event_status = 'Pending'
             """, (event_id,))
             
             event_row = cursor.fetchone()
             if not event_row:
-                return {"volunteers": []}, 200
+                return {"volunteers": [], "volunteers_needed": 0}, 200
             
             event_date = event_row['date']
             event_state = event_row['state']
+            volunteers_needed = event_row['volunteers_needed']
             
             # Format event date for comparison
             if hasattr(event_date, 'strftime'):
@@ -286,7 +295,74 @@ class FilteredVolunteers(Resource):
             else:
                 event_date_str = str(event_date)
 
-            print(f"Filtering volunteers for event_id {event_id}: state={event_state}, date={event_date_str}")
+            print(f"Filtering volunteers for event_id {event_id}: state={event_state}, date={event_date_str}, volunteers_needed={volunteers_needed}")
+
+            # If volunteers_needed is 0, return matched volunteers instead
+            if volunteers_needed <= 0:
+                matched_volunteers_query = """
+                    SELECT 
+                        vh.volunteer_id,
+                        uc.email,
+                        up.full_name,
+                        up.date_of_birth,
+                        up.phone_number,
+                        up.address1,
+                        up.city,
+                        up.state_name,
+                        up.zipcode,
+                        up.preferences,
+                        vh.participation_status
+                    FROM volunteerhistory vh
+                    JOIN usercredentials uc ON vh.volunteer_id = uc.user_id
+                    JOIN userprofile up ON uc.user_id = up.volunteer_id
+                    WHERE vh.event_id = %s
+                    ORDER BY up.full_name
+                """
+                
+                cursor.execute(matched_volunteers_query, (event_id,))
+                matched_rows = cursor.fetchall()
+                
+                matched_volunteers = []
+                for vol_row in matched_rows:
+                    volunteer_id = vol_row['volunteer_id']
+
+                    # Get volunteer skills
+                    cursor.execute("""
+                        SELECT s.skill_name 
+                        FROM volunteer_skills vs
+                        JOIN skills s ON vs.skill_id = s.skills_id
+                        WHERE vs.volunteer_id = %s
+                    """, (volunteer_id,))
+                    skill_rows = cursor.fetchall()
+                    skills = [{'value': skill['skill_name'], 'label': skill['skill_name']} for skill in skill_rows]
+
+                    # Format phone number
+                    phone_number = ""
+                    if vol_row['phone_number']:
+                        phone_digits = str(vol_row['phone_number'])
+                        if len(phone_digits) == 10:
+                            phone_number = f"({phone_digits[:3]}) {phone_digits[3:6]}-{phone_digits[6:]}"
+                        else:
+                            phone_number = phone_digits
+
+                    volunteer = {
+                        "email": vol_row['email'],
+                        "fullName": vol_row['full_name'],
+                        "dateOfBirth": vol_row['date_of_birth'].strftime('%Y-%m-%d') if vol_row['date_of_birth'] else None,
+                        "phoneNumber": phone_number,
+                        "address1": vol_row['address1'],
+                        "city": vol_row['city'],
+                        "state": vol_row['state_name'],
+                        "zipcode": vol_row['zipcode'],
+                        "preferences": vol_row['preferences'],
+                        "skills": skills,
+                        "user_id": volunteer_id,
+                        "participation_status": vol_row['participation_status']
+                    }
+                    matched_volunteers.append(volunteer)
+
+                print(f"Returning {len(matched_volunteers)} matched volunteers")
+                return {"volunteers": matched_volunteers, "volunteers_needed": volunteers_needed, "is_fully_staffed": True}, 200
 
             # Get volunteers who are in the same state AND available on the event date
             # Also exclude volunteers already assigned to this event
@@ -376,11 +452,60 @@ class FilteredVolunteers(Resource):
                 volunteers.append(volunteer)
 
             print(f"Returning {len(volunteers)} filtered volunteers")
-            return {"volunteers": volunteers}, 200
+            return {"volunteers": volunteers, "volunteers_needed": volunteers_needed, "is_fully_staffed": False}, 200
 
         except Exception as e:
             print(f"Database error getting filtered volunteers: {e}")
             return {"error": "Failed to retrieve filtered volunteers"}, 500
+        finally:
+            cursor.close()
+            conn.close()
+
+
+class FinalizeEvent(Resource):
+    """Finalize an event (change status from Pending to Finalized)"""
+    
+    @jwt_required()
+    def post(self, event_id):
+        """Finalize an event"""
+        conn = db.get_db()
+        cursor = conn.cursor()
+
+        try:
+            print(f"Attempting to finalize event {event_id}")
+            
+            # Update event status to 'Finalized' (exact ENUM value)
+            cursor.execute("""
+                UPDATE eventdetails 
+                SET event_status = 'Finalized'
+                WHERE event_id = %s AND event_status = 'Pending'
+            """, (event_id,))
+            
+            rows_affected = cursor.rowcount
+            print(f"Rows affected: {rows_affected}")
+            
+            if rows_affected == 0:
+                # Check if event exists
+                cursor.execute("SELECT event_status FROM eventdetails WHERE event_id = %s", (event_id,))
+                result = cursor.fetchone()
+                if result:
+                    print(f"Event {event_id} exists but has status: {result['event_status']}")
+                    return {"message": f"Event is not pending (current status: {result['event_status']})"}, 400
+                else:
+                    print(f"Event {event_id} not found")
+                    return {"message": "Event not found"}, 404
+            
+            conn.commit()
+            print(f"Successfully finalized event {event_id} - status changed from Pending to Finalized")
+            
+            return {"message": "Event successfully finalized"}, 200
+
+        except Exception as e:
+            conn.rollback()
+            print(f"Database error finalizing event: {e}")
+            import traceback
+            traceback.print_exc()
+            return {"error": f"Failed to finalize event: {str(e)}"}, 500
         finally:
             cursor.close()
             conn.close()
@@ -396,19 +521,20 @@ class VolunteerEventAssignments(Resource):
         cursor = conn.cursor()
 
         try:
-            # Query the volunteerhistory table
+            # Query the volunteerhistory table and get event_name from eventdetails via JOIN
             assignments_query = """
                 SELECT 
                     vh.event_id,
                     vh.volunteer_id,
-                    vh.email,
-                    vh.event_name,
                     vh.participation_status,
+                    uc.email,
                     up.full_name as volunteer_name,
+                    ed.event_name,
                     ed.date as event_date,
                     ed.location_name,
                     ed.urgency
                 FROM volunteerhistory vh
+                LEFT JOIN usercredentials uc ON vh.volunteer_id = uc.user_id
                 LEFT JOIN userprofile up ON vh.volunteer_id = up.volunteer_id
                 LEFT JOIN eventdetails ed ON vh.event_id = ed.event_id
                 ORDER BY vh.event_id DESC
@@ -423,7 +549,7 @@ class VolunteerEventAssignments(Resource):
                     "volunteer_id": row['volunteer_id'],
                     "volunteer_email": row['email'],
                     "volunteer_name": row['volunteer_name'] or "Unknown",
-                    "event_name": row['event_name'],
+                    "event_name": row['event_name'] or "Unknown Event",
                     "event_date": row['event_date'].strftime('%Y-%m-%d') if row['event_date'] else None,
                     "location_name": row['location_name'],
                     "urgency": row['urgency'],

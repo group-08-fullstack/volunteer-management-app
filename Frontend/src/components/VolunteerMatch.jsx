@@ -132,9 +132,18 @@ export default function VolunteerMatch() {
       }
 
       const volunteersData = await volunteersResponse.json();
-      console.log('Filtered volunteers received:', volunteersData.volunteers?.length || 0);
+      console.log('Volunteer data received:', volunteersData);
       
       setFilteredVolunteers(volunteersData.volunteers || []);
+      
+      // Update the selected event with current volunteers_needed count
+      if (volunteersData.volunteers_needed !== undefined) {
+        setSelectedEvent(prev => ({
+          ...prev,
+          volunteers_needed: volunteersData.volunteers_needed,
+          is_fully_staffed: volunteersData.is_fully_staffed || false
+        }));
+      }
 
     } catch (error) {
       console.error('Error fetching volunteers:', error);
@@ -148,6 +157,57 @@ export default function VolunteerMatch() {
   const handleVolunteerSelect = (volunteerEmail) => {
     const volunteer = filteredVolunteers.find(v => v.email === volunteerEmail);
     setSelectedVolunteer(volunteer);
+  };
+
+  const handleFinalize = async () => {
+    if (!selectedEvent) {
+      alert('No event selected for finalization.');
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to finalize "${selectedEvent.event_name}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    const token = localStorage.getItem('access_token');
+    await checkTokenTime();
+
+    if (!token) {
+      alert('You are not authenticated. Please log in.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/matching/finalize/${selectedEvent.id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        alert('Error: ' + (errData.message || response.statusText));
+        return;
+      }
+
+      const data = await response.json();
+      alert(`Event "${selectedEvent.event_name}" has been successfully finalized!`);
+      
+      // Reset the page after successful finalization
+      setTimeout(() => {
+        setSelectedEvent(null);
+        setSelectedVolunteer(null);
+        setFilteredVolunteers([]);
+        setMatchResult(null);
+        // Refresh events list
+        window.location.reload();
+      }, 1000);
+      
+    } catch (error) {
+      alert('Failed to finalize event: ' + error.message);
+    }
   };
 
   const handleMatch = async () => {
@@ -653,16 +713,82 @@ export default function VolunteerMatch() {
             </div>
           </div>
 
-          {/* Step 2: Select Volunteer */}
+          {/* Step 2: Select Volunteer or Show Matched Volunteers */}
           {selectedEvent && (
             <div className="step-container">
               <div className="step-header">
                 <div className="step-number">2</div>
-                <h2 className="step-title">Select Volunteer</h2>
+                <h2 className="step-title">
+                  {selectedEvent.is_fully_staffed ? 'Matched Volunteers' : 'Select Volunteer'}
+                </h2>
               </div>
               <div className="card">
                 {loadingVolunteers ? (
-                  <div className="loading-message">Loading available volunteers...</div>
+                  <div className="loading-message">Loading volunteers...</div>
+                ) : selectedEvent.is_fully_staffed ? (
+                  // Show matched volunteers when event is fully staffed
+                  <>
+                    <div className="success-message">
+                      <h3>✅ Event Fully Staffed!</h3>
+                      <p>This event has all required volunteers assigned ({filteredVolunteers.length} volunteers).</p>
+                    </div>
+                    
+                    <h4 style={{marginTop: '1.5rem', marginBottom: '1rem', color: '#374151'}}>
+                      Assigned Volunteers:
+                    </h4>
+                    
+                    {filteredVolunteers.map((volunteer, index) => (
+                      <div key={volunteer.email} className="volunteer-info" style={{marginBottom: '1rem', border: '1px solid #e5e7eb', borderRadius: '0.5rem', padding: '1rem'}}>
+                        <div className="info-item">
+                          <User size={16} color="#3b82f6" />
+                          <div>
+                            <div className="info-label">Name</div>
+                            <div className="info-value">{volunteer.fullName}</div>
+                          </div>
+                        </div>
+
+                        <div className="info-item">
+                          <Mail size={16} color="#3b82f6" />
+                          <div>
+                            <div className="info-label">Email</div>
+                            <div className="info-value">{volunteer.email}</div>
+                          </div>
+                        </div>
+
+                        <div className="info-item">
+                          <MapPin size={16} color="#3b82f6" />
+                          <div>
+                            <div className="info-label">Location</div>
+                            <div className="info-value">{volunteer.city}, {volunteer.state}</div>
+                          </div>
+                        </div>
+
+                        <div className="info-item">
+                          <AlertCircle size={16} color="#3b82f6" />
+                          <div>
+                            <div className="info-label">Status</div>
+                            <div className="info-value">{volunteer.participation_status}</div>
+                          </div>
+                        </div>
+
+                        {volunteer.skills && volunteer.skills.length > 0 && (
+                          <div className="info-item" style={{gridColumn: '1 / -1'}}>
+                            <Award size={16} color="#3b82f6" />
+                            <div style={{width: '100%'}}>
+                              <div className="info-label">Skills</div>
+                              <div className="skills-list">
+                                {volunteer.skills.map((skill, skillIndex) => (
+                                  <span key={skillIndex} className="skill-tag">
+                                    {skill.label || skill.value || skill}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </>
                 ) : filteredVolunteers.length === 0 ? (
                   <div className="no-volunteers-message">
                     <p>No volunteers found for this event.</p>
@@ -674,6 +800,9 @@ export default function VolunteerMatch() {
                       <label className="form-label">
                         <User size={16} />
                         Choose Volunteer (Same State & Available on Event Date)
+                        <span style={{marginLeft: '0.5rem', color: '#6b7280'}}>
+                          ({selectedEvent.volunteers_needed} volunteers still needed)
+                        </span>
                       </label>
                       <select
                         value={selectedVolunteer ? selectedVolunteer.email : ''}
@@ -756,25 +885,41 @@ export default function VolunteerMatch() {
             </div>
           )}
 
-          {/* Step 3: Assign Volunteer */}
-          {selectedEvent && selectedVolunteer && (
+          {/* Step 3: Assign Volunteer or Finalize Event */}
+          {selectedEvent && (
             <div className="step-container">
               <div className="step-header">
                 <div className="step-number">3</div>
-                <h2 className="step-title">Assign Volunteer</h2>
+                <h2 className="step-title">
+                  {selectedEvent.is_fully_staffed ? 'Finalize Event' : 'Assign Volunteer'}
+                </h2>
               </div>
               <div className="card">
-                <p>Ready to assign <strong>{selectedVolunteer.fullName}</strong> to <strong>{selectedEvent.event_name}</strong>?</p>
-                <button onClick={handleMatch} className="assign-button">
-                  Assign Volunteer to Event
-                </button>
+                {selectedEvent.is_fully_staffed ? (
+                  <>
+                    <p>All volunteers have been assigned to <strong>{selectedEvent.event_name}</strong>.</p>
+                    <p>Are you ready to finalize this event? This will mark it as completed and remove it from the pending events list.</p>
+                    <button onClick={handleFinalize} className="assign-button" style={{backgroundColor: '#f59e0b'}}>
+                      Finalize Event
+                    </button>
+                  </>
+                ) : selectedVolunteer ? (
+                  <>
+                    <p>Ready to assign <strong>{selectedVolunteer.fullName}</strong> to <strong>{selectedEvent.event_name}</strong>?</p>
+                    <button onClick={handleMatch} className="assign-button">
+                      Assign Volunteer to Event
+                    </button>
 
-                {matchResult && (
-                  <div className="success-message">
-                    <h3>✅ Match Successful!</h3>
-                    <p><strong>{matchResult.volunteer.name}</strong> has been successfully assigned to <strong>{matchResult.event.name}</strong>.</p>
-                    <p>A notification has been sent to the volunteer.</p>
-                  </div>
+                    {matchResult && (
+                      <div className="success-message">
+                        <h3>✅ Match Successful!</h3>
+                        <p><strong>{matchResult.volunteer.name}</strong> has been successfully assigned to <strong>{matchResult.event.name}</strong>.</p>
+                        <p>A notification has been sent to the volunteer.</p>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <p>Select a volunteer above to assign them to this event.</p>
                 )}
               </div>
             </div>

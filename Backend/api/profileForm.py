@@ -481,27 +481,37 @@ class Profile(Resource):
 
 
 class ProfileSkills(Resource):
+    @jwt_required()
     def get(self):
-        """Get available skill options from database"""
-        # Establish database connection
+        """Get all available skills from the skills table"""
         conn = db.get_db()
         cursor = conn.cursor()
-        
+
         try:
-            # Using your actual column names
             cursor.execute("""
-                SELECT skill_name as value, skill_name as label 
+                SELECT skills_id, skill_name 
                 FROM skills 
-                ORDER BY skill_name
+                ORDER BY skill_name ASC
             """)
             
-            skills = cursor.fetchall()
-            return {"skills": skills}, 200
+            skill_rows = cursor.fetchall()
             
+            skills = []
+            for row in skill_rows:
+                skill = {
+                    "skills_id": row['skills_id'],
+                    "skill_name": row['skill_name']
+                }
+                skills.append(skill)
+
+            return {
+                "skills": skills,
+                "total": len(skills)
+            }, 200
+
         except Exception as e:
             print(f"Database error getting skills: {e}")
             return {"error": "Failed to retrieve skills"}, 500
-            
         finally:
             cursor.close()
             conn.close()
