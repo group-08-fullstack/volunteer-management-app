@@ -78,3 +78,4 @@ api.add_resource(eventlist.EventsByStatus, '/api/eventlist/status/<string:status
 api.add_resource(eventlist.EventStatus, '/api/eventlist/<int:event_id>/status/')
 api.add_resource(matching.VolunteerEventAssignments, "/api/matching/assignments/")
 api.add_resource(matching.FilteredVolunteers, '/api/matching/volunteers/<int:event_id>')
+api.add_resource(matching.FinalizeEvent, '/api/matching/finalize/<int:event_id>')
