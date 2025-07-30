@@ -31,25 +31,29 @@ class VolHistory(Resource):
             
             user_id = user_result['user_id']
 
-
+            # Get volunteer particiaption status
             cursor.execute("SELECT * FROM volunteerhistory WHERE volunteer_id=%s",(user_id,))
-            results = cursor.fetchall()
+            volHistoryResults = cursor.fetchall() # results holds rows
+
+
+            # Get all event details
+            event_ids = [row["event_id"] for row in volHistoryResults]
+
+            if event_ids:
+                format_strings = ','.join(['%s'] * len(event_ids)) # Generate enough '%s' for the variable length of event_ids
+                cursor.execute(f"SELECT event_name,event_id, event_name, required_skills, address, state, city,urgency, location_name,event_description, date FROM eventdetails WHERE event_id IN ({format_strings})", event_ids)
+                event_details = cursor.fetchall()
+            else:
+                event_details = []
 
              # Convert any datetime.date fields to strings
-            for row in results:
-                    if isinstance(row['event_date'], (date)):
-                        row['event_date'] = row['event_date'].isoformat()  # Convert format
-
-            # Convert nested json, since only top level will be converted by frontend
-            for row in results:
-                row['urgency'] = json.loads(row['urgency'])
-                row['participation_status'] = json.loads(row['participation_status'])
+            for row in event_details:
+                    if isinstance(row['date'], (date)):
+                        row['date'] = row['date'].isoformat()  # Convert format
 
         except Exception as e:
             print(f"Database error: {e}")
-            return {"error": "Failed"}, 500
-
-
+            return {"error": str(e)}, 500
 
 
         # Save actions to db
@@ -58,9 +62,14 @@ class VolHistory(Resource):
         # Close the cursor and conn
         cursor.close()
         conn.close()
+
+        # Merge dictionaries
+        for i in range(len(event_details)):
+            event_details[i].update(volHistoryResults[i])
+
         
-        # This will return data where the userEmail is in database
-        return results, 200
+        # This will return all user volunteer history
+        return event_details, 200
     
     @jwt_required()
     def post(self):

@@ -19,7 +19,7 @@ export async function getVolunteerHistory(){
     return parsed;
 }
 
-// Fetches the user's full volunteer history from the backend
+// Add event to volunteer's history
 export async function addHistoryEntry(data){
   // First validate that user JWT token is still vaild
   await checkTokenTime();

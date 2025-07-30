@@ -156,11 +156,11 @@ export default function VolunteerHistoryTable(){
                         <tr key={i}>
                         <td>{event.event_name}</td>
                         <td>{event.event_description}</td>
-                        <td>{event.event_location}</td>
+                        <td>{event.location_name}</td>
                         <td>{event.required_skills}</td>
-                        <td>{event.urgency.text}</td>
-                        <td>{event.event_date}</td>
-                        <td>{event.participation_status.text}</td>
+                        <td>{event.urgency}</td>
+                        <td>{event.date}</td>
+                        <td>{event.participation_status}</td>
                         </tr>
                     ))}
                 </tbody>
