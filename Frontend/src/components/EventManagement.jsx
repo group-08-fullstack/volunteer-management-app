@@ -1,105 +1,174 @@
-import React, { useState } from 'react';
-import { Calendar, MapPin, Users, X, UserCheck, History } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Calendar, MapPin, Users, X, UserCheck, History, Edit } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import NavigationBar from './Navigation';
-import { useEffect } from 'react';
-import {checkTokenTime} from "../helpers/authHelpers"
-
+import { checkTokenTime } from "../helpers/authHelpers";
 
 export default function EventManagementPage() {
   const [removeMode, setRemoveMode] = useState(false);
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
-
 
   // Array containing props to be sent to navigationbar component
   const extraLinks = [
     {
-      className: "nav-button",          // CSS class for styling
-      link: "/volunteermatch",                     // Path to navigate to
-      logo: <UserCheck size={16} />,          // lucide-react icon component
-      text: "Volunteer Matching"                       // Label displayed next to the icon
+      className: "nav-button",
+      link: "/volunteermatch",
+      logo: <UserCheck size={16} />,
+      text: "Volunteer Matching"
     },
     {
-      className: "nav-button",          // CSS class for styling
-      link: "/eventhistory",                     // Path to navigate to
-      logo: <History size={16} />,          // lucide-react icon component
-      text: " Event History"                       // Label displayed next to the icon
+      className: "nav-button",
+      link: "/eventhistory",
+      logo: <History size={16} />,
+      text: "Event History"
     },
   ];
 
-  const [events, setEvents] = useState([]);
-  /*useEffect(() => {
-  fetch("http://localhost:5000/api/eventlist/")
-    .then(response => response.json())
-    .then(data => setEvents(data))
-    .catch(error => console.error("Failed to fetch events:", error));
- }, []);*/
-
   useEffect(() => {
-
-    const token = localStorage.getItem("access_token");
-    
-    // First validate that user JWT token is still vaild 
-    async function awaitChecktokenTime() {
-        await checkTokenTime();
-    }
-    awaitChecktokenTime();
-
-
-    fetch("http://localhost:5000/api/eventlist/", {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error("Unauthorized or failed to fetch");
-        }
-        return response.json();
-      })
-      .then(data => setEvents(data))
-      .catch(error => {
-        console.error("Failed to fetch events:", error);
-        alert("Failed to load events. You may need to log in again.");
-      });
+    loadEvents();
   }, []);
 
+  const loadEvents = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-
-  const handleCreateEvent = () => {
-    navigate('/createevent');
-  };
-
-   const handleEventEditing = () =>{
-    navigate('/eventediting')
-  }
-
-  const handleRemoveEvent = (id) => {
-    const confirmed = window.confirm('Are you sure you want to remove this event?');
-    if (confirmed) {
-      // setEvents(events.filter(event => event.id !== id));
       const token = localStorage.getItem("access_token");
+      
+      // First validate that user JWT token is still valid 
+      await checkTokenTime();
 
-      fetch(`http://localhost:5000/api/event/${id}`, {
-        method: "DELETE",
+      const response = await fetch("http://localhost:5000/api/eventlist/", {
+        method: "GET",
         headers: {
-          Authorization: `Bearer ${token}`,
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
         },
-      })
-        .then(res => {
-          if (res.ok) {
-            setEvents(events.filter(event => event.id !== id));
-          } else {
-            alert("Failed to delete event.");
-          }
-        })
-        .catch(err => console.error("Delete failed:", err));
+      });
 
+      if (!response.ok) {
+        throw new Error("Failed to fetch events");
+      }
+
+      const data = await response.json();
+      console.log('Loaded events:', data);
+      
+      // Handle both possible response formats
+      setEvents(data.events || data || []);
+
+    } catch (error) {
+      console.error("Failed to fetch events:", error);
+      setError("Failed to load events. You may need to log in again.");
+    } finally {
+      setLoading(false);
     }
   };
 
+  const handleCreateEvent = () => {
+    navigate('/events/create');
+  };
 
+  const handleEventEditing = (eventId) => {
+    navigate(`/events/edit/${eventId}`);
+  };
+
+  const handleRemoveEvent = async (eventId) => {
+    const confirmed = window.confirm('Are you sure you want to remove this event?');
+    if (!confirmed) return;
+
+    try {
+      const token = localStorage.getItem("access_token");
+
+      const response = await fetch(`http://localhost:5000/api/eventlist/${eventId}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete event");
+      }
+
+      // Remove event from local state
+      setEvents(events.filter(event => event.id !== eventId));
+      alert("Event deleted successfully!");
+
+    } catch (error) {
+      console.error("Delete failed:", error);
+      alert("Failed to delete event. Please try again.");
+    }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'No date';
+    try {
+      // Parse the date as local date to avoid timezone issues
+      const parts = dateString.split('-');
+      if (parts.length === 3) {
+        // Create date using local timezone
+        const year = parseInt(parts[0]);
+        const month = parseInt(parts[1]) - 1; // Month is 0-indexed
+        const day = parseInt(parts[2]);
+        const date = new Date(year, month, day);
+        
+        return date.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+      }
+      
+      // Fallback to original method if parsing fails
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch (error) {
+      return dateString;
+    }
+  };
+
+  const formatSkills = (skills) => {
+    if (!skills) return 'No skills specified';
+    if (Array.isArray(skills)) {
+      return skills.join(', ');
+    }
+    return skills;
+  };
+
+  if (loading) {
+    return (
+      <div className="event-management-container">
+        <NavigationBar extraLinks={extraLinks} title={"Admin Portal"} />
+        <div className="main-content">
+          <div className="loading-message">Loading events...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="event-management-container">
+        <NavigationBar extraLinks={extraLinks} title={"Admin Portal"} />
+        <div className="main-content">
+          <div className="error-message">
+            {error}
+            <button onClick={loadEvents} className="retry-button">
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -200,7 +269,6 @@ export default function EventManagementPage() {
           padding: 1rem;
           background-color: #f9fafb;
           border-radius: 0.375rem;
-          cursor: pointer;
           transition: all 0.2s;
           user-select: none;
         }
@@ -214,11 +282,61 @@ export default function EventManagementPage() {
           cursor: default;
         }
 
+        .event-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 0.5rem;
+        }
+
         .event-title {
           font-size: 1rem;
           font-weight: 600;
           color: #111827;
-          margin: 0 0 0.5rem 0;
+          margin: 0;
+        }
+
+        .event-actions {
+          display: flex;
+          gap: 0.5rem;
+        }
+
+        .edit-button {
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 0.25rem;
+          color: #3b82f6;
+          border-radius: 0.25rem;
+          transition: background-color 0.2s;
+        }
+
+        .edit-button:hover {
+          background-color: #eff6ff;
+        }
+
+        .urgency-badge {
+          padding: 0.25rem 0.5rem;
+          border-radius: 0.25rem;
+          font-size: 0.75rem;
+          font-weight: 500;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .urgency-low {
+          background-color: #d1fae5;
+          color: #065f46;
+        }
+
+        .urgency-medium {
+          background-color: #fef3c7;
+          color: #92400e;
+        }
+
+        .urgency-high {
+          background-color: #fee2e2;
+          color: #991b1b;
         }
 
         .event-details {
@@ -231,12 +349,20 @@ export default function EventManagementPage() {
           align-items: center;
           gap: 1rem;
           margin-bottom: 0.25rem;
+          flex-wrap: wrap;
         }
 
         .event-detail-with-icon {
           display: flex;
           align-items: center;
           gap: 0.25rem;
+        }
+
+        .event-description {
+          margin-top: 0.5rem;
+          font-size: 0.875rem;
+          color: #374151;
+          line-height: 1.4;
         }
 
         .remove-event-button {
@@ -256,6 +382,31 @@ export default function EventManagementPage() {
           background-color: #fef2f2;
         }
 
+        .urgency-badge {
+          padding: 0.25rem 0.5rem;
+          border-radius: 0.25rem;
+          font-size: 0.75rem;
+          font-weight: 500;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          margin-left: 0.5rem;
+        }
+
+        .urgency-low {
+          background-color: #d1fae5;
+          color: #065f46;
+        }
+
+        .urgency-medium {
+          background-color: #fef3c7;
+          color: #92400e;
+        }
+
+        .urgency-high {
+          background-color: #fee2e2;
+          color: #991b1b;
+        }
+
         .no-events-message {
           text-align: center;
           color: #6b7280;
@@ -263,14 +414,73 @@ export default function EventManagementPage() {
           padding: 2rem;
         }
 
-        @media (max-width: 768px) {
-          .navbar-content {
-            flex-direction: column;
-            gap: 1rem;
-            height: auto;
-            padding: 1rem 0;
+        .loading-message, .error-message {
+          text-align: center;
+          padding: 2rem;
+          color: #6b7280;
+        }
+
+        .error-message {
+          color: #ef4444;
+        }
+
+        .retry-button {
+          margin-left: 1rem;
+          padding: 0.5rem 1rem;
+          background-color: #3b82f6;
+          color: white;
+          border: none;
+          border-radius: 0.375rem;
+          cursor: pointer;
+          font-size: 0.875rem;
+        }
+
+        .retry-button:hover {
+          background-color: #1d4ed8;
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+          .event-management-container {
+            background-color: #111827 !important;
+            color: #f9fafb !important;
           }
-          
+
+          .events-container {
+            background-color: #1f2937 !important;
+            border: 1px solid #374151 !important;
+          }
+
+          .event-item {
+            background-color: #374151 !important;
+          }
+
+          .event-item:hover {
+            background-color: #4b5563 !important;
+          }
+
+          .event-title {
+            color: #f9fafb !important;
+          }
+
+          .event-details {
+            color: #d1d5db !important;
+          }
+
+          .event-description {
+            color: #e5e7eb !important;
+          }
+
+          .page-title {
+            color: #f9fafb !important;
+          }
+
+          .no-events-message, .loading-message {
+            color: #d1d5db !important;
+          }
+        }
+
+        @media (max-width: 768px) {
           .main-content {
             padding: 1rem;
           }
@@ -284,12 +494,17 @@ export default function EventManagementPage() {
           .page-actions {
             justify-content: center;
           }
+
+          .event-details-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+          }
         }
       `}</style>
 
       <div className="event-management-container">
-        {/* Navbar */}
-        {/* Naviagation bar imported from Navigation.jsx */}
+        {/* Navigation bar imported from Navigation.jsx */}
         <NavigationBar extraLinks={extraLinks} title={"Admin Portal"} />
 
         {/* Main Content */}
@@ -298,7 +513,7 @@ export default function EventManagementPage() {
           <div className="page-header">
             <div className="page-title-section">
               <Calendar color="#10b981" size={32} />
-              <h2 className="page-title">Events Management</h2>
+              <h2 className="page-title">Event Management</h2>
             </div>
 
             <div className="page-actions">
@@ -317,33 +532,78 @@ export default function EventManagementPage() {
           {/* Events Container */}
           <div className="events-container">
             {events.length === 0 ? (
-              <div className="no-events-message">No upcoming events.</div>
+              <div className="no-events-message">
+                No events found. <br />
+                <button onClick={handleCreateEvent} className="create-button action-button" style={{marginTop: '1rem'}}>
+                  Create Your First Event
+                </button>
+              </div>
             ) : (
               <div className="events-list">
                 {events.map(event => (
                   <div
                     key={event.id}
-                    onClick={() => {
-                      if (!removeMode) handleEventEditing();
-                    }}
                     className={`event-item ${removeMode ? 'remove-mode' : ''}`}
                   >
-                    <h4 className="event-title">{event.event}</h4>
+                    <div className="event-header">
+                      <div>
+                        <h4 className="event-title">{event.event_name || event.eventname || event.event}</h4>
+                        {event.urgency && (
+                          <span className={`urgency-badge urgency-${event.urgency.toLowerCase()}`}>
+                            {event.urgency}
+                          </span>
+                        )}
+                      </div>
+                      
+                      {!removeMode && (
+                        <div className="event-actions">
+                          <button
+                            onClick={() => handleEventEditing(event.id)}
+                            title="Edit this event"
+                            className="edit-button"
+                          >
+                            <Edit size={16} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
                     <div className="event-details">
                       <div className="event-details-row">
-                        <span>{event.date}</span>
-                        <span>{event.time}</span>
+                        <span><strong>Date:</strong> {formatDate(event.date)}</span>
+                        {event.event_duration && (
+                          <span><strong>Duration:</strong> {event.event_duration} hours</span>
+                        )}
+                        <span><strong>Status:</strong> {event.event_status || 'Pending'}</span>
                       </div>
+                      
                       <div className="event-details-row">
                         <div className="event-detail-with-icon">
                           <MapPin size={14} />
-                          <span>{event.location}</span>
+                          <span>{event.location_name || event.location || event.city}</span>
                         </div>
-                        <div className="event-detail-with-icon">
-                          <Users size={14} />
-                          <span>{event.volunteers} volunteers</span>
-                        </div>
+                        {event.state && (
+                          <span><strong>State:</strong> {event.state}</span>
+                        )}
+                        {event.zipcode && (
+                          <span><strong>Zip:</strong> {event.zipcode}</span>
+                        )}
+                        {event.volunteers_needed && (
+                          <span><strong>Volunteers Needed:</strong> {event.volunteers_needed}</span>
+                        )}
                       </div>
+
+                      {event.required_skills && (
+                        <div className="event-details-row">
+                          <span><strong>Required Skills:</strong> {formatSkills(event.required_skills)}</span>
+                        </div>
+                      )}
+
+                      {event.event_description && (
+                        <div className="event-description">
+                          <strong>Description:</strong> {event.event_description}
+                        </div>
+                      )}
                     </div>
 
                     {removeMode && (
