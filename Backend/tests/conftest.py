@@ -1,21 +1,46 @@
 import pytest
 import random
-from api.app import app
+from api.app import create_app 
+from api import config
+from api.db import get_db
 
 # All of these fixtures are the "setup" phase of the unit tests
 
-@pytest.fixture
-def client():
-    return app.test_client()
+def clear_db():
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    cursor.execute("SET FOREIGN_KEY_CHECKS=0;") #Turn off foreign key rule while truncating tables
+    cursor.execute("SHOW TABLES;")
+    tables = cursor.fetchall()
+    
+    for table in tables:
+        table_name = list(table.values())[0] if isinstance(table, dict) else table[0]
+        cursor.execute(f"TRUNCATE TABLE `{table_name}`;")
+    
+    cursor.execute("SET FOREIGN_KEY_CHECKS=1;") # Turn foreign keys rule on
+    conn.commit()
+    cursor.close()
+    conn.close()
 
 @pytest.fixture
-def user_admin():
+def client():
+    app = create_app(config.TestConfig)
+
+    with app.app_context():  
+        clear_db()            
+        
+        with app.test_client() as client:  
+            yield client                   
+
+@pytest.fixture
+def user_admin(client):
     # Generate random user test email
     rand_int = random.randint(1, 10000)
     return {"email": f"test{str(rand_int)}", "password": "test", "role": "admin"}
 
 @pytest.fixture
-def user_volunteer():
+def user_volunteer(client):
     # Generate random user test email
     rand_int = random.randint(1, 10000)
     return {"email": f"test{str(rand_int)}", "password": "test", "role": "volunteer"}

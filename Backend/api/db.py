@@ -1,6 +1,7 @@
 import pymysql
 from flask import current_app
 
+
 # In every file that is going to change the database these lines are needed
 
 # Import
