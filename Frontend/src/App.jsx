@@ -12,6 +12,9 @@ import EventManagement from './components/EventManagement';
 import ViewAllEvents from './components/ViewAllEvents';
 import EventReview from './components/EventReview'
 
+
+import AllVolunteers from './components/AllVolunteers'
+
 function App() {
   const [users, setUsers] = useState([]); // Store registered users
   const [loggedInUser, setLoggedInUser] = useState(null);
@@ -32,6 +35,10 @@ function App() {
         <Route path="/viewallevents" element={<ViewAllEvents />}/>
         <Route path="/events/edit/:eventId" element={<EventForm />} />
         <Route path="/eventreview" element={<EventReview />}/>
+        
+
+         <Route path="/volunteers" element={<AllVolunteers />}/>
+
       </Routes>
     </Router>
   );
