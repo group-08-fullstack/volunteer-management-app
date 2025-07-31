@@ -88,31 +88,35 @@ export async function deleteProfile() {
     return true;
 }
 
-// ✅ UPDATED: Get skills from backend API
-export async function getSkillsOptions(){
-    try {
-        const response = await fetch(`http://127.0.0.1:5000/api/profile/skills/`, {
-            method: "GET"
-            // No auth required for reference data
-        });
+// ✅ SIMPLIFIED: Get skills from backend API
+export const getSkillsOptions = async () => {
+  try {
+    console.log('🔄 Fetching skills from API...');
+    await checkTokenTime();
+    
+    const token = localStorage.getItem("access_token");
+    const response = await fetch(`http://127.0.0.1:5000/api/profile/skills/`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
 
-        if (response.ok) {
-            const parsed = await response.json();
-            return parsed.skills;
-        } else {
-            console.error('Failed to load skills from API, using fallback');
-            // Return fallback skills if API fails
-            return [
-            ];
-        }
-    } catch (error) {
-        console.error('Network error loading skills, using fallback:', error);
-        // Return fallback skills if network fails
-        return [
+    console.log('📡 Skills API response status:', response.status);
 
-        ];
+    if (!response.ok) {
+      throw new Error(`Skills API failed: ${response.status} ${response.statusText}`);
     }
-}
+
+    const data = await response.json();
+    console.log('✅ Skills data received:', data);
+    
+    return data.skills || [];
+  } catch (error) {
+    console.error('❌ Error fetching skills:', error);
+    throw error;
+  }
+};
 
 // ✅ UPDATED: Get states from backend API
 export async function getStatesOptions(){

@@ -499,8 +499,9 @@ class ProfileSkills(Resource):
             skills = []
             for row in skill_rows:
                 skill = {
-                    "skills_id": row['skills_id'],
-                    "skill_name": row['skill_name']
+                    "value": row['skill_name'],  # Frontend expects 'value'
+                    "label": row['skill_name'],  # Frontend expects 'label'
+                    "id": row['skills_id']       # Keep ID for reference
                 }
                 skills.append(skill)
 
