@@ -116,6 +116,11 @@ class Profile(Resource):
         
         # Get form data from request
         data = request.get_json()
+
+        # Validate the profile data
+        validation_result = self._validate_profile_data(data)
+        if validation_result:
+            return validation_result, 400
         
         conn = db.get_db()
         cursor = conn.cursor()

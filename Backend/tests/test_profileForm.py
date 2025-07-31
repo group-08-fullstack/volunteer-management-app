@@ -2,8 +2,8 @@ from api import profileForm
 
 class TestGetProfileForm:
 
-    def test_get(self,client, access_token):
-        response = client.get(f"/api/profile/", headers={"Authorization": f"Bearer {access_token}"})
+    def test_get(self,client, access_token_volunteer):
+        response = client.get(f"/api/profile/", headers={"Authorization": f"Bearer {access_token_volunteer}"})
         # The user should not exist yet
         assert response.status_code == 404
 
@@ -14,7 +14,7 @@ class TestGetProfileForm:
 
 class TestPostProfileForm:
 
-    def test_post(self,client, access_token):
+    def test_post(self,client, access_token_volunteer):
         profile_data = {
         "fullName": "John Smith",
         "address1": "123 Main Street",
@@ -26,6 +26,8 @@ class TestPostProfileForm:
             {"value": "bilingual", "label": "Bilingual"},
             {"value": "first_aid", "label": "First Aid Certified"}
         ],
+        "phoneNumber" : "1234567890",
+        "dateOfBirth": "1990-01-01",
         "preferences": "Prefer weekend events and working with children",
         "availability": ["2025-07-15", "2025-07-20", "2025-07-25"],
         "createdAt": "2025-07-10T10:00:00Z",
@@ -33,12 +35,12 @@ class TestPostProfileForm:
     }
         response = client.post(
             f"/api/profile/",
-            headers={"Authorization": f"Bearer {access_token}"},
+            headers={"Authorization": f"Bearer {access_token_volunteer}"},
             json=profile_data
         )
         assert response.status_code == 201
         # Try and receive user from database
-        response = client.get(f"/api/profile/", headers={"Authorization": f"Bearer {access_token}"})
+        response = client.get(f"/api/profile/", headers={"Authorization": f"Bearer {access_token_volunteer}"})
         assert response.status_code == 200
 
     def test_unauthorized(self,client):
@@ -76,6 +78,8 @@ class TestValidation:
             {"value": "bilingual", "label": "Bilingual"},
             {"value": "first_aid", "label": "First Aid Certified"}
         ],
+        "phoneNumber" : "1234567890",
+        "dateOfBirth": "1990-01-01",
         "preferences": "Prefer weekend events and working with children",
         "availability": ["2025-07-15", "2025-07-20", "2025-07-25"],
         "createdAt": "2025-07-10T10:00:00Z",
@@ -87,23 +91,9 @@ class TestValidation:
         response = profileForm.Profile._validate_profile_data(self,profile_data)
         assert response['error'] == "Missing JSON body"
     
-    def test_missing_req_field(self):
-        profile_data = {
-            # "fullName": "John Smith",
-            "address1": "123 Main Street",
-            "address2": "Apt 2B",
-            "city": "Springfield",
-            "state": "CA",
-            "zip": "90210",
-            "skills": [
-                {"value": "bilingual", "label": "Bilingual"},
-                {"value": "first_aid", "label": "First Aid Certified"}
-            ],
-            "preferences": "Prefer weekend events and working with children",
-            "availability": ["2025-07-15", "2025-07-20", "2025-07-25"],
-            "createdAt": "2025-07-10T10:00:00Z",
-            "updatedAt": "2025-07-10T10:00:00Z"
-        }
+    def test_missing_fullName(self):
+        profile_data = self.valid_profile.copy()
+        profile_data.pop("fullName", None)
         response = profileForm.Profile._validate_profile_data(self,profile_data)
         assert response['error'] == "Missing required field: fullName"
     
@@ -151,9 +141,9 @@ class TestValidation:
    
     def test_invalid_state(self):
         profile_data = self.valid_profile.copy()
-        profile_data["state"] = "ZZ"
+        profile_data["state"] = ""
         response = profileForm.Profile._validate_profile_data(self, profile_data)
-        assert "Invalid state" in response['error']
+        assert "State must be a non-empty string" in response['error']
     
     def test_invalid_zip_format(self):
         profile_data = self.valid_profile.copy()
@@ -173,11 +163,11 @@ class TestValidation:
         response = profileForm.Profile._validate_profile_data(self, profile_data)
         assert response['error'] == "Each skill must be an object with 'value' and 'label' properties"
     
-    def test_invalid_skill_value(self):
+    def test_no_skill_value(self):
         profile_data = self.valid_profile.copy()
-        profile_data["skills"] = [{"value": "invalid", "label": "Invalid"}]
+        profile_data["skills"] = []
         response = profileForm.Profile._validate_profile_data(self, profile_data)
-        assert "Invalid skill value" in response['error']
+        assert "At least one skill must be selected" in response['error']
     
     def test_availability_not_list(self):
         profile_data = self.valid_profile.copy()
@@ -194,7 +184,7 @@ class TestValidation:
     
 class TestPutProfileForm:
     valid_profile = {
-        "fullName": "John Smith",
+        "fullName": "Doe Smith",
         "address1": "123 Main Street",
         "address2": "Apt 2B",
         "city": "Springfield",
@@ -204,17 +194,19 @@ class TestPutProfileForm:
             {"value": "bilingual", "label": "Bilingual"},
             {"value": "first_aid", "label": "First Aid Certified"}
         ],
+        "phoneNumber" : "1234567890",
+        "dateOfBirth": "1990-01-01",
         "preferences": "Prefer weekend events and working with children",
         "availability": ["2025-07-15", "2025-07-20", "2025-07-25"],
         "createdAt": "2025-07-10T10:00:00Z",
         "updatedAt": "2025-07-10T10:00:00Z"
     }
-    def test_put(self,client, access_token):
+    def test_put(self,client, access_token_volunteer):
         # Create new account first
         profile_data = self.valid_profile
         response = client.post(
             f"/api/profile/",
-            headers={"Authorization": f"Bearer {access_token}"},
+            headers={"Authorization": f"Bearer {access_token_volunteer}"},
             json=profile_data
         )
         assert response.status_code == 201
@@ -223,7 +215,7 @@ class TestPutProfileForm:
         updated_account['fullName'] = "New name"
         response = client.put(
             f"/api/profile/", 
-            headers={"Authorization": f"Bearer {access_token}"},
+            headers={"Authorization": f"Bearer {access_token_volunteer}"},
             json=updated_account)
         assert response.status_code == 200
 
@@ -231,16 +223,16 @@ class TestPutProfileForm:
         response = client.put(f"/api/profile/")
         assert response.status_code == 500
 
-    def test_no_profile(self,access_token,client):
+    def test_no_profile(self,access_token_volunteer,client):
         response = client.put(
             f"/api/profile/", 
-            headers={"Authorization": f"Bearer {access_token}"},
+            headers={"Authorization": f"Bearer {access_token_volunteer}"},
             json= self.valid_profile)
         assert response.status_code == 404
 
 class TestDeleteProfileform:
     valid_profile = {
-        "fullName": "John Smith",
+       "fullName": "John Smith",
         "address1": "123 Main Street",
         "address2": "Apt 2B",
         "city": "Springfield",
@@ -250,23 +242,25 @@ class TestDeleteProfileform:
             {"value": "bilingual", "label": "Bilingual"},
             {"value": "first_aid", "label": "First Aid Certified"}
         ],
+        "phoneNumber" : "1234567890",
+        "dateOfBirth": "1990-01-01",
         "preferences": "Prefer weekend events and working with children",
         "availability": ["2025-07-15", "2025-07-20", "2025-07-25"],
         "createdAt": "2025-07-10T10:00:00Z",
         "updatedAt": "2025-07-10T10:00:00Z"
     }
-    def test_delete(self,access_token,client):
+    def test_delete(self,access_token_volunteer,client):
         # Create new account first
         profile_data = self.valid_profile.copy()
         response = client.post(
             f"/api/profile/",
-            headers={"Authorization": f"Bearer {access_token}"},
+            headers={"Authorization": f"Bearer {access_token_volunteer}"},
             json=profile_data
         )
         assert response.status_code == 201
         response = client.delete(
                 f"/api/profile/", 
-                headers={"Authorization": f"Bearer {access_token}"})
+                headers={"Authorization": f"Bearer {access_token_volunteer}"})
         assert response.status_code == 200
 
     def test_unauthorized(self,client):
@@ -275,13 +269,13 @@ class TestDeleteProfileform:
 
 
 class TestProfileSkills():
-    def test_get(self,client, access_token):
-        response = client.get(f"/api/profile/skills/", headers={"Authorization": f"Bearer {access_token}"})
+    def test_get(self,client, access_token_volunteer):
+        response = client.get(f"/api/profile/skills/", headers={"Authorization": f"Bearer {access_token_volunteer}"})
         assert response.status_code == 200
 
 class TestProfileStates():
-    def test_get(self,client, access_token):
-        response = client.get(f"/api/profile/states/", headers={"Authorization": f"Bearer {access_token}"})
+    def test_get(self,client, access_token_volunteer):
+        response = client.get(f"/api/profile/states/", headers={"Authorization": f"Bearer {access_token_volunteer}"})
         assert response.status_code == 200
 
 

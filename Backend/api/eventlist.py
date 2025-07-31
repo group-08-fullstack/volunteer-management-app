@@ -1,11 +1,12 @@
 from flask_restful import Resource, reqparse
 from flask import jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from werkzeug.exceptions import BadRequest
 from datetime import datetime
 from . import db
 
 # Event parser for POST/PUT requests - matching your complete database schema
-event_parser = reqparse.RequestParser()
+event_parser = reqparse.RequestParser(bundle_errors=True)
 event_parser.add_argument('event_name', type=str, required=True, help="Event name is required")
 event_parser.add_argument('required_skills', type=str, required=True, help="Required skills are required")
 event_parser.add_argument('address', type=str, required=False, help="Address is optional")
@@ -110,8 +111,12 @@ class EventList(Resource):
         cursor = conn.cursor()
         
         try:
-            data = event_parser.parse_args()
-            print(f"Received event data: {data}")
+            try:
+                data = event_parser.parse_args()
+                print(f"Received event data: {data}")
+            except BadRequest as e:
+                return {"error": e.data.get("message", str(e))}, 400
+
             
             # Validate date format
             try:
