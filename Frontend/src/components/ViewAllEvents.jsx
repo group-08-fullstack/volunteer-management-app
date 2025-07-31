@@ -6,7 +6,6 @@ import { checkTokenTime } from '../helpers/authHelpers';
 
 export default function ViewAllEvents() {
   const navigate = useNavigate();
-
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -14,31 +13,30 @@ export default function ViewAllEvents() {
   useEffect(() => {
     const token = localStorage.getItem("access_token");
 
-    // First validate that user JWT token is still vaild 
-        async function awaitChecktokenTime() {
-            await checkTokenTime();
-        }
-        awaitChecktokenTime();
+    async function fetchEvents() {
+      try {
+        await checkTokenTime(); 
 
-    fetch("http://localhost:5000/api/eventlist/", {
-      headers: {
-        Authorization: `Bearer ${token}`, 
-      },
-    })
-      .then(response => {
+        const response = await fetch("http://localhost:5000/api/eventlist/", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
         if (!response.ok) {
           throw new Error("Failed to fetch events or unauthorized");
         }
-        return response.json();
-      })
-      .then(data => {
-        setEvents(data);
-        setLoading(false);
-      })
-      .catch(err => {
+
+        const data = await response.json();
+        setEvents(data.events || []);
+      } catch (err) {
         setError(err.message);
+      } finally {
         setLoading(false);
-      });
+      }
+    }
+
+    fetchEvents();
   }, []);
 
   if (loading) return <p>Loading events...</p>;
@@ -128,22 +126,21 @@ export default function ViewAllEvents() {
                   <div
                     key={event.id}
                     className="event-item"
-                    onClick={() => alert(`You are entering ${event.event} event detail page`)}
-                  >
-                    <h4 className="event-title">{event.event}</h4>
+                    onClick={() => navigate(`/event/${event.id}`)}                   >
+                    <h4 className="event-title">{event.event_name}</h4>
                     <div className="event-details">
                       <div className="event-details-row">
                         <span>{event.date}</span>
-                        <span>{event.time}</span>
+                        <span>{event.event_duration} hrs</span>
                       </div>
                       <div className="event-details-row">
                         <div className="event-detail-with-icon">
                           <MapPin size={14} />
-                          <span>{event.location}</span>
+                          <span>{`${event.location_name}, ${event.city}, ${event.state}`}</span>
                         </div>
                         <div className="event-detail-with-icon">
                           <Users size={14} />
-                          <span>{event.volunteers} volunteers</span>
+                          <span>{event.volunteers_needed} volunteers</span>
                         </div>
                       </div>
                     </div>
