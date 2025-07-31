@@ -20,10 +20,6 @@ def convert_decimal(obj):
 class AdminDashboard(Resource):
     @jwt_required()
     def get(self):
-        """
-        Get admin dashboard data summary.
-        """
-
         conn = get_db()
         cursor = conn.cursor()
 
@@ -45,8 +41,8 @@ class AdminDashboard(Resource):
         cursor.execute("SELECT COUNT(*) AS total_events FROM eventdetails")
         total_events = cursor.fetchone()['total_events']
 
-        total_volunteer_hours = 0  # Placeholder
-        average_rating = 0.0       # Placeholder
+        total_volunteer_hours = 0  # Still needs implementation
+        average_rating = 0.0       # Still needs implementation
 
         cursor.execute(
             """
@@ -70,17 +66,17 @@ class AdminDashboard(Resource):
 
         overview_data = {
             "admin_info": {
-                "name": "Admin Manager",
-                "email": "admin@volunteerportal.com",
+                "name": get_jwt_identity(),  # Replace hardcoded name
+                "email": "",                # Leave empty or fetch from DB if needed
                 "role": "Administrator",
-                "notifications": 5,
-                "last_login": "2025-07-18T09:00:00Z"
+                "notifications": 0,         # Needs dynamic implementation
+                "last_login": None          # Needs tracking/logging implementation
             },
             "statistics": {
                 "totalVolunteers": total_volunteers,
                 "activeVolunteers": active_volunteers,
                 "upcomingEvents": upcoming_events,
-                "eventsToFinalize": 5,  # Placeholder
+                "eventsToFinalize": 0,  # Needs dynamic data
                 "totalEvents": total_events,
                 "completedEvents": completed_events,
                 "totalVolunteerHours": total_volunteer_hours,
@@ -88,9 +84,9 @@ class AdminDashboard(Resource):
                 "monthlyNewVolunteers": monthly_new_volunteers,
                 "monthlyEventParticipation": monthly_event_participation
             },
-            "top_volunteers": [],      # Optional: implement fetching top volunteers
-            "upcoming_events": [],     # Optional: implement fetching upcoming events
-            "recent_activities": []    # Optional: implement fetching recent activities
+            "top_volunteers": [],
+            "upcoming_events": [],
+            "recent_activities": []
         }
 
         return overview_data, 200
@@ -99,12 +95,8 @@ class AdminDashboard(Resource):
 class AdminVolunteers(Resource):
     @jwt_required()
     def get(self):
-        """
-        Fetch all volunteers with their name, email, events attended, rating, total hours, expertise.
-        Supports sorting and filtering.
-        """
-        sort_by = request.args.get('sort_by', 'events')  # 'events', 'rating', 'hours', 'name'
-        order = request.args.get('order', 'desc')        # 'asc' or 'desc'
+        sort_by = request.args.get('sort_by', 'events')
+        order = request.args.get('order', 'desc')
         limit = request.args.get('limit', type=int)
 
         conn = get_db()
@@ -127,11 +119,9 @@ class AdminVolunteers(Resource):
             LEFT JOIN skills s ON vs.skill_id = s.skills_id
             GROUP BY up.volunteer_id, up.full_name, uc.email
         """
-
         cursor.execute(query)
         volunteers = cursor.fetchall()
 
-        # Fix None values for sorting
         for vol in volunteers:
             vol['events_attended'] = vol['events_attended'] or 0
             vol['rating'] = vol['rating'] or 0.0
@@ -171,8 +161,7 @@ class AdminVolunteers(Resource):
 class AdminEvents(Resource):
     @jwt_required()
     def get(self):
-        """Get all events with optional filtering"""
-        status_filter = request.args.get('status', 'all')  # 'upcoming', 'completed', 'all'
+        status_filter = request.args.get('status', 'all')
         limit = request.args.get('limit', type=int)
 
         conn = get_db()
@@ -208,11 +197,9 @@ class AdminEvents(Resource):
 class AdminStatistics(Resource):
     @jwt_required()
     def get(self):
-        """Get detailed statistics for admin dashboard"""
         conn = get_db()
         cursor = conn.cursor()
 
-        # Example: fetch some statistics (similar to AdminDashboard)
         cursor.execute("SELECT COUNT(*) AS total FROM userprofile")
         total_volunteers = cursor.fetchone()['total']
 
@@ -232,22 +219,18 @@ class AdminStatistics(Resource):
         statistics = {
             "totalVolunteers": total_volunteers,
             "upcomingEvents": upcoming_events,
-            "completedEvents": completed_events,
-            # Add more statistics as needed
+            "completedEvents": completed_events
         }
-
-        recent_activities = []  # Placeholder for notifications or recent actions
 
         return {
             "statistics": statistics,
-            "recent_activities": recent_activities
+            "recent_activities": []  # Should be dynamically retrieved
         }, 200
 
 
 class AdminVolunteerDetail(Resource):
     @jwt_required()
     def get(self, volunteer_id):
-        """Get detailed information about a specific volunteer"""
         conn = get_db()
         cursor = conn.cursor()
 
@@ -269,7 +252,6 @@ class AdminVolunteerDetail(Resource):
             WHERE up.volunteer_id = %s
             GROUP BY up.volunteer_id, up.full_name, uc.email
         """
-
         cursor.execute(query, (volunteer_id,))
         volunteer = cursor.fetchone()
 
@@ -281,20 +263,13 @@ class AdminVolunteerDetail(Resource):
 
         volunteer = convert_decimal(volunteer)
 
+        # These additional fields should ideally come from the DB
         detailed_volunteer = volunteer.copy()
         detailed_volunteer.update({
-            "event_history": [
-                {"event_name": "Community Garden Project", "date": "2025-06-15", "hours": 4, "rating": 4.8},
-                {"event_name": "Senior Center Visit", "date": "2025-06-10", "hours": 3, "rating": 4.7},
-                {"event_name": "Youth Mentoring", "date": "2025-06-05", "hours": 2, "rating": 4.9}
-            ],
-            "certifications": ["First Aid", "CPR", "Food Safety"],
-            "availability": ["Monday", "Wednesday", "Saturday"],
-            "emergency_contact": {
-                "name": "Emergency Contact Name",
-                "phone": "555-0123",
-                "relationship": "Spouse"
-            }
+            "event_history": [],       # Populate with actual event history if needed
+            "certifications": [],
+            "availability": [],
+            "emergency_contact": {}
         })
 
         return detailed_volunteer, 200
@@ -303,7 +278,6 @@ class AdminVolunteerDetail(Resource):
 class AdminEventDetail(Resource):
     @jwt_required()
     def get(self, event_id):
-        """Get detailed information about a specific event"""
         conn = get_db()
         cursor = conn.cursor()
 
@@ -318,18 +292,14 @@ class AdminEventDetail(Resource):
 
         event = convert_decimal(event)
 
+        # These should be dynamically pulled if implemented
         detailed_event = event.copy()
         detailed_event.update({
-            "registered_volunteers": [
-                {"id": 1, "name": "Sarah Johnson", "email": "sarah.johnson@email.com"},
-                {"id": 2, "name": "Michael Chen", "email": "michael.chen@email.com"}
-            ],
-            "required_skills": ["Communication", "Teamwork", "Patience"],
-            "equipment_needed": ["Gloves", "Cleaning supplies", "Water bottles"],
-            "weather_dependent": True,
-            "special_instructions": "Please wear comfortable clothing and closed-toe shoes"
+            "registered_volunteers": [],
+            "required_skills": [],
+            "equipment_needed": [],
+            "weather_dependent": False,
+            "special_instructions": ""
         })
 
         return detailed_event, 200
-
- 
