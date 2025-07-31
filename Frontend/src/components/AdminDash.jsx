@@ -409,7 +409,7 @@ const extraLinks = [
         <div className="main-content">
           {/* Welcome Message */}
           <div className="welcome-section">
-            <h2 className="welcome-title">Welcome, {adminName}!</h2>
+            <h2 className="welcome-title">Welcome, Administrator!</h2>
             <p className="welcome-subtitle">Manage your volunteer community and events</p>
             {error && (
               <div className="error-message">
