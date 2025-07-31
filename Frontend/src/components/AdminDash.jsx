@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavigationBar from './Navigation';
-import { Bell, User, LogOut, Calendar, Clock, MapPin, Users, Settings, UserCheck, History, ChevronDown } from 'lucide-react';
+import { Bell, User, LogOut, Calendar, Clock, MapPin, Users, Settings, UserCheck, History, ChevronDown, ClipboardCheck } from 'lucide-react';
 import { 
   getAdminDashboard,
   getTopVolunteers,
@@ -96,26 +96,26 @@ export default function AdminDashboard() {
   };
 
   // Array containing props to be sent to navigationbar component
-  const extraLinks = [
-    {
-      className: "nav-button",
-      link: "/eventmanagement",
-      logo: <Settings size={16} />,
-      text: "Event Management"
-    },
-    {
-      className: "nav-button",
-      link: "/volunteermatch",
-      logo: <UserCheck size={16} />,
-      text: "Volunteer Matching"
-    },
-    {
-      className: "nav-button",
-      link: "/EventHistory",
-      logo: <History size={16} />,
-      text: " Event History"
-    },
-  ];
+const extraLinks = [
+  {
+    className: "nav-button",
+    link: "/eventmanagement",
+    logo: <Settings size={16} />,
+    text: "Event Management"
+  },
+  {
+    className: "nav-button",
+    link: "/volunteermatch",
+    logo: <UserCheck size={16} />,
+    text: "Volunteer Matching"
+  },
+  {
+    className: "nav-button",
+    link: "/EventReview",
+    logo: <ClipboardCheck size={16} />,
+    text: "Event Review"
+  },
+];
 
   // Loading state
   if (loading) {

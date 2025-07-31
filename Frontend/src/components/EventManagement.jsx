@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, MapPin, Users, X, UserCheck, History, Edit } from 'lucide-react';
+import { Calendar, MapPin, Users, X, UserCheck, History, Edit, ChevronLeft, ChevronRight, Settings, ClipboardCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import NavigationBar from './Navigation';
 import { checkTokenTime } from "../helpers/authHelpers";
@@ -7,29 +7,54 @@ import { checkTokenTime } from "../helpers/authHelpers";
 export default function EventManagementPage() {
   const [removeMode, setRemoveMode] = useState(false);
   const [events, setEvents] = useState([]);
+  const [filteredEvents, setFilteredEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [eventsPerPage] = useState(10);
+  
+  // Filter and sort state
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('date');
+  const [sortOrder, setSortOrder] = useState('desc');
+  
   const navigate = useNavigate();
 
-  // Array containing props to be sent to navigationbar component
-  const extraLinks = [
-    {
-      className: "nav-button",
-      link: "/volunteermatch",
-      logo: <UserCheck size={16} />,
-      text: "Volunteer Matching"
-    },
-    {
-      className: "nav-button",
-      link: "/eventhistory",
-      logo: <History size={16} />,
-      text: "Event History"
-    },
-  ];
+const extraLinks = [
+  {
+    className: "nav-button",
+    link: "/eventmanagement",
+    logo: <Settings size={16} />,
+    text: "Event Management"
+  },
+  {
+    className: "nav-button",
+    link: "/volunteermatch",
+    logo: <UserCheck size={16} />,
+    text: "Volunteer Matching"
+  },
+  {
+    className: "nav-button",
+    link: "/EventReview",
+    logo: <ClipboardCheck size={16} />,
+    text: "Event Review"
+  },
+];
 
   useEffect(() => {
     loadEvents();
   }, []);
+
+  useEffect(() => {
+    applyFiltersAndSort();
+  }, [events, statusFilter, sortBy, sortOrder]);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, sortBy, sortOrder]);
 
   const loadEvents = async () => {
     try {
@@ -37,8 +62,6 @@ export default function EventManagementPage() {
       setError(null);
 
       const token = localStorage.getItem("access_token");
-      
-      // First validate that user JWT token is still valid 
       await checkTokenTime();
 
       const response = await fetch("http://localhost:5000/api/eventlist/", {
@@ -56,7 +79,6 @@ export default function EventManagementPage() {
       const data = await response.json();
       console.log('Loaded events:', data);
       
-      // Handle both possible response formats
       setEvents(data.events || data || []);
 
     } catch (error) {
@@ -65,6 +87,39 @@ export default function EventManagementPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const applyFiltersAndSort = () => {
+    let filtered = [...events];
+
+    // Apply status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(event => {
+        const eventStatus = (event.event_status || 'pending').toLowerCase();
+        return eventStatus === statusFilter.toLowerCase();
+      });
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let aValue, bValue;
+
+      if (sortBy === 'name') {
+        aValue = (a.event_name || '').toLowerCase();
+        bValue = (b.event_name || '').toLowerCase();
+      } else if (sortBy === 'date') {
+        aValue = new Date(a.date || '1970-01-01');
+        bValue = new Date(b.date || '1970-01-01');
+      }
+
+      if (sortOrder === 'asc') {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
+    });
+
+    setFilteredEvents(filtered);
   };
 
   const handleCreateEvent = () => {
@@ -94,7 +149,6 @@ export default function EventManagementPage() {
         throw new Error("Failed to delete event");
       }
 
-      // Remove event from local state
       setEvents(events.filter(event => event.id !== eventId));
       alert("Event deleted successfully!");
 
@@ -107,12 +161,10 @@ export default function EventManagementPage() {
   const formatDate = (dateString) => {
     if (!dateString) return 'No date';
     try {
-      // Parse the date as local date to avoid timezone issues
       const parts = dateString.split('-');
       if (parts.length === 3) {
-        // Create date using local timezone
         const year = parseInt(parts[0]);
-        const month = parseInt(parts[1]) - 1; // Month is 0-indexed
+        const month = parseInt(parts[1]) - 1;
         const day = parseInt(parts[2]);
         const date = new Date(year, month, day);
         
@@ -123,7 +175,6 @@ export default function EventManagementPage() {
         });
       }
       
-      // Fallback to original method if parsing fails
       const date = new Date(dateString);
       return date.toLocaleDateString('en-US', {
         year: 'numeric',
@@ -141,6 +192,47 @@ export default function EventManagementPage() {
       return skills.join(', ');
     }
     return skills;
+  };
+
+  const getStatusColor = (status) => {
+    const normalizedStatus = (status || 'pending').toLowerCase();
+    switch (normalizedStatus) {
+      case 'pending':
+        return '#fbbf24'; // Yellow
+      case 'finalized':
+        return '#3b82f6'; // Blue
+      case 'completed':
+        return '#10b981'; // Green
+      default:
+        return '#6b7280'; // Gray
+    }
+  };
+
+  // Pagination calculations
+  const indexOfLastEvent = currentPage * eventsPerPage;
+  const indexOfFirstEvent = indexOfLastEvent - eventsPerPage;
+  const currentEvents = filteredEvents.slice(indexOfFirstEvent, indexOfLastEvent);
+  const totalPages = Math.ceil(filteredEvents.length / eventsPerPage);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  // Generate page numbers for pagination
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxPagesToShow = 5;
+    
+    let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+    let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+    
+    if (endPage - startPage + 1 < maxPagesToShow) {
+      startPage = Math.max(1, endPage - maxPagesToShow + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(i);
+    }
+    
+    return pageNumbers;
   };
 
   if (loading) {
@@ -250,6 +342,48 @@ export default function EventManagementPage() {
           background-color: #4b5563;
         }
 
+        .filters-section {
+          display: flex;
+          gap: 1rem;
+          margin-bottom: 1.5rem;
+          flex-wrap: wrap;
+          align-items: center;
+        }
+
+        .filter-group {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
+        .filter-label {
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: #374151;
+        }
+
+        .filter-select {
+          padding: 0.5rem 0.75rem;
+          border: 1px solid #d1d5db;
+          border-radius: 0.375rem;
+          font-size: 0.875rem;
+          background-color: white;
+          cursor: pointer;
+          min-width: 140px;
+        }
+
+        .filter-select:focus {
+          outline: none;
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .results-info {
+          font-size: 0.875rem;
+          color: #6b7280;
+          margin-left: auto;
+        }
+
         .events-container {
           background-color: white;
           border-radius: 0.5rem;
@@ -265,7 +399,7 @@ export default function EventManagementPage() {
 
         .event-item {
           position: relative;
-          border-left: 4px solid #10b981;
+          border-left: 4px solid;
           padding: 1rem;
           background-color: #f9fafb;
           border-radius: 0.375rem;
@@ -289,11 +423,27 @@ export default function EventManagementPage() {
           margin-bottom: 0.5rem;
         }
 
+        .event-title-section {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+        }
+
         .event-title {
           font-size: 1rem;
           font-weight: 600;
           color: #111827;
           margin: 0;
+        }
+
+        .status-badge {
+          padding: 0.25rem 0.75rem;
+          border-radius: 9999px;
+          font-size: 0.75rem;
+          font-weight: 500;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          color: white;
         }
 
         .event-actions {
@@ -322,6 +472,7 @@ export default function EventManagementPage() {
           font-weight: 500;
           text-transform: uppercase;
           letter-spacing: 0.05em;
+          margin-left: 0.5rem;
         }
 
         .urgency-low {
@@ -382,31 +533,6 @@ export default function EventManagementPage() {
           background-color: #fef2f2;
         }
 
-        .urgency-badge {
-          padding: 0.25rem 0.5rem;
-          border-radius: 0.25rem;
-          font-size: 0.75rem;
-          font-weight: 500;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-          margin-left: 0.5rem;
-        }
-
-        .urgency-low {
-          background-color: #d1fae5;
-          color: #065f46;
-        }
-
-        .urgency-medium {
-          background-color: #fef3c7;
-          color: #92400e;
-        }
-
-        .urgency-high {
-          background-color: #fee2e2;
-          color: #991b1b;
-        }
-
         .no-events-message {
           text-align: center;
           color: #6b7280;
@@ -439,45 +565,46 @@ export default function EventManagementPage() {
           background-color: #1d4ed8;
         }
 
-        /* Dark mode support */
-        @media (prefers-color-scheme: dark) {
-          .event-management-container {
-            background-color: #111827 !important;
-            color: #f9fafb !important;
-          }
+        .pagination-container {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 0.5rem;
+          margin-top: 2rem;
+          padding: 1rem;
+        }
 
-          .events-container {
-            background-color: #1f2937 !important;
-            border: 1px solid #374151 !important;
-          }
+        .pagination-button {
+          padding: 0.5rem 0.75rem;
+          border: 1px solid #d1d5db;
+          background-color: white;
+          color: #374151;
+          border-radius: 0.375rem;
+          cursor: pointer;
+          font-size: 0.875rem;
+          transition: all 0.2s;
+        }
 
-          .event-item {
-            background-color: #374151 !important;
-          }
+        .pagination-button:hover:not(:disabled) {
+          background-color: #f3f4f6;
+          border-color: #9ca3af;
+        }
 
-          .event-item:hover {
-            background-color: #4b5563 !important;
-          }
+        .pagination-button.active {
+          background-color: #3b82f6;
+          border-color: #3b82f6;
+          color: white;
+        }
 
-          .event-title {
-            color: #f9fafb !important;
-          }
+        .pagination-button:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
 
-          .event-details {
-            color: #d1d5db !important;
-          }
-
-          .event-description {
-            color: #e5e7eb !important;
-          }
-
-          .page-title {
-            color: #f9fafb !important;
-          }
-
-          .no-events-message, .loading-message {
-            color: #d1d5db !important;
-          }
+        .pagination-info {
+          font-size: 0.875rem;
+          color: #6b7280;
+          margin: 0 1rem;
         }
 
         @media (max-width: 768px) {
@@ -495,19 +622,123 @@ export default function EventManagementPage() {
             justify-content: center;
           }
 
+          .filters-section {
+            flex-direction: column;
+            align-items: stretch;
+          }
+
+          .filter-group {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+          }
+
           .event-details-row {
             flex-direction: column;
             align-items: flex-start;
             gap: 0.5rem;
           }
+
+          .pagination-container {
+            flex-wrap: wrap;
+            gap: 0.25rem;
+          }
+
+          .pagination-info {
+            order: -1;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 1rem;
+          }
         }
+          /* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .event-management-container {
+    background-color: #111827 !important;
+    color: #f9fafb !important;
+  }
+
+  .events-container {
+    background-color: #1f2937 !important;
+    border: 1px solid #374151 !important;
+  }
+
+  .event-item {
+    background-color: #374151 !important;
+  }
+
+  .event-item:hover {
+    background-color: #4b5563 !important;
+  }
+
+  .event-title {
+    color: #f9fafb !important;
+  }
+
+  .event-details {
+    color: #d1d5db !important;
+  }
+
+  .event-description {
+    color: #e5e7eb !important;
+  }
+
+  .page-title {
+    color: #f9fafb !important;
+  }
+
+  .filter-label {
+    color: #e5e7eb !important;
+  }
+
+  .filter-select {
+    background-color: #374151 !important;
+    border-color: #4b5563 !important;
+    color: #f9fafb !important;
+  }
+
+  .pagination-button {
+    background-color: #374151 !important;
+    border-color: #4b5563 !important;
+    color: #f9fafb !important;
+  }
+
+  .pagination-button:hover:not(:disabled) {
+    background-color: #4b5563 !important;
+  }
+
+  .pagination-button.active {
+    background-color: #3b82f6 !important;
+    border-color: #3b82f6 !important;
+    color: white !important;
+  }
+
+  .no-events-message, .loading-message {
+    color: #d1d5db !important;
+  }
+
+  .results-info, .pagination-info {
+    color: #d1d5db !important;
+  }
+
+  .error-message {
+    color: #ef4444 !important;
+  }
+
+  .retry-button {
+    background-color: #3b82f6 !important;
+    color: white !important;
+  }
+
+  .retry-button:hover {
+    background-color: #1d4ed8 !important;
+  }
+}
       `}</style>
 
       <div className="event-management-container">
-        {/* Navigation bar imported from Navigation.jsx */}
         <NavigationBar extraLinks={extraLinks} title={"Admin Portal"} />
 
-        {/* Main Content */}
         <div className="main-content">
           {/* Page Header */}
           <div className="page-header">
@@ -529,25 +760,91 @@ export default function EventManagementPage() {
             </div>
           </div>
 
+          {/* Filters and Sort Section */}
+          <div className="filters-section">
+            <div className="filter-group">
+              <label className="filter-label">Filter by Status</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="filter-select"
+              >
+                <option value="all">All</option>
+                <option value="pending">Pending</option>
+                <option value="finalized">Finalized</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+
+            <div className="filter-group">
+              <label className="filter-label">Sort by</label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="filter-select"
+              >
+                <option value="date">Date</option>
+                <option value="name">Name (A-Z)</option>
+              </select>
+            </div>
+
+            <div className="filter-group">
+              <label className="filter-label">Order</label>
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
+                className="filter-select"
+              >
+                <option value="asc">
+                  {sortBy === 'date' ? 'Oldest' : 'A to Z'}
+                </option>
+                                <option value="desc">
+                  {sortBy === 'date' ? 'Newest' : 'Z to A'}
+                </option>
+              </select>
+            </div>
+
+            <div className="results-info">
+              Showing {indexOfFirstEvent + 1}-{Math.min(indexOfLastEvent, filteredEvents.length)} of {filteredEvents.length} events
+            </div>
+          </div>
+
           {/* Events Container */}
           <div className="events-container">
-            {events.length === 0 ? (
+            {currentEvents.length === 0 ? (
               <div className="no-events-message">
-                No events found. <br />
-                <button onClick={handleCreateEvent} className="create-button action-button" style={{marginTop: '1rem'}}>
-                  Create Your First Event
-                </button>
+                {filteredEvents.length === 0 && events.length > 0 ? (
+                  <>No events match your current filters.</>
+                ) : (
+                  <>
+                    No events found. <br />
+                    <button onClick={handleCreateEvent} className="create-button action-button" style={{marginTop: '1rem'}}>
+                      Create Your First Event
+                    </button>
+                  </>
+                )}
               </div>
             ) : (
               <div className="events-list">
-                {events.map(event => (
+                {currentEvents.map(event => (
                   <div
                     key={event.id}
                     className={`event-item ${removeMode ? 'remove-mode' : ''}`}
+                    style={{
+                      borderLeftColor: getStatusColor(event.event_status)
+                    }}
                   >
                     <div className="event-header">
-                      <div>
+                      <div className="event-title-section">
                         <h4 className="event-title">{event.event_name || event.eventname || event.event}</h4>
+                        <span 
+                          className="status-badge"
+                          style={{
+                            backgroundColor: getStatusColor(event.event_status)
+                          }}
+                        >
+                          {event.event_status || 'Pending'}
+                        </span>
                         {event.urgency && (
                           <span className={`urgency-badge urgency-${event.urgency.toLowerCase()}`}>
                             {event.urgency}
@@ -574,7 +871,6 @@ export default function EventManagementPage() {
                         {event.event_duration && (
                           <span><strong>Duration:</strong> {event.event_duration} hours</span>
                         )}
-                        <span><strong>Status:</strong> {event.event_status || 'Pending'}</span>
                       </div>
                       
                       <div className="event-details-row">
@@ -620,6 +916,41 @@ export default function EventManagementPage() {
                     )}
                   </div>
                 ))}
+              </div>
+            )}
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="pagination-container">
+                <button
+                  onClick={() => paginate(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="pagination-button"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+
+                {getPageNumbers().map(number => (
+                  <button
+                    key={number}
+                    onClick={() => paginate(number)}
+                    className={`pagination-button ${currentPage === number ? 'active' : ''}`}
+                  >
+                    {number}
+                  </button>
+                ))}
+
+                <button
+                  onClick={() => paginate(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="pagination-button"
+                >
+                  <ChevronRight size={16} />
+                </button>
+
+                <div className="pagination-info">
+                  Page {currentPage} of {totalPages}
+                </div>
               </div>
             )}
           </div>

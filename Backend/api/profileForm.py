@@ -519,61 +519,42 @@ class ProfileSkills(Resource):
 
 class ProfileStates(Resource):
     def get(self):
-        """Get available state options"""
-        # Return all US states
-        states = [
-            {"value": "AL", "label": "Alabama"},
-            {"value": "AK", "label": "Alaska"},
-            {"value": "AZ", "label": "Arizona"},
-            {"value": "AR", "label": "Arkansas"},
-            {"value": "CA", "label": "California"},
-            {"value": "CO", "label": "Colorado"},
-            {"value": "CT", "label": "Connecticut"},
-            {"value": "DE", "label": "Delaware"},
-            {"value": "FL", "label": "Florida"},
-            {"value": "GA", "label": "Georgia"},
-            {"value": "HI", "label": "Hawaii"},
-            {"value": "ID", "label": "Idaho"},
-            {"value": "IL", "label": "Illinois"},
-            {"value": "IN", "label": "Indiana"},
-            {"value": "IA", "label": "Iowa"},
-            {"value": "KS", "label": "Kansas"},
-            {"value": "KY", "label": "Kentucky"},
-            {"value": "LA", "label": "Louisiana"},
-            {"value": "ME", "label": "Maine"},
-            {"value": "MD", "label": "Maryland"},
-            {"value": "MA", "label": "Massachusetts"},
-            {"value": "MI", "label": "Michigan"},
-            {"value": "MN", "label": "Minnesota"},
-            {"value": "MS", "label": "Mississippi"},
-            {"value": "MO", "label": "Missouri"},
-            {"value": "MT", "label": "Montana"},
-            {"value": "NE", "label": "Nebraska"},
-            {"value": "NV", "label": "Nevada"},
-            {"value": "NH", "label": "New Hampshire"},
-            {"value": "NJ", "label": "New Jersey"},
-            {"value": "NM", "label": "New Mexico"},
-            {"value": "NY", "label": "New York"},
-            {"value": "NC", "label": "North Carolina"},
-            {"value": "ND", "label": "North Dakota"},
-            {"value": "OH", "label": "Ohio"},
-            {"value": "OK", "label": "Oklahoma"},
-            {"value": "OR", "label": "Oregon"},
-            {"value": "PA", "label": "Pennsylvania"},
-            {"value": "RI", "label": "Rhode Island"},
-            {"value": "SC", "label": "South Carolina"},
-            {"value": "SD", "label": "South Dakota"},
-            {"value": "TN", "label": "Tennessee"},
-            {"value": "TX", "label": "Texas"},
-            {"value": "UT", "label": "Utah"},
-            {"value": "VT", "label": "Vermont"},
-            {"value": "VA", "label": "Virginia"},
-            {"value": "WA", "label": "Washington"},
-            {"value": "WV", "label": "West Virginia"},
-            {"value": "WI", "label": "Wisconsin"},
-            {"value": "WY", "label": "Wyoming"}
-        ]
-        return {"states": states}, 200
+        """Get available state options from database"""
+        conn = db.get_db()
+        cursor = conn.cursor()
+        
+        try:
+            # Query your states table
+            cursor.execute("""
+                SELECT state_id, state_name, abbreviation 
+                FROM states 
+                ORDER BY state_name ASC
+            """)
+            
+            state_rows = cursor.fetchall()
+            
+            # Format for frontend consumption
+            states = []
+            for row in state_rows:
+                state = {
+                    "value": row['state_name'],  # Full name for database storage
+                    "label": row['state_name'],  # Display name
+                    "abbreviation": row['abbreviation'],  # For optional use
+                    "id": row['state_id']  # Database ID
+                }
+                states.append(state)
+            
+            return {
+                "states": states,
+                "total": len(states)
+            }, 200
+            
+        except Exception as e:
+            print(f"Database error getting states: {e}")
+            return {"error": "Failed to retrieve states"}, 500
+        finally:
+            cursor.close()
+            conn.close()
 
 
 class ProfileList(Resource):

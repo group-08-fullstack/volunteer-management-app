@@ -22,6 +22,7 @@ from . import eventlist
 from . import profileForm
 from . import admin
 from . import volunteer
+from . import eventreview
 
 app = Flask(__name__)
 
@@ -79,3 +80,9 @@ api.add_resource(eventlist.EventStatus, '/api/eventlist/<int:event_id>/status/')
 api.add_resource(matching.VolunteerEventAssignments, "/api/matching/assignments/")
 api.add_resource(matching.FilteredVolunteers, '/api/matching/volunteers/<int:event_id>')
 api.add_resource(matching.FinalizeEvent, '/api/matching/finalize/<int:event_id>')
+api.add_resource(eventlist.EventStates, '/api/eventlist/states/')
+api.add_resource(eventlist.EventSkills, '/api/eventlist/skills/')
+api.add_resource(eventreview.EventReview, '/api/eventreview/')
+api.add_resource(eventreview.EventReviewVolunteers, '/api/eventreview/<int:event_id>/volunteers')
+api.add_resource(eventreview.VolunteerReview, '/api/eventreview/<int:event_id>/volunteer/<int:volunteer_id>')
+api.add_resource(eventreview.CompleteEvent, '/api/eventreview/<int:event_id>/complete')

@@ -590,3 +590,71 @@ class EventStatus(Resource):
         finally:
             cursor.close()
             conn.close()
+
+class EventStates(Resource):
+    def get(self):
+        """Get available states for event creation"""
+        conn = db.get_db()
+        cursor = conn.cursor()
+        
+        try:
+            cursor.execute("""
+                SELECT state_id, state_name, abbreviation 
+                FROM states 
+                ORDER BY state_name ASC
+            """)
+            
+            state_rows = cursor.fetchall()
+            
+            # Format states for event form
+            states = []
+            for row in state_rows:
+                state = {
+                    "value": row['state_name'],  # Use full name to match your eventdetails.state column
+                    "label": row['state_name'],
+                    "abbreviation": row['abbreviation']
+                }
+                states.append(state)
+            
+            return {"states": states}, 200
+            
+        except Exception as e:
+            print(f"Database error getting states for events: {e}")
+            return {"error": "Failed to retrieve states"}, 500
+        finally:
+            cursor.close()
+            conn.close()
+
+class EventSkills(Resource):
+    def get(self):
+        """Get available skills for event creation from skills table"""
+        conn = db.get_db()
+        cursor = conn.cursor()
+        
+        try:
+            cursor.execute("""
+                SELECT skills_id, skill_name 
+                FROM skills 
+                ORDER BY skill_name ASC
+            """)
+            
+            skill_rows = cursor.fetchall()
+            
+            # Format skills for event form (same format as profile form)
+            skills = []
+            for row in skill_rows:
+                skill = {
+                    "value": row['skill_name'],
+                    "label": row['skill_name'],
+                    "id": row['skills_id']
+                }
+                skills.append(skill)
+            
+            return {"skills": skills}, 200
+            
+        except Exception as e:
+            print(f"Database error getting skills for events: {e}")
+            return {"error": "Failed to retrieve skills"}, 500
+        finally:
+            cursor.close()
+            conn.close()
