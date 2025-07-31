@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavigationBar from './Navigation';
-import { History, Settings, Calendar, MapPin, Users, AlertCircle, FileText, Clock, User, Award, Phone, Mail } from 'lucide-react';
+import { History, Settings, Calendar, MapPin, Users, AlertCircle, FileText, Clock, User, Award, Phone, Mail, UserCheck, ClipboardCheck } from 'lucide-react';
 import { createNotification } from '../helpers/notificationHelpers';
 import { checkTokenTime } from "../helpers/authHelpers";
 
@@ -28,20 +28,26 @@ export default function VolunteerMatch() {
   const [loading, setLoading] = useState(true);
   const [loadingVolunteers, setLoadingVolunteers] = useState(false);
 
-  const extraLinks = [
-    {
-      className: "nav-button",
-      link: "/eventmanagement",
-      logo: <Settings size={16} />,
-      text: "Event Management"
-    },
-    {
-      className: "nav-button",
-      link: "/eventhistory",
-      logo: <History size={16} />,
-      text: "Event History"
-    },
-  ];
+const extraLinks = [
+  {
+    className: "nav-button",
+    link: "/eventmanagement",
+    logo: <Settings size={16} />,
+    text: "Event Management"
+  },
+  {
+    className: "nav-button",
+    link: "/volunteermatch",
+    logo: <UserCheck size={16} />,
+    text: "Volunteer Matching"
+  },
+  {
+    className: "nav-button",
+    link: "/EventReview",
+    logo: <ClipboardCheck size={16} />,
+    text: "Event Review"
+  },
+];
 
   useEffect(() => {
     const fetchData = async () => {

@@ -10,7 +10,7 @@ import VolunteerHistoryTable from './components/VolunteerHistory';
 import EventForm from './components/EventForm'; 
 import EventManagement from './components/EventManagement';
 import ViewAllEvents from './components/ViewAllEvents';
-import EventHistory from './components/EventHistory'
+import EventReview from './components/EventReview'
 
 function App() {
   const [users, setUsers] = useState([]); // Store registered users
@@ -31,7 +31,7 @@ function App() {
         <Route path="/eventmanagement" element={<EventManagement />} />
         <Route path="/viewallevents" element={<ViewAllEvents />}/>
         <Route path="/events/edit/:eventId" element={<EventForm />} />
-        <Route path="/eventhistory" element={<EventHistory />}/>
+        <Route path="/eventreview" element={<EventReview />}/>
       </Routes>
     </Router>
   );
