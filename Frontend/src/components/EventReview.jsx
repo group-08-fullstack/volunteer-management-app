@@ -55,7 +55,7 @@ const extraLinks = [
       const token = localStorage.getItem("access_token");
       await checkTokenTime();
 
-      const response = await fetch("http://localhost:5000/api/eventreview/", {
+      const response = await fetch("http://localhost:5000/api/eventreview/finalized", {
         method: "GET",
         headers: {
           "Authorization": `Bearer ${token}`,

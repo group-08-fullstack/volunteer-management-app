@@ -82,7 +82,8 @@ api.add_resource(matching.FilteredVolunteers, '/api/matching/volunteers/<int:eve
 api.add_resource(matching.FinalizeEvent, '/api/matching/finalize/<int:event_id>')
 api.add_resource(eventlist.EventStates, '/api/eventlist/states/')
 api.add_resource(eventlist.EventSkills, '/api/eventlist/skills/')
-api.add_resource(eventreview.EventReview, '/api/eventreview/')
+api.add_resource(eventreview.EventReview, '/api/eventreview/finalized')
 api.add_resource(eventreview.EventReviewVolunteers, '/api/eventreview/<int:event_id>/volunteers')
 api.add_resource(eventreview.VolunteerReview, '/api/eventreview/<int:event_id>/volunteer/<int:volunteer_id>')
 api.add_resource(eventreview.CompleteEvent, '/api/eventreview/<int:event_id>/complete')
+

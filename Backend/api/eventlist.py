@@ -658,3 +658,52 @@ class EventSkills(Resource):
         finally:
             cursor.close()
             conn.close()
+
+
+class FinalizedEvents(Resource):
+    @jwt_required()
+    def get(self):
+        """Return events with status 'finalized'"""
+        conn = db.get_db()
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute('''
+                SELECT 
+                    event_id,
+                    event_name,
+                    location_name,
+                    city,
+                    state,
+                    zipcode,
+                    date,
+                    event_status,
+                    volunteers_needed
+                FROM eventdetails
+                WHERE event_status = 'finalized'
+                ORDER BY date ASC
+            ''')
+            rows = cursor.fetchall()
+
+            events = []
+            for row in rows:
+                events.append({
+                    "id": row["event_id"],
+                    "eventName": row["event_name"],
+                    "location": row["location_name"] or row["city"],
+                    "state": row["state"],
+                    "zipcode": row["zipcode"],
+                    "eventDate": row["date"].strftime('%Y-%m-%d'),
+                    "status": row["event_status"],
+                    "totalVolunteers": row["volunteers_needed"],
+                    "pendingReviews": 0  # Optional: add real count if needed
+                })
+
+            return {"events": events}, 200
+
+        except Exception as e:
+            print(f"Failed to fetch finalized events: {e}")
+            return {"error": "Failed to retrieve finalized events"}, 500
+        finally:
+            cursor.close()
+            conn.close()
