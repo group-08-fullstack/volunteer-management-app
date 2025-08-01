@@ -1,375 +1,543 @@
 from flask_restful import Resource
-from datetime import datetime
+from datetime import datetime, date
 from flask import request
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from .db import get_db
+from decimal import Decimal
 
-# Sample volunteer dashboard data
-volunteer_dashboard_data = {
-    "volunteer_info": {
-        "name": "Sarah Johnson",
-        "email": "sarah.johnson@email.com",
-        "member_since": "2024-03-15",
-        "total_hours": 24,
-        "events_completed": 7,
-        "upcoming_events": 3,
-        "skills": ["Community Outreach", "Event Planning", "Public Speaking"],
-        "preferred_activities": ["Community Service", "Environmental", "Youth Programs"]
-    },
-    
-    "volunteer_history": [
-        {
-            "id": 1,
-            "event": "Community Food Drive",
-            "date": "2025-03-15",
-            "hours": 4,
-            "location": "Downtown Community Center",
-            "description": "Helped organize and distribute food to families in need",
-            "coordinator": "Lisa Park",
-            "status": "Completed",
-            "rating": 4.8
-        },
-        {
-            "id": 2,
-            "event": "Beach Cleanup",
-            "date": "2025-03-08",
-            "hours": 3,
-            "location": "Sunset Beach",
-            "description": "Participated in environmental cleanup effort along the coastline",
-            "coordinator": "Michael Chen",
-            "status": "Completed",
-            "rating": 4.7
-        },
-        {
-            "id": 3,
-            "event": "Animal Shelter Help",
-            "date": "2025-02-28",
-            "hours": 5,
-            "location": "Happy Paws Shelter",
-            "description": "Assisted with animal care, feeding, and socialization",
-            "coordinator": "Emily Rodriguez",
-            "status": "Completed",
-            "rating": 4.9
-        },
-        {
-            "id": 4,
-            "event": "Senior Center Visit",
-            "date": "2025-02-20",
-            "hours": 3,
-            "location": "Golden Years Senior Center",
-            "description": "Spent time with elderly residents, organized activities",
-            "coordinator": "David Thompson",
-            "status": "Completed",
-            "rating": 4.6
-        },
-        {
-            "id": 5,
-            "event": "Youth Mentoring Program",
-            "date": "2025-02-15",
-            "hours": 4,
-            "location": "Community Youth Center",
-            "description": "Mentored local teenagers in academic and life skills",
-            "coordinator": "Sarah Johnson",
-            "status": "Completed",
-            "rating": 4.8
-        },
-        {
-            "id": 6,
-            "event": "Park Restoration",
-            "date": "2025-02-10",
-            "hours": 5,
-            "location": "Riverside Park",
-            "description": "Planted trees, cleaned trails, and maintained park facilities",
-            "coordinator": "Michael Chen",
-            "status": "Completed",
-            "rating": 4.7
-        }
-    ],
-    
-    "upcoming_events": [
-        {
-            "id": 1,
-            "event": "Senior Center Visit",
-            "date": "2025-07-25",
-            "time": "14:00:00",
-            "endTime": "17:00:00",
-            "location": "Golden Years Senior Center",
-            "address": "123 Elder Lane, Springfield",
-            "volunteers": 8,
-            "maxVolunteers": 12,
-            "description": "Visit and spend time with seniors, organize activities and provide companionship",
-        },
-        {
-            "id": 2,
-            "event": "Park Restoration",
-            "date": "2025-08-01",
-            "time": "09:00:00",
-            "endTime": "13:00:00",
-            "location": "Riverside Park",
-            "address": "456 River Road, Springfield",
-            "volunteers": 15,
-            "maxVolunteers": 20,
-            "description": "Help restore the local park by planting trees, cleaning trails, and maintaining facilities",
-            "coordinator": "Michael Chen",
-        },
-        {
-            "id": 3,
-            "event": "Youth Mentoring",
-            "date": "2025-07-30",
-            "time": "16:00:00",
-            "endTime": "18:00:00",
-            "location": "Community Youth Center",
-            "address": "789 Youth Street, Springfield",
-            "volunteers": 5,
-            "maxVolunteers": 8,
-            "description": "Mentor local youth in academic subjects and life skills",
-            "coordinator": "Emily Rodriguez",
-        },
-        {
-            "id": 4,
-            "event": "Food Bank Distribution",
-            "date": "2025-08-05",
-            "time": "10:00:00",
-            "endTime": "14:00:00",
-            "location": "Community Food Bank",
-            "address": "321 Helper Avenue, Springfield",
-            "volunteers": 12,
-            "maxVolunteers": 15,
-            "description": "Sort and distribute food to families in need",
-            "coordinator": "Lisa Park",
-        },
-        {
-            "id": 5,
-            "event": "Environmental Education Workshop",
-            "date": "2025-08-10",
-            "time": "10:00:00",
-            "endTime": "15:00:00",
-            "location": "Nature Center",
-            "address": "555 Green Way, Springfield",
-            "volunteers": 6,
-            "maxVolunteers": 10,
-            "description": "Educate children about environmental conservation and sustainability",
-            "coordinator": "Michael Chen",
-        }
-    ],
-    
-    "achievements": [
-        {
-            "id": 1,
-            "title": "Community Champion",
-            "description": "Completed 5 community service events",
-            "date_earned": "2025-03-01",
-            "icon": "🏆"
-        },
-        {
-            "id": 2,
-            "title": "Time Warrior",
-            "description": "Volunteered over 20 hours",
-            "date_earned": "2025-03-10",
-            "icon": "⏰"
-        },
-        {
-            "id": 3,
-            "title": "Team Player",
-            "description": "Participated in team-based volunteer activities",
-            "date_earned": "2025-02-25",
-            "icon": "🤝"
-        }
-    ],
-    
-    "recommendations": [
-        {
-            "id": 1,
-            "event": "Environmental Education Workshop",
-            "match_score": 95,
-            "reason": "Matches your environmental interests and teaching skills"
-        },
-        {
-            "id": 2,
-            "event": "Community Garden Project",
-            "match_score": 88,
-            "reason": "Perfect for your gardening skills and community focus"
-        },
-        {
-            "id": 3,
-            "event": "Youth Sports Coaching",
-            "match_score": 82,
-            "reason": "Great match for your youth mentoring experience"
-        }
-    ]
-}
+
+def convert_decimal(obj):
+    if isinstance(obj, list):
+        return [convert_decimal(i) for i in obj]
+    elif isinstance(obj, dict):
+        return {k: convert_decimal(v) for k, v in obj.items()}
+    elif isinstance(obj, Decimal):
+        return float(obj)
+    else:
+        return obj
 
 
 class VolunteerDashboard(Resource):
     @jwt_required()
     def get(self):
         """Get volunteer dashboard overview data"""
-        current_user_id = get_jwt_identity()
+        user_email = get_jwt_identity()
         
-        # In a real app, you'd fetch user-specific data:
-        # volunteer_info = get_volunteer_by_user_id(current_user_id)
-        # volunteer_history = get_volunteer_history(current_user_id)
-        # upcoming_events = get_user_upcoming_events(current_user_id)
+        conn = get_db()
+        cursor = conn.cursor()
         
-        # For now, return sample data
-        overview_data = {
-            "volunteer_info": volunteer_dashboard_data["volunteer_info"],
-            "recent_history": volunteer_dashboard_data["volunteer_history"][:3],  # Last 3 events
-            "upcoming_events": volunteer_dashboard_data["upcoming_events"][:3],   # Next 3 events
-            "achievements": volunteer_dashboard_data["achievements"],
-            "statistics": {
-                "total_hours": volunteer_dashboard_data["volunteer_info"]["total_hours"],
-                "events_completed": volunteer_dashboard_data["volunteer_info"]["events_completed"],
-                "upcoming_events": volunteer_dashboard_data["volunteer_info"]["upcoming_events"]
+        try:
+            # Get user_id from email
+            cursor.execute(
+                "SELECT user_id FROM usercredentials WHERE email = %s", 
+                (user_email,)
+            )
+            user_result = cursor.fetchone()
+            
+            if not user_result:
+                return {"error": "User not found"}, 404
+            
+            user_id = user_result['user_id']
+            
+            # Get volunteer profile info
+            cursor.execute("""
+                SELECT full_name, date_of_birth, phone_number, city, state_name
+                FROM userprofile 
+                WHERE volunteer_id = %s
+            """, (user_id,))
+            
+            profile = cursor.fetchone()
+            volunteer_name = profile['full_name'] if profile else "Volunteer"
+            
+            # Get volunteer statistics
+            cursor.execute("""
+                SELECT 
+                    COUNT(CASE WHEN vh.participation_status = 'Volunteered' THEN 1 END) AS events_completed,
+                    COALESCE(SUM(CASE WHEN vh.participation_status = 'Volunteered' 
+                                    THEN ed.event_duration END), 0) AS total_hours
+                FROM volunteerhistory vh
+                LEFT JOIN eventdetails ed ON vh.event_id = ed.event_id
+                WHERE vh.volunteer_id = %s
+            """, (user_id,))
+            
+            stats = cursor.fetchone()
+            events_completed = stats['events_completed'] or 0
+            total_hours = stats['total_hours'] or 0
+            
+            # Get upcoming events count (registered events)
+            cursor.execute("""
+                SELECT COUNT(*) AS upcoming_count
+                FROM volunteerhistory vh
+                JOIN eventdetails ed ON vh.event_id = ed.event_id
+                WHERE vh.volunteer_id = %s 
+                AND vh.participation_status = 'Registered'
+                AND ed.date >= CURDATE()
+            """, (user_id,))
+            
+            upcoming_count = cursor.fetchone()['upcoming_count'] or 0
+            
+            # Get recent volunteer history (last 3 completed events)
+            cursor.execute("""
+                SELECT 
+                    vh.event_id AS id,
+                    ed.event_name AS event,
+                    ed.date,
+                    ed.event_duration AS hours,
+                    ed.location_name AS location,
+                    vh.participation_status,
+                    vh.performance
+                FROM volunteerhistory vh
+                JOIN eventdetails ed ON vh.event_id = ed.event_id
+                WHERE vh.volunteer_id = %s 
+                AND vh.participation_status = 'Volunteered'
+                ORDER BY ed.date DESC
+                LIMIT 3
+            """, (user_id,))
+            
+            recent_history_raw = cursor.fetchall()
+            recent_history = []
+            
+            for history in recent_history_raw:
+                recent_history.append({
+                    "id": history['id'],
+                    "event": history['event'],
+                    "date": history['date'].strftime('%Y-%m-%d') if history['date'] else None,
+                    "hours": history['hours'] or 0,
+                    "location": history['location'] or "Location TBD",
+                    "status": history['participation_status'],
+                    "rating": float(history['performance']) if history['performance'] else None
+                })
+            
+            # Get upcoming events (next 3 registered events)
+            cursor.execute("""
+                SELECT 
+                    vh.event_id AS id,
+                    ed.event_name AS event,
+                    ed.date,
+                    ed.event_duration,
+                    ed.location_name AS location,
+                    ed.volunteers_needed,
+                    ed.event_status,
+                    vh.participation_status
+                FROM volunteerhistory vh
+                JOIN eventdetails ed ON vh.event_id = ed.event_id
+                WHERE vh.volunteer_id = %s 
+                AND vh.participation_status = 'Registered'
+                AND ed.date >= CURDATE()
+                ORDER BY ed.date ASC
+                LIMIT 3
+            """, (user_id,))
+            
+            upcoming_events_raw = cursor.fetchall()
+            upcoming_events = []
+            
+            for event in upcoming_events_raw:
+                # Create time estimates based on duration
+                duration = event['event_duration'] or 2
+                start_time = "09:00:00"
+                end_hour = 9 + duration
+                end_time = f"{end_hour:02d}:00:00"
+                
+                upcoming_events.append({
+                    "id": event['id'],
+                    "event": event['event'],
+                    "date": event['date'].strftime('%Y-%m-%d') if event['date'] else None,
+                    "time": start_time,
+                    "endTime": end_time,
+                    "location": event['location'] or "Location TBD",
+                    "volunteers": event['volunteers_needed'] or 0,
+                    "status": event['event_status']
+                })
+            
+            overview_data = {
+                "volunteer_info": {
+                    "name": volunteer_name,
+                    "email": user_email,
+                    "total_hours": total_hours,
+                    "events_completed": events_completed,
+                    "upcoming_events": upcoming_count
+                },
+                "recent_history": recent_history,
+                "upcoming_events": upcoming_events,
+                "statistics": {
+                    "total_hours": total_hours,
+                    "events_completed": events_completed,
+                    "upcoming_events": upcoming_count
+                }
             }
-        }
+            
+            return convert_decimal(overview_data), 200
+            
+        except Exception as e:
+            print(f"Database error in VolunteerDashboard: {e}")
+            return {"error": "Failed to retrieve dashboard data"}, 500
         
-        return overview_data, 200
+        finally:
+            cursor.close()
+            conn.close()
 
 
 class VolunteerHistory(Resource):
     @jwt_required()
     def get(self):
         """Get complete volunteer history with optional filtering"""
-        current_user_id = get_jwt_identity()
+        user_email = get_jwt_identity()
         
-        # Get query parameters
-        limit = request.args.get('limit', type=int)
-        status = request.args.get('status', 'all')  # 'completed', 'upcoming', 'all'
+        conn = get_db()
+        cursor = conn.cursor()
         
-        history = volunteer_dashboard_data["volunteer_history"].copy()
+        try:
+            # Get user_id from email
+            cursor.execute(
+                "SELECT user_id FROM usercredentials WHERE email = %s", 
+                (user_email,)
+            )
+            user_result = cursor.fetchone()
+            
+            if not user_result:
+                return {"error": "User not found"}, 404
+            
+            user_id = user_result['user_id']
+            
+            # Get query parameters
+            limit = request.args.get('limit', type=int)
+            status = request.args.get('status', 'all')
+            
+            # Build query based on status filter
+            status_condition = ""
+            if status == 'completed':
+                status_condition = "AND vh.participation_status = 'Volunteered'"
+            elif status == 'registered':
+                status_condition = "AND vh.participation_status = 'Registered'"
+            
+            query = f"""
+                SELECT 
+                    vh.event_id AS id,
+                    ed.event_name AS event,
+                    ed.date,
+                    ed.event_duration AS hours,
+                    ed.location_name AS location,
+                    ed.event_description AS description,
+                    vh.participation_status AS status,
+                    vh.performance AS rating,
+                    vh.notes
+                FROM volunteerhistory vh
+                JOIN eventdetails ed ON vh.event_id = ed.event_id
+                WHERE vh.volunteer_id = %s {status_condition}
+                ORDER BY ed.date DESC
+            """
+            
+            if limit:
+                query += f" LIMIT {limit}"
+            
+            cursor.execute(query, (user_id,))
+            history_records = cursor.fetchall()
+            
+            history = []
+            for record in history_records:
+                history.append({
+                    "id": record['id'],
+                    "event": record['event'],
+                    "date": record['date'].strftime('%Y-%m-%d') if record['date'] else None,
+                    "hours": record['hours'] or 0,
+                    "location": record['location'] or "Location TBD",
+                    "description": record['description'] or "",
+                    "status": record['status'],
+                    "rating": float(record['rating']) if record['rating'] else None,
+                    "notes": record['notes'] or ""
+                })
+            
+            return convert_decimal({
+                "history": history,
+                "total": len(history),
+                "filtered_count": len(history)
+            }), 200
+            
+        except Exception as e:
+            print(f"Database error in VolunteerHistory: {e}")
+            return {"error": "Failed to retrieve volunteer history"}, 500
         
-        # Filter by status if specified
-        if status != 'all':
-            history = [h for h in history if h["status"].lower() == status.lower()]
-        
-        # Limit results if specified
-        if limit:
-            history = history[:limit]
-        
-        return {
-            "history": history,
-            "total": len(volunteer_dashboard_data["volunteer_history"]),
-            "filtered_count": len(history)
-        }, 200
+        finally:
+            cursor.close()
+            conn.close()
 
 
 class VolunteerUpcomingEvents(Resource):
     @jwt_required()
     def get(self):
-        """Get upcoming events available for registration"""
-        current_user_id = get_jwt_identity()
+        """Get upcoming events that the volunteer is registered for"""
+        user_email = get_jwt_identity()
         
-        # Get query parameters
-        limit = request.args.get('limit', type=int)
-        status = request.args.get('status', 'all')  # 'available', 'registered', 'all'
+        conn = get_db()
+        cursor = conn.cursor()
         
-        events = volunteer_dashboard_data["upcoming_events"].copy()
+        try:
+            # Get user_id from email
+            cursor.execute(
+                "SELECT user_id FROM usercredentials WHERE email = %s", 
+                (user_email,)
+            )
+            user_result = cursor.fetchone()
+            
+            if not user_result:
+                return {"error": "User not found"}, 404
+            
+            user_id = user_result['user_id']
+            
+            # Get query parameters
+            limit = request.args.get('limit', type=int)
+            
+            # Get upcoming events that volunteer is registered for
+            query = """
+                SELECT 
+                    ed.event_id AS id,
+                    ed.event_name AS event,
+                    ed.date,
+                    ed.event_duration,
+                    ed.location_name AS location,
+                    ed.event_description AS description,
+                    ed.volunteers_needed,
+                    ed.event_status,
+                    vh.participation_status
+                FROM eventdetails ed
+                JOIN volunteerhistory vh ON ed.event_id = vh.event_id
+                WHERE vh.volunteer_id = %s
+                AND ed.date >= CURDATE() 
+                AND vh.participation_status IN ('Registered', 'Volunteered')
+                ORDER BY ed.date ASC
+            """
+            
+            if limit:
+                query += f" LIMIT {limit}"
+            
+            cursor.execute(query, (user_id,))
+            events_records = cursor.fetchall()
+            
+            events = []
+            for record in events_records:
+                # Calculate current volunteer count for this event
+                cursor.execute("""
+                    SELECT COUNT(*) as current_volunteers
+                    FROM volunteerhistory 
+                    WHERE event_id = %s AND participation_status IN ('Registered', 'Volunteered')
+                """, (record['id'],))
+                
+                current_vol_count = cursor.fetchone()['current_volunteers'] or 0
+                
+                # Create time estimates
+                duration = record['event_duration'] or 2
+                start_time = "09:00:00"
+                end_hour = 9 + duration
+                end_time = f"{end_hour:02d}:00:00"
+                
+                events.append({
+                    "id": record['id'],
+                    "event": record['event'],
+                    "date": record['date'].strftime('%Y-%m-%d') if record['date'] else None,
+                    "time": start_time,
+                    "endTime": end_time,
+                    "location": record['location'] or "Location TBD",
+                    "description": record['description'] or "",
+                    "volunteers": current_vol_count,
+                    "maxVolunteers": record['volunteers_needed'] or 0,
+                    "event_status": record['event_status'],
+                    "participation_status": record['participation_status']
+                })
+            
+            return convert_decimal({
+                "events": events,
+                "total": len(events),
+                "filtered_count": len(events)
+            }), 200
+            
+        except Exception as e:
+            print(f"Database error in VolunteerUpcomingEvents: {e}")
+            return {"error": "Failed to retrieve upcoming events"}, 500
         
-        # Filter by registration status if specified
-        if status != 'all':
-            events = [e for e in events if e["registration_status"].lower() == status.lower()]
-        
-        # Limit results if specified
-        if limit:
-            events = events[:limit]
-        
-        return {
-            "events": events,
-            "total": len(volunteer_dashboard_data["upcoming_events"]),
-            "filtered_count": len(events)
-        }, 200
+        finally:
+            cursor.close()
+            conn.close()
 
 
 class VolunteerProfile(Resource):
     @jwt_required()
     def get(self):
         """Get detailed volunteer profile information"""
-        current_user_id = get_jwt_identity()
+        user_email = get_jwt_identity()
         
-        return {
-            "volunteer_info": volunteer_dashboard_data["volunteer_info"],
-            "achievements": volunteer_dashboard_data["achievements"],
-            "recommendations": volunteer_dashboard_data["recommendations"],
-            "statistics": {
-                "total_hours": sum(h["hours"] for h in volunteer_dashboard_data["volunteer_history"]),
-                "events_completed": len(volunteer_dashboard_data["volunteer_history"]),
-                "average_rating": sum(h["rating"] for h in volunteer_dashboard_data["volunteer_history"]) / len(volunteer_dashboard_data["volunteer_history"]),
-                "upcoming_events": len([e for e in volunteer_dashboard_data["upcoming_events"] if e["registration_status"] == "Registered"])
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        try:
+            # Get user_id from email
+            cursor.execute(
+                "SELECT user_id FROM usercredentials WHERE email = %s", 
+                (user_email,)
+            )
+            user_result = cursor.fetchone()
+            
+            if not user_result:
+                return {"error": "User not found"}, 404
+            
+            user_id = user_result['user_id']
+            
+            # Get profile information
+            cursor.execute("""
+                SELECT full_name, date_of_birth, phone_number, 
+                       address1, city, state_name, zipcode, preferences
+                FROM userprofile 
+                WHERE volunteer_id = %s
+            """, (user_id,))
+            
+            profile = cursor.fetchone()
+            
+            # Get volunteer skills
+            cursor.execute("""
+                SELECT s.skill_name
+                FROM volunteer_skills vs
+                JOIN skills s ON vs.skill_id = s.skills_id
+                WHERE vs.volunteer_id = %s
+            """, (user_id,))
+            
+            skills = [row['skill_name'] for row in cursor.fetchall()]
+            
+            # Get statistics
+            cursor.execute("""
+                SELECT 
+                    COUNT(CASE WHEN vh.participation_status = 'Volunteered' THEN 1 END) AS events_completed,
+                    COALESCE(SUM(CASE WHEN vh.participation_status = 'Volunteered' 
+                                    THEN ed.event_duration END), 0) AS total_hours,
+                    ROUND(AVG(CASE WHEN vh.participation_status = 'Volunteered' AND vh.performance IS NOT NULL 
+                                   THEN vh.performance END), 1) AS average_rating
+                FROM volunteerhistory vh
+                LEFT JOIN eventdetails ed ON vh.event_id = ed.event_id
+                WHERE vh.volunteer_id = %s
+            """, (user_id,))
+            
+            stats = cursor.fetchone()
+            
+            volunteer_info = {
+                "name": profile['full_name'] if profile else "Volunteer",
+                "email": user_email,
+                "city": profile['city'] if profile else "",
+                "state": profile['state_name'] if profile else "",
+                "skills": skills,
+                "preferences": profile['preferences'] if profile else "",
+                "total_hours": stats['total_hours'] or 0,
+                "events_completed": stats['events_completed'] or 0,
+                "average_rating": float(stats['average_rating']) if stats['average_rating'] else 0.0
             }
-        }, 200
+            
+            return convert_decimal({
+                "volunteer_info": volunteer_info,
+                "achievements": [],  # Can be implemented later
+                "recommendations": [],  # Can be implemented later
+                "statistics": {
+                    "total_hours": stats['total_hours'] or 0,
+                    "events_completed": stats['events_completed'] or 0,
+                    "average_rating": float(stats['average_rating']) if stats['average_rating'] else 0.0,
+                    "upcoming_events": 0  # Can be calculated if needed
+                }
+            }), 200
+            
+        except Exception as e:
+            print(f"Database error in VolunteerProfile: {e}")
+            return {"error": "Failed to retrieve volunteer profile"}, 500
+        
+        finally:
+            cursor.close()
+            conn.close()
 
 
 class VolunteerEventDetail(Resource):
     @jwt_required()
     def get(self, event_id):
         """Get detailed information about a specific event"""
-        current_user_id = get_jwt_identity()
+        user_email = get_jwt_identity()
         
-        # Search in both upcoming events and history
-        event = None
+        conn = get_db()
+        cursor = conn.cursor()
         
-        # Check upcoming events
-        for e in volunteer_dashboard_data["upcoming_events"]:
-            if e["id"] == event_id:
-                event = e
-                break
+        try:
+            # Get event details
+            cursor.execute("""
+                SELECT 
+                    event_id AS id,
+                    event_name AS event,
+                    date,
+                    event_duration,
+                    location_name AS location,
+                    event_description AS description,
+                    volunteers_needed,
+                    event_status,
+                    urgency,
+                    required_skills
+                FROM eventdetails 
+                WHERE event_id = %s
+            """, (event_id,))
+            
+            event_record = cursor.fetchone()
+            
+            if not event_record:
+                return {"error": "Event not found"}, 404
+            
+            # Get current volunteer count
+            cursor.execute("""
+                SELECT COUNT(*) as current_volunteers
+                FROM volunteerhistory 
+                WHERE event_id = %s AND participation_status IN ('Registered', 'Volunteered')
+            """, (event_id,))
+            
+            current_vol_count = cursor.fetchone()['current_volunteers'] or 0
+            
+            # Check user's participation status
+            cursor.execute(
+                "SELECT user_id FROM usercredentials WHERE email = %s", 
+                (user_email,)
+            )
+            user_result = cursor.fetchone()
+            user_id = user_result['user_id'] if user_result else None
+            
+            participation_status = None
+            if user_id:
+                cursor.execute("""
+                    SELECT participation_status 
+                    FROM volunteerhistory 
+                    WHERE event_id = %s AND volunteer_id = %s
+                """, (event_id, user_id))
+                
+                participation_record = cursor.fetchone()
+                if participation_record:
+                    participation_status = participation_record['participation_status']
+            
+            # Format event data
+            duration = event_record['event_duration'] or 2
+            start_time = "09:00:00"
+            end_hour = 9 + duration
+            end_time = f"{end_hour:02d}:00:00"
+            
+            event_data = {
+                "id": event_record['id'],
+                "event": event_record['event'],
+                "date": event_record['date'].strftime('%Y-%m-%d') if event_record['date'] else None,
+                "time": start_time,
+                "endTime": end_time,
+                "location": event_record['location'] or "Location TBD",
+                "description": event_record['description'] or "",
+                "volunteers": current_vol_count,
+                "maxVolunteers": event_record['volunteers_needed'] or 0,
+                "event_status": event_record['event_status'],
+                "urgency": event_record['urgency'],
+                "required_skills": event_record['required_skills'].split(',') if event_record['required_skills'] else [],
+                "participation_status": participation_status
+            }
+            
+            return convert_decimal(event_data), 200
+            
+        except Exception as e:
+            print(f"Database error in VolunteerEventDetail: {e}")
+            return {"error": "Failed to retrieve event details"}, 500
         
-        # Check history if not found in upcoming
-        if not event:
-            for h in volunteer_dashboard_data["volunteer_history"]:
-                if h["id"] == event_id:
-                    event = h
-                    break
-        
-        if not event:
-            return {"error": "Event not found"}, 404
-        
-        return event, 200
-
-
-class VolunteerEventRegistration(Resource):
-    @jwt_required()
-    def post(self, event_id):
-        """Register for an upcoming event"""
-        current_user_id = get_jwt_identity()
-        
-        # Find the event
-        event = next((e for e in volunteer_dashboard_data["upcoming_events"] if e["id"] == event_id), None)
-        
-        if not event:
-            return {"error": "Event not found"}, 404
-        
-        if event["registration_status"] == "Registered":
-            return {"error": "Already registered for this event"}, 400
-        
-        if event["volunteers"] >= event["maxVolunteers"]:
-            return {"error": "Event is full"}, 400
-        
-        # Update registration status
-        event["registration_status"] = "Registered"
-        event["registration_date"] = datetime.utcnow().isoformat() + "Z"
-        event["volunteers"] += 1
-        
-        return {"message": "Successfully registered for event", "event": event}, 200
-    
-    @jwt_required()
-    def delete(self, event_id):
-        """Unregister from an upcoming event"""
-        current_user_id = get_jwt_identity()
-        
-        # Find the event
-        event = next((e for e in volunteer_dashboard_data["upcoming_events"] if e["id"] == event_id), None)
-        
-        if not event:
-            return {"error": "Event not found"}, 404
-        
-        if event["registration_status"] != "Registered":
-            return {"error": "Not registered for this event"}, 400
-        
-        # Update registration status
-        event["registration_status"] = "Available"
-        event["registration_date"] = None
-        event["volunteers"] -= 1
-        
-        return {"message": "Successfully unregistered from event"}, 200
-
+        finally:
+            cursor.close()
+            conn.close()
