@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, MapPin, Calendar, Award, FileText, Home, Phone, Clock } from 'lucide-react';
-import { 
-  getUserProfile, 
-  createProfile, 
+import {
+  getUserProfile,
+  createProfile,
   updateProfile,
-  deleteProfile, 
-  getSkillsOptions, 
-  getStatesOptions 
+  deleteProfile,
+  getSkillsOptions,
+  getStatesOptions
 } from '../helpers/profilehelpers';
 
 const Select = ({ options, isMulti, placeholder, onChange, value }) => {
@@ -89,7 +89,7 @@ export default function ProfileForm() {
   const formatDateOfBirth = (value) => {
     // Remove all non-digit characters
     const digits = value.replace(/\D/g, '');
-    
+
     // Apply MM/DD/YYYY format
     if (digits.length <= 2) {
       return digits;
@@ -104,7 +104,7 @@ export default function ProfileForm() {
   const formatPhoneNumber = (value) => {
     // Remove all non-digit characters
     const digits = value.replace(/\D/g, '');
-    
+
     // Apply (XXX) XXX-XXXX format
     if (digits.length <= 3) {
       return digits;
@@ -118,10 +118,10 @@ export default function ProfileForm() {
   // Convert formatted date to YYYY-MM-DD for database
   const formatDateForDatabase = (formattedDate) => {
     if (!formattedDate || formattedDate.length !== 10) return '';
-    
+
     const parts = formattedDate.split('/');
     if (parts.length !== 3) return '';
-    
+
     const [month, day, year] = parts;
     return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
   };
@@ -129,10 +129,10 @@ export default function ProfileForm() {
   // Convert YYYY-MM-DD to MM/DD/YYYY for display
   const formatDateForDisplay = (dbDate) => {
     if (!dbDate) return '';
-    
+
     const parts = dbDate.split('-');
     if (parts.length !== 3) return '';
-    
+
     const [year, month, day] = parts;
     return `${month}/${day}/${year}`;
   };
@@ -190,7 +190,7 @@ export default function ProfileForm() {
         if (profileData) {
           console.log('Loaded profile data:', profileData);
           console.log('Skills from profile:', profileData.skills);
-          
+
           setForm({
             fullName: profileData.fullName || '',
             dateOfBirth: formatDateForDisplay(profileData.dateOfBirth) || '',
@@ -237,20 +237,20 @@ export default function ProfileForm() {
   // Validate date of birth
   const validateDateOfBirth = (dateString) => {
     if (!dateString || dateString.length !== 10) return false;
-    
+
     const parts = dateString.split('/');
     if (parts.length !== 3) return false;
-    
+
     const [month, day, year] = parts.map(Number);
     const date = new Date(year, month - 1, day);
-    
+
     // Check if date is valid and not in the future
     const today = new Date();
     return date.getFullYear() === year &&
-           date.getMonth() === month - 1 &&
-           date.getDate() === day &&
-           date <= today &&
-           year >= 1900; // Reasonable minimum year
+      date.getMonth() === month - 1 &&
+      date.getDate() === day &&
+      date <= today &&
+      year >= 1900; // Reasonable minimum year
   };
 
   // ✅ Use helper functions instead of raw fetch
@@ -295,7 +295,7 @@ export default function ProfileForm() {
       } else {
         result = await createProfile(formData);
       }
-      
+
       alert(`Profile ${isEditMode ? 'updated' : 'created'} successfully!`);
       navigate('/volunteerdash');
     } catch (error) {
@@ -305,6 +305,12 @@ export default function ProfileForm() {
       setIsLoading(false);
     }
   };
+
+  const handlecancel = async (e) => {
+    if (confirm('Are you sure you want to cancel? All unsaved changes will be lost.')) {
+      navigate('/volunteerdash');
+    }
+  }
 
   // ✅ Show loading state while options are loading
   if (optionsLoading) {
@@ -603,7 +609,7 @@ export default function ProfileForm() {
         }
 
         .submit-button {
-          grid-column: 1 / -1;
+          background-color: #10b981;
           justify-self: center;
           padding: 0.875rem 2rem;
           background-color: #3b82f6;
@@ -615,6 +621,7 @@ export default function ProfileForm() {
           cursor: pointer;
           transition: background-color 0.2s;
           margin-top: 1rem;
+          
         }
 
         .submit-button:hover {
@@ -624,6 +631,28 @@ export default function ProfileForm() {
         .submit-button:disabled {
           opacity: 0.6;
           cursor: not-allowed;
+        }
+
+        .cancel-button {
+          padding: 0.75rem 2rem;
+          background-color: red;
+          color: white;
+          border: none;
+          border-radius: 0.375rem;
+          cursor: pointer;
+          font-size: 1rem;
+          font-weight: 600;
+          transition: background-color 0.2s;
+          
+        }
+
+        .submit-section {
+          display: flex;
+          justify-content: space-between;
+          gap: 1rem;
+          padding-top: 1rem;
+          border-top: 1px solid #e5e7eb;
+          grid-column: 1 / -1;
         }
 
         @media (max-width: 768px) {
@@ -842,7 +871,7 @@ export default function ProfileForm() {
                     Add Date
                   </button>
                 </div>
-                
+
                 <div className="availability-list">
                   {form.availability.map((date, index) => (
                     <div key={index} className="availability-item">
@@ -861,17 +890,30 @@ export default function ProfileForm() {
             </div>
 
             {/* Submit Button */}
-            <button 
-              type="button" 
-              onClick={handleSubmit} 
-              className="submit-button"
-              disabled={isLoading}
-            >
-              {isLoading 
-                ? (isEditMode ? 'Updating...' : 'Saving...') 
-                : (isEditMode ? 'Update Profile' : 'Save Profile')
-              }
-            </button>
+            <div className="submit-section">
+              <button
+                type="button"
+                onClick={handleSubmit}
+                style={{ color:'white',backgroundColor: '#10b981' }}
+                disabled={isLoading}
+              >
+                {isLoading
+                  ? (isEditMode ? 'Updating...' : 'Saving...')
+                  : (isEditMode ? 'Update Profile' : 'Save Profile')
+                }
+              </button>
+
+
+              <button
+                type="button"
+                onClick={handlecancel}
+                className="cancel-button"
+                disabled={isLoading}
+              >
+                Cancel
+              </button>
+            </div>
+
           </div>
         </div>
       </div>
