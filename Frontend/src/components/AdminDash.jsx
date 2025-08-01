@@ -454,7 +454,7 @@ const extraLinks = [
                         </div>
                         <div className="item-details-row with-margin">
                           <span className="expertise-text">
-                            Expertise: {volunteer.expertise}
+                            Skills: {volunteer.expertise}
                           </span>
                         </div>
                       </div>
@@ -494,7 +494,7 @@ const extraLinks = [
                           </div>
                           <div className="item-detail-with-icon">
                             <Users size={14} />
-                            <span>{event.volunteers} volunteers</span>
+                            <span>{event.volunteers} Volunteers Needed</span>
                           </div>
                         </div>
                       </div>
