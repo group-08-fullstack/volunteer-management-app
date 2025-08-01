@@ -51,7 +51,7 @@ export async function register(data){
 
       const parsed = await response.json();
 
-      if (parsed.message == "Registration successful!"){
+      if (parsed.message == "Registration successful!" || parsed.message == "User with this email already exists, but is not verified."){
         // Register was successful
         alert(parsed.message);
         return true;
@@ -59,6 +59,66 @@ export async function register(data){
       else{
         // Register failed
         alert(parsed.message);
+        return false;
+      }
+  }
+  catch (error){
+    console.log('An error occured', error);
+  }
+}
+
+// Function to call backend EmailVerfication api endpoint
+export async function verifyEmail(data){
+  try{
+    const response = await fetch("http://127.0.0.1:5000/api/auth/verifyEmail/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data)
+      });
+
+      const parsed = await response.json();
+
+      if (parsed.message == "Verification code sent successfully" || parsed.message == "A verification code has already been issued. Please refer to your previous email" ){
+        // Email was successfully sent
+        alert(parsed.message);
+        return true;
+      }
+      else{
+        // // Email was unsuccessfully sent
+        // alert(parsed.message);
+        return false;
+      }
+  }
+  catch (error){
+    console.log('An error occured', error);
+  }
+}
+
+
+// Function to call backend EmailVerfication api endpoint
+export async function confirmCode(data){
+
+  try{
+    const response = await fetch("http://127.0.0.1:5000/api/auth/confirmCode/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data)
+      });
+
+      const parsed = await response.json();
+
+      if (parsed.message == "Verified"){
+        // verfication was successful
+        alert(parsed.message);
+        return true;
+      }
+      else{
+        // verfication failed
+        // alert(parsed.message);
         return false;
       }
   }

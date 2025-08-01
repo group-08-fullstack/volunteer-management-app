@@ -86,7 +86,8 @@ def create_app(config_class):
     api.add_resource(eventreview.EventReview, '/api/eventreview/finalized')
     api.add_resource(eventreview.EventReviewVolunteers, '/api/eventreview/<int:event_id>/volunteers')
     api.add_resource(eventreview.VolunteerReview, '/api/eventreview/<int:event_id>/volunteer/<int:volunteer_id>')
-    api.add_resource(eventreview.CompleteEvent, '/api/eventreview/<int:event_id>/complete')
+    api.add_resource(auth.EmailVerification, '/api/auth/verifyEmail/')
+    api.add_resource(auth.EmailCodeConfirmation, '/api/auth/confirmCode/')
 
     return app
 

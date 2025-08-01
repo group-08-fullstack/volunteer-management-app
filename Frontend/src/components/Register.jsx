@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Lock, UserPlus, Mail } from 'lucide-react';
-import {register} from '../helpers/authHelpers';
+import {register, verifyEmail,confirmCode} from '../helpers/authHelpers';
 
 
 export default function Register({ users, setUsers }) {
@@ -22,13 +22,56 @@ export default function Register({ users, setUsers }) {
     }
 
     // Make API call to register endpoint
-    const result = await register(UserRegister);
+    const register_result = await register(UserRegister);
+
+    if(register_result){
+      // Make API call to EmailVerfication endpoint to verify user email
+      const verify_result = await verifyEmail(UserRegister);
+
+      if(verify_result){
+          let code;
+          let UserWithCode;
+          let confirm_result = false;
+
+          do {
+            const input = prompt("Enter the verification code sent to your email");
+
+            // If user clicks cancel
+            if (input === null) {
+              break;
+            }
+
+            code = parseInt(input);
+
+            if (!isNaN(code)) {
+              UserWithCode = { ...UserRegister, code: code };
+              confirm_result = await confirmCode(UserWithCode); // Check with server
+              if (!confirm_result) {
+                alert("Incorrect verification code, please try again.");
+              }
+            } else {
+              alert("Please enter a valid number.");
+            }
+
+          } while (!confirm_result);
+
+          if (confirm_result) {
+            const newUser = { email, password, role };
+            setUsers([...users, newUser]);
+            navigate("/login");
+          }
+
+          else{
+            alert('Incorrect verfication code');
+          }
+        
+
+      }
+      else{
+        alert('Verfication code could not be sent due to error');
+      }
+  }
   
-    if (result){
-      const newUser = { email, password, role };
-      setUsers([...users, newUser]);
-      navigate('/login');
-    }
 
   };
 

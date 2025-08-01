@@ -4,8 +4,7 @@ from api.app import create_app
 from api import config
 from api.db import get_db
 
-# All of these fixtures are the "setup" phase of the unit tests
-
+# Helper function
 def clear_db():
     conn = get_db()
     cursor = conn.cursor()
@@ -23,6 +22,8 @@ def clear_db():
     cursor.close()
     conn.close()
 
+# All of these fixtures are the "setup" phase of the unit tests
+
 @pytest.fixture
 def client():
     app = create_app(config.TestConfig)
@@ -37,13 +38,50 @@ def client():
 def user_admin(client):
     # Generate random user test email
     rand_int = random.randint(1, 10000)
-    return {"email": f"test{str(rand_int)}", "password": "test", "role": "admin"}
+
+    # Manually insert verficaiton code and set verified to true
+    conn = get_db()
+    cursor = conn.cursor()
+
+    code = 1111
+    verified = 1 # True
+    email = f"test{str(rand_int)}"
+
+    cursor.execute(
+        "INSERT INTO verification_codes (email, code, verified) VALUES (%s, %s, %s)",
+        (email, code, verified)
+    )
+    
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return {"email": email, "password": "test", "role": "admin"}
 
 @pytest.fixture
 def user_volunteer(client):
     # Generate random user test email
     rand_int = random.randint(1, 10000)
-    return {"email": f"test{str(rand_int)}", "password": "test", "role": "volunteer"}
+
+    # Manually insert verficaiton code and set verified to true
+    conn = get_db()
+    cursor = conn.cursor()
+
+    code = 1111
+    verified = 1 # True
+    email = f"test{str(rand_int)}"
+
+    cursor.execute(
+        "INSERT INTO verification_codes (email, code, verified) VALUES (%s, %s, %s)",
+        (email, code, verified)
+    )
+    
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return {"email": email, "password": "test", "role": "volunteer"}
+
 
 @pytest.fixture
 def access_token_admin(client, user_admin):
@@ -62,3 +100,29 @@ def access_token_volunteer(client, user_volunteer):
     assert login_response.status_code == 200
     login_data = login_response.get_json()
     return login_data['tokens']['access_token']
+
+
+@pytest.fixture
+def set_verification_for_users(client,user_admin, user_volunteer):
+    """Mark given users as verified in the database."""
+    conn = get_db()
+    cursor = conn.cursor()
+
+    try:
+        for user in (user_admin, user_volunteer):
+            cursor.execute(
+                """
+                INSERT INTO verification_codes (email, code, verified) 
+                VALUES (%s, %s, %s)
+                ON DUPLICATE KEY UPDATE code = VALUES(code), verified = VALUES(verified)
+                """,
+                (user["email"], 1111, 1)
+            )
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        cursor.close()
+        conn.close()
+

@@ -1,3 +1,4 @@
+from flask import request
 from flask_restful import Resource, reqparse
 from flask_jwt_extended import (
     create_access_token, create_refresh_token,
@@ -7,6 +8,10 @@ from passlib.hash import sha256_crypt
 from . import db  
 from datetime import datetime
 import pytz
+import smtplib,ssl
+from email.message import EmailMessage
+import random
+import os
 
 # Request parser
 parser = reqparse.RequestParser()
@@ -32,13 +37,20 @@ class Register(Resource):
         try:
             cursor.execute("SELECT * FROM UserCredentials WHERE email = %s", (email,))
             if cursor.fetchone():
-                return {"message": "User with this email already exists."}, 400
-            
-            cursor.execute(
-                "INSERT INTO UserCredentials (email, password_hash, role, created_at) VALUES (%s, %s, %s, %s)",
-                (email, password, role, central_time)
-            )
-            conn.commit()
+                # Check if account has been verified
+                cursor.execute("SELECT verified FROM verification_codes WHERE email = %s", (email,))
+                result = cursor.fetchone()
+
+                if result and result["verified"] == 1: # boolean stored as 1/0 in MySQL
+                    return {"message": "User with this email already exists and is verified."}, 400
+                else:
+                    return {"message": "User with this email already exists, but is not verified."}, 400
+            else:
+                cursor.execute(
+                    "INSERT INTO UserCredentials (email, password_hash, role, created_at) VALUES (%s, %s, %s, %s)",
+                    (email, password, role, central_time)
+                )
+                conn.commit()
             return {"message": "Registration successful!"}, 201
         except Exception as e:
             conn.rollback()
@@ -63,25 +75,37 @@ class Login(Resource):
                 "SELECT user_id, email, password_hash, role FROM UserCredentials WHERE email = %s",
                 (email,)
             )
+
             user = cursor.fetchone()
-            if user and sha256_crypt.verify(password, user['password_hash']) and user['role'] == role:
-                user_info = {
-                    "user_id": user["user_id"],
-                    "email": user["email"],
-                    "role": user["role"]
-                }
-                access_token = create_access_token(identity=user["email"])
-                refresh_token = create_refresh_token(identity=user["email"])
-                return {
-                    "message": "Login successful",
-                    "tokens": {
-                        "access_token": access_token,
-                        "refresh_token": refresh_token
-                    },
-                    "user": user_info
-                }, 200
+            if user:
+                # Check if account has been verified
+                cursor.execute("SELECT verified FROM verification_codes WHERE email = %s", (email,))
+                result = cursor.fetchone()
+
+                if result and result["verified"] == 1:
+
+                    if user and sha256_crypt.verify(password, user['password_hash']) and user['role'] == role:
+                        user_info = {
+                            "user_id": user["user_id"],
+                            "email": user["email"],
+                            "role": user["role"]
+                        }
+                        access_token = create_access_token(identity=user["email"])
+                        refresh_token = create_refresh_token(identity=user["email"])
+                        return {
+                            "message": "Login successful",
+                            "tokens": {
+                                "access_token": access_token,
+                                "refresh_token": refresh_token
+                            },
+                            "user": user_info
+                        }, 200
+                    else:
+                        return {"message": "Invalid login information"}, 401
+                else:
+                    return{"message" : "Account not verified. Please proceed to the registration page to verify your account."}
             else:
-                return {"message": "Invalid credentials or role"}, 401
+                return {"message": "Account does not exist"}, 401
         except Exception as e:
             return {"error": str(e)}, 500
         finally:
@@ -137,3 +161,106 @@ class DeleteAccount(Resource):
            
             cursor.close()
             conn.close()
+
+
+class EmailVerification(Resource):
+
+    def post(self):
+        args = parser.parse_args()
+        user_email = args['email'].lower()
+
+        conn = db.get_db()
+        cursor = conn.cursor()
+
+        # Check if email is already registered
+        try:
+            cursor.execute("SELECT * FROM verification_codes WHERE email = %s", (user_email,))
+            # Do not generate new code just return for frontend to prompt user
+            if cursor.fetchone():
+                return {'message': 'A code has already been issued. Please refer to your previous email'}, 200
+               
+        except Exception as e:
+            conn.rollback()
+            return {"error": str(e)}, 500
+
+        # Generate 4 digit code
+        code = random.randint(1000, 9999)  
+
+        # Store in database email -> code
+        try:
+            cursor.execute("INSERT INTO verification_codes (email,code) VALUES (%s,%s)", (user_email, code))
+            conn.commit()
+
+            # Create email message
+            msg = EmailMessage()
+            msg['Subject'] = 'Email Verification'
+            msg['From'] = 'your@gmail.com'
+            msg['To'] = user_email
+            msg.set_content(f"Your verification code is {code}")
+
+            # Setup config for server connection
+            port = 465
+            smtp_server = "smtp.gmail.com"
+            sender_email = "volunteerscheduleplatform@gmail.com"
+            sender_password = os.getenv("email_password")
+
+            # Create connection and send message
+            context = ssl.create_default_context()
+            try:
+                with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
+                    server.login(sender_email, sender_password)
+                    server.send_message(msg)
+                return {'message': 'Verification code sent successfully'}, 200
+            except Exception as e:
+                return {'message': str(e)}, 500
+
+        except Exception as e:
+            conn.rollback()
+            return {"error": str(e)}, 500
+        finally:
+            cursor.close()
+            conn.close()
+
+
+
+
+class EmailCodeConfirmation(Resource):
+    def post(self):
+        data = request.get_json()
+        email = data.get("email", "").lower()
+        code = data.get("code")
+
+        # Setup connection and cursor
+        conn = db.get_db()
+        cursor = conn.cursor()
+
+        # Select code from database
+        try:
+            cursor.execute("SELECT code FROM verification_codes WHERE email=%s", (email,))
+            result = cursor.fetchone()
+
+
+            if result["code"] == code:
+                try:
+                    cursor.execute(
+                        "UPDATE verification_codes SET verified = 1 WHERE email = %s",
+                        (email,)
+                    )
+                    conn.commit()
+                    return {'message': 'Verified'}, 200
+                except Exception as e:
+                    conn.rollback()
+                    return {"error": str(e)}, 500
+                
+            else:
+                return {'message': 'Invalid code'}, 400
+            
+        except Exception as e:
+            conn.rollback()
+            return {"error": str(e)}, 500
+        finally:
+            cursor.close()
+            conn.close()
+            
+
+
