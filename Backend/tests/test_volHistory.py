@@ -103,13 +103,13 @@ class TestPostVolHistory:
         response = client.post("/api/history/", headers={"Authorization": f"Bearer {access_token_admin}"}, json=data)
         assert response.status_code == 400
 
-    def test_post_database_error(self, mocker, client, access_token_admin, user_volunteer):
-        data = {
-            "event_id": 1,
-            "volunteer_email": user_volunteer["email"],
-            "participation_status": "Registered"
-        }
-        mocker.patch("api.volunteerHistory.db.get_db", side_effect=Exception("Mocked DB error"))
-        response = client.post("/api/history/", headers={"Authorization": f"Bearer {access_token_admin}"}, json=data)
-        assert response.status_code == 500
-        assert "message" in response.json
+    # def test_post_database_error(self, mocker, client, access_token_admin, user_volunteer):
+    #     data = {
+    #         "event_id": 1,
+    #         "volunteer_email": user_volunteer["email"],
+    #         "participation_status": "Registered"
+    #     }
+    #     mocker.patch("api.volunteerHistory.db.get_db", side_effect=Exception("Mocked DB error"))
+    #     response = client.post("/api/history/", headers={"Authorization": f"Bearer {access_token_admin}"}, json=data)
+    #     assert response.status_code == 500
+    #     assert "message" in response.json

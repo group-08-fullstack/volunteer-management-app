@@ -36,14 +36,6 @@ def create_app(config_class):
     # setup flask_restful
     api = Api(app)
 
-    # # Store DB config in app
-    # app.config['MYSQL_HOST'] = 'mydemoserver-quickstart.mysql.database.azure.com'
-    # app.config['MYSQL_USER'] = 'mydemouser'
-    # app.config['MYSQL_PASSWORD'] = os.getenv("database_password")
-    # app.config['MYSQL_DB'] = 'volunteermgnt'
-
-
-
 
     # Setup JWT authentication
     app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY") # Grab enviroment variable
@@ -57,7 +49,6 @@ def create_app(config_class):
     api.add_resource(auth.Register, '/api/auth/register/')
     api.add_resource(auth.Login, '/api/auth/login/')
     api.add_resource(auth.RefreshToken,'/api/auth/refresh/')
-    api.add_resource(matching.MatchVolunteer, "/api/matching/match/")
     api.add_resource(eventlist.EventList, '/api/eventlist/')
     api.add_resource(eventlist.Event, '/api/eventlist/<int:event_id>')
     api.add_resource(profileForm.Profile, '/api/profile/')
@@ -78,9 +69,6 @@ def create_app(config_class):
     api.add_resource(eventlist.EventStatistics, '/api/eventlist/statistics/')
     api.add_resource(eventlist.EventsByStatus, '/api/eventlist/status/<string:status>')
     api.add_resource(eventlist.EventStatus, '/api/eventlist/<int:event_id>/status/')
-    api.add_resource(matching.VolunteerEventAssignments, "/api/matching/assignments/")
-    api.add_resource(matching.FilteredVolunteers, '/api/matching/volunteers/<int:event_id>')
-    api.add_resource(matching.FinalizeEvent, '/api/matching/finalize/<int:event_id>')
     api.add_resource(eventlist.EventStates, '/api/eventlist/states/')
     api.add_resource(eventlist.EventSkills, '/api/eventlist/skills/')
     api.add_resource(eventreview.EventReview, '/api/eventreview/finalized')
@@ -88,6 +76,10 @@ def create_app(config_class):
     api.add_resource(eventreview.VolunteerReview, '/api/eventreview/<int:event_id>/volunteer/<int:volunteer_id>')
     api.add_resource(auth.EmailVerification, '/api/auth/verifyEmail/')
     api.add_resource(auth.EmailCodeConfirmation, '/api/auth/confirmCode/')
+    api.add_resource(matching.MatchVolunteer, "/api/matching/match/")
+    api.add_resource(matching.VolunteerEventAssignments, "/api/matching/assignments/")
+    api.add_resource(matching.FilteredVolunteers, '/api/matching/volunteers/<int:event_id>')
+    api.add_resource(matching.FinalizeEvent, '/api/matching/finalize/<int:event_id>')
 
     return app
 

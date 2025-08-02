@@ -103,7 +103,7 @@ class Login(Resource):
                     else:
                         return {"message": "Invalid login information"}, 401
                 else:
-                    return{"message" : "Account not verified. Please proceed to the registration page to verify your account."}
+                    return{"message" : "Account not verified. Please proceed to the registration page to verify your account."},401
             else:
                 return {"message": "Account does not exist"}, 401
         except Exception as e:
