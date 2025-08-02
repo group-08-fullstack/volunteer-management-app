@@ -41,12 +41,12 @@ def clear_database_before_each_test(client):
         clear_db()          
 
 @pytest.fixture
-def user_admin():
+def user_admin(client):
     email = f"test{uuid.uuid4()}@example.com"
     return {"email": email, "password": "test", "role": "admin"}
 
 @pytest.fixture
-def user_volunteer():
+def user_volunteer(client):
     email = f"test{uuid.uuid4()}@example.com"
     return {"email": email, "password": "test", "role": "volunteer"}
 
