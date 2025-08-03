@@ -2,8 +2,7 @@
 
 ## 📌 Complete Project with Additional Functionality and Reporting
 
-This is a full-stack web application for managing volunteer activities and event coordination. It allows users (volunteers and administrators) to register,
- manage profiles, create events, assign volunteers, and generate reports in PDF and CSV formats.
+This is a full-stack web application designed to manage volunteers and events for a nonprofit organization. It allows user registration, profile management, event creation, volunteer matching, and reporting in both CSV and PDF formats.
 
 ---
 
@@ -35,7 +34,9 @@ This is a full-stack web application for managing volunteer activities and event
 - Volunteers receive alerts when assigned or updated on an event
 
 ### 📊 Reporting Module 
-- Generate reports as PDF and CSV
+- Generate reports listing volunteers and their participation history.
+- Generate reports with event details and volunteer assignments.
+- Export reports as PDF or CSV files.
   
 ### 📘 Volunteer History
 - Track and display volunteer participation across events
