@@ -13,7 +13,7 @@ This is a full-stack web application for managing volunteer activities and event
 - **Backend**: Python (Flask/FastAPI)  
 - **Database**: MySQL 
 - **Authentication**: JWT  
-- **Report Generation**: reportlab (PDF), csv (built-in)
+- **Report Generation**: reportlab (PDF), csv (python built-in)
 -  **Unit testing**: pytest, coverage
 
 ---
