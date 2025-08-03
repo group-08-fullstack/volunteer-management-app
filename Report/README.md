@@ -34,9 +34,10 @@ This is a full-stack web application designed to manage volunteers and events fo
 - Volunteers receive alerts when assigned or updated on an event
 
 ### 📊 Reporting Module 
-- Generate reports listing volunteers and their participation history.
-- Generate reports with event details and volunteer assignments.
-- Export reports as PDF or CSV files.
+- Generate **PDF** and **CSV** reports for:
+  - Listing volunteers and their participation history.
+  - Event details and volunteer assignments.
+
   
 ### 📘 Volunteer History
 - Track and display volunteer participation across events
