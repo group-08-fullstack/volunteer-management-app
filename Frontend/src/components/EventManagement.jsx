@@ -6,7 +6,7 @@ import { createNotification } from '../helpers/notificationHelpers';
 import { checkTokenTime } from "../helpers/authHelpers";
 
 // Notification helper
-async function sendNotification(reviewingVolunteer,event_id) {
+async function sendNotification(volunteer,event_id) {
   // Grab event via id
   selectedEvent = await fetch(`http://localhost:5000/api/eventlist/${event_id}`, {
         method: "GET",
@@ -17,13 +17,13 @@ async function sendNotification(reviewingVolunteer,event_id) {
       });
 
   const newNotification = {
-    receiver: reviewingVolunteer.email,
-    message: `Performance feedback added: ${selectedEvent.event_name}`,
+    receiver: volunteer.email,
+    message: `Assigned event Deleted: ${selectedEvent.event_name}`,
     date: selectedEvent.date,
     read: false
   };
   await createNotification(newNotification);
-  alert(`Notification sent to ${reviewingVolunteer.email}`);
+  alert(`Notification sent to ${volunteer.email}`);
 }
 
 export default function EventManagementPage() {
