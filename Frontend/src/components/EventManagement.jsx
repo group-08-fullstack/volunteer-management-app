@@ -159,7 +159,7 @@ const extraLinks = [
     try {
       const token = localStorage.getItem("access_token");
 
-      const volunteers  = await fetch(`http://localhost:5000/api/eventreview/${eventId}/volunteers}`, {
+      let response  = await fetch(`http://localhost:5000/api/eventreview/${eventId}/volunteers}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -167,7 +167,9 @@ const extraLinks = [
         },
       });
 
-      const response = await fetch(`http://localhost:5000/api/eventlist/${eventId}`, {
+      const volunteers = response["volunteers"];
+
+      response = await fetch(`http://localhost:5000/api/eventlist/${eventId}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${token}`,
