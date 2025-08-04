@@ -36,7 +36,7 @@
   background-color: #f0f8ff;
 }
 
-.history-table td:last-child {
+.participation_status {
   font-weight: bold;
   color: #0c5460;
 }

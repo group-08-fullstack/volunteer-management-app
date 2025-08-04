@@ -2,7 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, MapPin, Users, X, UserCheck, History, Edit, ChevronLeft, ChevronRight, Settings, ClipboardCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import NavigationBar from './Navigation';
+import { createNotification } from '../helpers/notificationHelpers';
 import { checkTokenTime } from "../helpers/authHelpers";
+
+// Notification helper
+async function sendNotification(reviewingVolunteer,event_id) {
+  // Grab event via id
+  selectedEvent = await fetch(`http://localhost:5000/api/eventlist/${event_id}`, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+      });
+
+  const newNotification = {
+    receiver: reviewingVolunteer.email,
+    message: `Performance feedback added: ${selectedEvent.event_name}`,
+    date: selectedEvent.date,
+    read: false
+  };
+  await createNotification(newNotification);
+  alert(`Notification sent to ${reviewingVolunteer.email}`);
+}
 
 export default function EventManagementPage() {
   const [removeMode, setRemoveMode] = useState(false);
@@ -137,6 +159,14 @@ const extraLinks = [
     try {
       const token = localStorage.getItem("access_token");
 
+      const volunteers  = await fetch(`http://localhost:5000/api/eventreview/${eventId}/volunteers}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+      });
+
       const response = await fetch(`http://localhost:5000/api/eventlist/${eventId}`, {
         method: "DELETE",
         headers: {
@@ -151,6 +181,9 @@ const extraLinks = [
 
       setEvents(events.filter(event => event.id !== eventId));
       alert("Event deleted successfully!");
+      for(let volunteer = 0; volunteer < volunteers.length; volunteer++){
+        sendNotification(volunteers[volunteer],eventId);
+      }
 
     } catch (error) {
       console.error("Delete failed:", error);

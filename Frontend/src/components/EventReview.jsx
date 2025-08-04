@@ -2,7 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, MapPin, Users, X, UserCheck, Settings, History, Star, ChevronLeft, ChevronRight, ClipboardCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import NavigationBar from './Navigation';
+import { createNotification } from '../helpers/notificationHelpers';
 import { checkTokenTime } from "../helpers/authHelpers";
+
+// Notification helper
+async function sendNotification(reviewingVolunteer,selectedEvent) {
+  const newNotification = {
+    receiver: reviewingVolunteer.email,
+    message: `Performance feedback added: ${selected,eventName}`,
+    date: selectedEvent.eventDate,
+    read: false
+  };
+  await createNotification(newNotification);
+  alert(`Notification sent to ${reviewingVolunteer.email}`);
+}
 
 export default function EventReviewPage() {
   const [events, setEvents] = useState([]);
@@ -153,6 +166,7 @@ const extraLinks = [
       }
 
       alert("Review submitted successfully!");
+      sendNotification(reviewingVolunteer,selectedEvent);
       setReviewingVolunteer(null);
       loadVolunteers(selectedEvent.id); // Refresh volunteers list
 

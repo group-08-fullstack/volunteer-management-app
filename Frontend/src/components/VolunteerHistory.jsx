@@ -146,6 +146,18 @@ export default function VolunteerHistoryTable(){
                             </button>
                         </div>
                         </th>
+                        <th>
+                        <div className="th-div">
+                             Performance
+                            {/* No sort button here */}
+                        </div>
+                        </th>
+                        <th>
+                        <div className="th-div">
+                            Notes
+                            {/* No sort button here */}
+                        </div>
+                        </th>
 
 
                 </tr>
@@ -160,14 +172,16 @@ export default function VolunteerHistoryTable(){
                         <td>{event.required_skills}</td>
                         <td>{event.urgency}</td>
                         <td>{event.date}</td>
-                        <td>{event.participation_status}</td>
+                        <td className='participation_status'>{event.participation_status}</td>
+                        <td>{event.performance}</td>
+                        <td>{event.notes}</td>
                         </tr>
                     ))}
                 </tbody>
 
                 <tfoot>
                     <tr>
-                        <td colSpan="7">
+                        <td colSpan="9">
                         <div className="tfoot-div">
                             <button
                             onClick={() =>
