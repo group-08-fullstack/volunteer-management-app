@@ -9,19 +9,26 @@ import { checkTokenTime } from "../helpers/authHelpers";
 async function sendNotification(volunteer, event_id) {
   const token = localStorage.getItem("access_token");
   await checkTokenTime();
-  
+
   // Grab event via id
-  selectedEvent = await fetch(`http://localhost:5000/api/eventlist/${event_id}`, {
-    method: "GET",
-    headers: {
-      "Authorization": `Bearer ${token}`,
-      "Content-Type": "application/json"
-    },
-  });
+  const response = await fetch(`http://localhost:5000/api/eventlist/${event_id}`, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+      });
+  
+  if (!response.ok) {
+    throw new Error("Failed to fetch event details");
+  }
+
+
+  const selectedEvent = await response.json();
 
   const newNotification = {
     receiver: volunteer.email,
-    message: `Assigned event Deleted: ${selectedEvent.event_name}`,
+    message: `Assigned Event Deleted: ${selectedEvent.event_name}`,
     date: selectedEvent.date,
     read: false
   };
@@ -177,11 +184,9 @@ export default function EventManagementPage() {
       //const volunteers = data["volunteers"];
 
       if (volunteers.length > 0) {
-      for(let volunteer = 0; volunteer < volunteers.length; volunteer++){
-        sendNotification(volunteers[volunteer],eventId);
-      }}
-      else{
-        alert("No volunteers")
+        for(let volunteer = 0; volunteer < volunteers.length; volunteer++){
+          sendNotification(volunteers[volunteer],eventId);
+        }
       }
 
 
