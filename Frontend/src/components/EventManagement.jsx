@@ -7,6 +7,9 @@ import { checkTokenTime } from "../helpers/authHelpers";
 
 // Notification helper
 async function sendNotification(volunteer, event_id) {
+  const token = localStorage.getItem("access_token");
+  await checkTokenTime();
+  
   // Grab event via id
   selectedEvent = await fetch(`http://localhost:5000/api/eventlist/${event_id}`, {
     method: "GET",
@@ -158,19 +161,29 @@ export default function EventManagementPage() {
 
     try {
       const token = localStorage.getItem("access_token");
+      await checkTokenTime();
 
-      let response = await fetch(`http://localhost:5000/api/eventreview/${eventId}/volunteers`, {
-        method: "DELETE",
+      let response  = await fetch(`http://localhost:5000/api/eventreview/${eventId}/volunteers`, {
+        method: "GET",
         headers: {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json"
         },
       });
 
-      const data = await response.json(); 
+      const data = await response.json();
       const volunteers = data.volunteers || []; 
 
-      //const volunteers = response["volunteers"];
+      //const volunteers = data["volunteers"];
+
+      if (volunteers.length > 0) {
+      for(let volunteer = 0; volunteer < volunteers.length; volunteer++){
+        sendNotification(volunteers[volunteer],eventId);
+      }}
+      else{
+        alert("No volunteers")
+      }
+
 
       response = await fetch(`http://localhost:5000/api/eventlist/${eventId}`, {
         method: "DELETE",
@@ -186,9 +199,7 @@ export default function EventManagementPage() {
 
       setEvents(events.filter(event => event.id !== eventId));
       alert("Event deleted successfully!");
-      for (let volunteer = 0; volunteer < volunteers.length; volunteer++) {
-        sendNotification(volunteers[volunteer], eventId);
-      }
+
 
     } catch (error) {
       console.error("Delete failed:", error);
