@@ -6,15 +6,15 @@ import { createNotification } from '../helpers/notificationHelpers';
 import { checkTokenTime } from "../helpers/authHelpers";
 
 // Notification helper
-async function sendNotification(volunteer,event_id) {
+async function sendNotification(volunteer, event_id) {
   // Grab event via id
   selectedEvent = await fetch(`http://localhost:5000/api/eventlist/${event_id}`, {
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
-      });
+    method: "GET",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+  });
 
   const newNotification = {
     receiver: volunteer.email,
@@ -32,38 +32,38 @@ export default function EventManagementPage() {
   const [filteredEvents, setFilteredEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [eventsPerPage] = useState(10);
-  
+
   // Filter and sort state
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState('date');
   const [sortOrder, setSortOrder] = useState('desc');
-  
+
   const navigate = useNavigate();
 
-const extraLinks = [
-  {
-    className: "nav-button",
-    link: "/eventmanagement",
-    logo: <Settings size={16} />,
-    text: "Event Management"
-  },
-  {
-    className: "nav-button",
-    link: "/volunteermatch",
-    logo: <UserCheck size={16} />,
-    text: "Volunteer Matching"
-  },
-  {
-    className: "nav-button",
-    link: "/EventReview",
-    logo: <ClipboardCheck size={16} />,
-    text: "Event Review"
-  },
-];
+  const extraLinks = [
+    {
+      className: "nav-button",
+      link: "/eventmanagement",
+      logo: <Settings size={16} />,
+      text: "Event Management"
+    },
+    {
+      className: "nav-button",
+      link: "/volunteermatch",
+      logo: <UserCheck size={16} />,
+      text: "Volunteer Matching"
+    },
+    {
+      className: "nav-button",
+      link: "/EventReview",
+      logo: <ClipboardCheck size={16} />,
+      text: "Event Review"
+    },
+  ];
 
   useEffect(() => {
     loadEvents();
@@ -100,7 +100,7 @@ const extraLinks = [
 
       const data = await response.json();
       console.log('Loaded events:', data);
-      
+
       setEvents(data.events || data || []);
 
     } catch (error) {
@@ -159,7 +159,7 @@ const extraLinks = [
     try {
       const token = localStorage.getItem("access_token");
 
-      let response  = await fetch(`http://localhost:5000/api/eventreview/${eventId}/volunteers}`, {
+      let response = await fetch(`http://localhost:5000/api/eventreview/${eventId}/volunteers`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -167,7 +167,10 @@ const extraLinks = [
         },
       });
 
-      const volunteers = response["volunteers"];
+      const data = await response.json(); 
+      const volunteers = data.volunteers || []; 
+
+      //const volunteers = response["volunteers"];
 
       response = await fetch(`http://localhost:5000/api/eventlist/${eventId}`, {
         method: "DELETE",
@@ -183,8 +186,8 @@ const extraLinks = [
 
       setEvents(events.filter(event => event.id !== eventId));
       alert("Event deleted successfully!");
-      for(let volunteer = 0; volunteer < volunteers.length; volunteer++){
-        sendNotification(volunteers[volunteer],eventId);
+      for (let volunteer = 0; volunteer < volunteers.length; volunteer++) {
+        sendNotification(volunteers[volunteer], eventId);
       }
 
     } catch (error) {
@@ -202,14 +205,14 @@ const extraLinks = [
         const month = parseInt(parts[1]) - 1;
         const day = parseInt(parts[2]);
         const date = new Date(year, month, day);
-        
+
         return date.toLocaleDateString('en-US', {
           year: 'numeric',
           month: 'long',
           day: 'numeric'
         });
       }
-      
+
       const date = new Date(dateString);
       return date.toLocaleDateString('en-US', {
         year: 'numeric',
@@ -255,18 +258,18 @@ const extraLinks = [
   const getPageNumbers = () => {
     const pageNumbers = [];
     const maxPagesToShow = 5;
-    
+
     let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
     let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
-    
+
     if (endPage - startPage + 1 < maxPagesToShow) {
       startPage = Math.max(1, endPage - maxPagesToShow + 1);
     }
-    
+
     for (let i = startPage; i <= endPage; i++) {
       pageNumbers.push(i);
     }
-    
+
     return pageNumbers;
   };
 
@@ -833,7 +836,7 @@ const extraLinks = [
                 <option value="asc">
                   {sortBy === 'date' ? 'Oldest' : 'A to Z'}
                 </option>
-                                <option value="desc">
+                <option value="desc">
                   {sortBy === 'date' ? 'Newest' : 'Z to A'}
                 </option>
               </select>
@@ -853,7 +856,7 @@ const extraLinks = [
                 ) : (
                   <>
                     No events found. <br />
-                    <button onClick={handleCreateEvent} className="create-button action-button" style={{marginTop: '1rem'}}>
+                    <button onClick={handleCreateEvent} className="create-button action-button" style={{ marginTop: '1rem' }}>
                       Create Your First Event
                     </button>
                   </>
@@ -872,7 +875,7 @@ const extraLinks = [
                     <div className="event-header">
                       <div className="event-title-section">
                         <h4 className="event-title">{event.event_name || event.eventname || event.event}</h4>
-                        <span 
+                        <span
                           className="status-badge"
                           style={{
                             backgroundColor: getStatusColor(event.event_status)
@@ -886,7 +889,7 @@ const extraLinks = [
                           </span>
                         )}
                       </div>
-                      
+
                       {!removeMode && (
                         <div className="event-actions">
                           <button
@@ -907,7 +910,7 @@ const extraLinks = [
                           <span><strong>Duration:</strong> {event.event_duration} hours</span>
                         )}
                       </div>
-                      
+
                       <div className="event-details-row">
                         <div className="event-detail-with-icon">
                           <MapPin size={14} />
