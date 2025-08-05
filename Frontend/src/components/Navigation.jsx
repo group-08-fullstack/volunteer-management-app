@@ -24,7 +24,7 @@ import { useState, useRef, useEffect } from 'react';
        ...
      ];
 
-    - Note: pass extralink as [] if no addtional links are needed 
+    - Note: pass extralink as [] if no additional links are needed 
 
     - Note: 'logo' should be a JSX element imported from lucide-react within this file, 
     e.g., import { Home } from "lucide-react";
@@ -36,18 +36,11 @@ import { useState, useRef, useEffect } from 'react';
 
 */
 
-
-
-
-
 // Component that returns a navigation bar
 export default function NavigationBar({ extraLinks, title }) {
     const navigate = useNavigate()
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const dropdownRef = useRef(null);
-
-    // Get the user data from localStorage to determine which dashboard to link to
-
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -63,19 +56,14 @@ export default function NavigationBar({ extraLinks, title }) {
 
     const role = localStorage.getItem("user_role");
 
-    // Function to handle logout
     const handleLogout = () => {
-        // Clear any authentication tokens or user data
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
         localStorage.removeItem('user_email');
         localStorage.removeItem('user_role');
-
-        // Navigate to login page
         navigate('/login');
     };
 
-    //handle delete account
     const handleDeleteAccount = async () => {
         const accessToken = localStorage.getItem("access_token");
 
@@ -104,9 +92,6 @@ export default function NavigationBar({ extraLinks, title }) {
         }
     };
 
-
-
-
     return (
         <nav className="navbar">
             <div className="navbar-container">
@@ -116,36 +101,35 @@ export default function NavigationBar({ extraLinks, title }) {
                     </div>
 
                     <div className="navbar-actions">
-                        {/* Create additional links provided as props*/}
-                        {
-                            extraLinks.map((element, index) => (
-                                <button key={index} className={element.className} onClick={() => navigate(element.link)}>
-                                    {element.logo}
-                                    <span className={element.className + "-text"}>{element.text}</span>
-                                </button>
-                            ))
-                        }
+                        {/* Extra links provided as props */}
+                        {extraLinks.map((element, index) => (
+                            <button key={index} className={element.className} onClick={() => navigate(element.link)}>
+                                {element.logo}
+                                <span className={element.className + "-text"}>{element.text}</span>
+                            </button>
+                        ))}
 
-                        {/* Home button */}
-			 <button
-  				onClick={() => {
-    					if (role === "volunteer" && window.location.pathname !== "/volunteerdash") {
-      					navigate("/volunteerdash");
-    					} else if (role !== "volunteer" && window.location.pathname !== "/admindash") {
-      				navigate("/admindash");
-   					 }
- 					 }}
-  				className="home-button"
-					>
-  				<Home size={20} />
-			</button>
-
+                        {/* Home button with fixed role logic */}
+                        <button
+                            onClick={() => {
+                                if (role === "volunteer") {
+                                    navigate("/volunteerdash");
+                                } else if (role === "admin") {
+                                    navigate("/admindash");
+                                } else {
+                                    console.warn("Unknown role:", role);
+                                    navigate("/login");
+                                }
+                            }}
+                            className="home-button"
+                        >
+                            <Home size={20} />
+                        </button>
 
                         {/* Notifications */}
-                        {/* Imported from Notification.jsx */}
                         <NotificationButton />
 
-                        {/* Account */}
+                        {/* Account dropdown */}
                         <div className="dropdown-container" ref={dropdownRef}>
                             <button
                                 onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -156,13 +140,12 @@ export default function NavigationBar({ extraLinks, title }) {
                             {dropdownOpen && (
                                 <div className="dropdown-menu">
                                     {role === "volunteer" && (
-                                        <button onClick={() => role == "volunteer" ? navigate("/profile") : navigate("/admin")}>Profile</button>
+                                        <button onClick={() => navigate("/profile")}>Profile</button>
                                     )}
-                                    <button onClick={handleDeleteAccount}>Delete Account</button>                     
+                                    <button onClick={handleDeleteAccount}>Delete Account</button>
                                 </div>
                             )}
                         </div>
-
 
                         {/* Logout */}
                         <button
@@ -176,5 +159,5 @@ export default function NavigationBar({ extraLinks, title }) {
                 </div>
             </div>
         </nav>
-    )
+    );
 }
