@@ -39,9 +39,10 @@ export default function AdminDashboard() {
         // Update state with backend data
         setAdminName(dashboardData.admin_info.name);
         setNotifications(dashboardData.admin_info.notifications);
-        setTopVolunteers(dashboardData.top_volunteers);
+        //setTopVolunteers(dashboardData.top_volunteers);
         setUpcomingEvents(dashboardData.upcoming_events);
         setStatistics(dashboardData.statistics);
+        handleSortChange("events");
         
       } catch (error) {
         console.error('Error loading dashboard data:', error);
@@ -59,7 +60,7 @@ export default function AdminDashboard() {
   const handleSortChange = async (newSortBy) => {
     setSortBy(newSortBy);
     try {
-      const volunteers = await getTopVolunteers(newSortBy, 3);
+      const volunteers = await getTopVolunteers(newSortBy, 5);
       setTopVolunteers(volunteers);
     } catch (error) {
       console.error('Error updating volunteer sort:', error);
