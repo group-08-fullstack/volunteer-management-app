@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Bell, User, LogOut, Calendar, Clock, MapPin, Users } from 'lucide-react';
 import NotificationButton from './Notification';
 import NavigationBar from './Navigation';
-import { 
+import {
   getVolunteerDashboard,
   getRecentVolunteerHistory,
   getNextUpcomingEvents,
   formatEventDate,
-  formatEventTime 
+  formatEventTime
 } from '../helpers/volunteerhelpers';
 import './VolunteerDash.css';
 
@@ -24,7 +24,7 @@ export default function VolunteerDashboard() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   const navigate = useNavigate();
 
   const extraLinks = [];
@@ -35,16 +35,16 @@ export default function VolunteerDashboard() {
       try {
         setLoading(true);
         setError(null);
-        
+
         // Load overview data from backend
         const dashboardData = await getVolunteerDashboard();
-        
+
         // Update state with backend data
         setVolunteerName(dashboardData.volunteer_info.name);
         setVolunteerHistory(dashboardData.recent_history);
         setUpcomingEvents(dashboardData.upcoming_events);
         setStatistics(dashboardData.statistics);
-        
+
       } catch (error) {
         console.error('Error loading dashboard data:', error);
         setError('Failed to load dashboard data');
@@ -97,7 +97,7 @@ export default function VolunteerDashboard() {
   if (loading) {
     return (
       <div className="volunteer-dashboard">
-        <NavigationBar extraLinks={extraLinks} title={"Volunteer Portal"}/>
+        <NavigationBar extraLinks={extraLinks} title={"Volunteer Portal"} />
         <div className="main-content">
           <div className="welcome-section">
             <h2 className="welcome-title">Loading Dashboard...</h2>
@@ -415,7 +415,7 @@ export default function VolunteerDashboard() {
       <div className="volunteer-dashboard">
 
         {/* Navigation bar imported from Navigation.jsx */}
-        <NavigationBar extraLinks={extraLinks} title={"Volunteer Portal"}/>
+        <NavigationBar extraLinks={extraLinks} title={"Volunteer Portal"} />
 
         {/* Main Content */}
         <div className="main-content">
@@ -438,29 +438,32 @@ export default function VolunteerDashboard() {
                 <Clock color="#3b82f6" size={24} />
                 <h3 className="card-title">Volunteer History</h3>
               </div>
-              
+
               <div className="content-section">
                 <div className="item-list">
-                  {volunteerHistory.map((item) => (
-                    <div key={item.id} className="history-item">
-                      <h4 className="item-title">{item.event}</h4>
-                      <div className="item-details">
-                        <div className="item-details-row">
-                          <span>{formatDisplayDate(item.date)}</span>
-                          <span>{item.hours} hours</span>
-                        </div>
-                        <div className="item-details-row with-margin">
-                          <div className="item-detail-with-icon">
-                            <MapPin size={14} />
-                            <span>{item.location}</span>
+                  {volunteerHistory.length > 0 ? (
+                    volunteerHistory.map((item) => (
+                      <div key={item.id} className="history-item">
+                        <h4 className="item-title">{item.event}</h4>
+                        <div className="item-details">
+                          <div className="item-details-row">
+                            <span>{formatDisplayDate(item.date)}</span>
+                            <span>{item.hours} hours</span>
+                          </div>
+                          <div className="item-details-row with-margin">
+                            <div className="item-detail-with-icon">
+                              <MapPin size={14} />
+                              <span>{item.location}</span>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <p className="welcome-subtitle">No volunteer history yet, Start volunteering to build your history!</p>
+                  )}
                 </div>
               </div>
-              
               <button className="view-all-button" onClick={handleVolunteerMatching}>
                 View All History →
               </button>
@@ -472,33 +475,40 @@ export default function VolunteerDashboard() {
                 <Calendar color="#10b981" size={24} />
                 <h3 className="card-title">Upcoming Events</h3>
               </div>
-              
+
               <div className="content-section">
                 <div className="item-list">
-                  {upcomingEvents.map((event) => (
-                    <div key={event.id} className="event-item">
-                      <h4 className="item-title">{event.event}</h4>
-                      <div className="item-details">
-                        <div className="item-details-row">
-                          <span>{formatDisplayDate(event.date)}</span>
-                          <span>{formatDisplayTime(event.time, event.endTime)}</span>
-                        </div>
-                        <div className="item-details-row with-margin">
-                          <div className="item-detail-with-icon">
-                            <MapPin size={14} />
-                            <span>{event.location}</span>
+                  {upcomingEvents.length > 0 ? (
+                    upcomingEvents.map((event) => (
+                      <div key={event.id} className="event-item">
+                        <h4 className="item-title">{event.event}</h4>
+                        <div className="item-details">
+                          <div className="item-details-row">
+                            <span>{formatDisplayDate(event.date)}</span>
+                            <span>{formatDisplayTime(event.time, event.endTime)}</span>
                           </div>
-                          <div className="item-detail-with-icon">
-                            <Users size={14} />
-                            <span>{event.volunteers} volunteers</span>
+                          <div className="item-details-row with-margin">
+                            <div className="item-detail-with-icon">
+                              <MapPin size={14} />
+                              <span>{event.location}</span>
+                            </div>
+                            <div className="item-detail-with-icon">
+                              <Users size={14} />
+                              <span>{event.volunteers} volunteers</span>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <p className="welcome-subtitle">Nothing planned yet. Check out available events and get involved!</p>
+                  )}
                 </div>
               </div>
-              
+
+
+
+
               <button className="view-all-button green" onClick={handleViewAllEvents}>
                 View All Events →
               </button>
