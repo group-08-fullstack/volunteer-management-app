@@ -139,6 +139,14 @@
   align-items: center;
 }
 
+.empty-message {
+  text-align: center;
+  color: #888;
+  font-style: italic;
+  padding: 1rem;
+}
+
+
 
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {

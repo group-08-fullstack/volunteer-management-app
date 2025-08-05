@@ -119,12 +119,20 @@ export default function Notificationbutton() {
                 <button className='refresh-button' onClick={refreshFunction}> <RefreshCcw size={15}/></button>
 
                 {/* Div container to hold notifications */}
-                <div className='notification-div'>
-                    {/* For each element with notifications create a NotificationItem component*/}
-                    {notifications.toReversed().map((notification) => (
-                        <NotificationItem key = {notification.notification_id} data={notification}  onToggleRead={() => toggleRead(notification.notification_id)} onDelete={() => handleDelete(notification.notification_id)}/>
-                    ))}
-                </div>
+                   <div className='notification-div'>
+                        {notifications.length === 0 ? (
+                            <p className="empty-message">No notifications, check back later.</p>
+                        ) : (
+                            notifications.toReversed().map((notification) => (
+                                <NotificationItem
+                                    key={notification.notification_id}
+                                    data={notification}
+                                    onToggleRead={() => toggleRead(notification.notification_id)}
+                                    onDelete={() => handleDelete(notification.notification_id)}
+                                />
+                            ))
+                        )}
+                    </div>
 
             </div>
         )}
