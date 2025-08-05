@@ -127,12 +127,19 @@ export default function NavigationBar({ extraLinks, title }) {
                         }
 
                         {/* Home button */}
-                        <button
-                            onClick={() => role == "volunteer" ? navigate("/volunteerdash") : navigate("/admindash")}
-                            className="home-button"
-                        >
-                            <Home size={20} />
-                        </button>
+			 <button
+  				onClick={() => {
+    					if (role === "volunteer" && window.location.pathname !== "/volunteerdash") {
+      					navigate("/volunteerdash");
+    					} else if (role !== "volunteer" && window.location.pathname !== "/admindash") {
+      				navigate("/admindash");
+   					 }
+ 					 }}
+  				className="home-button"
+					>
+  				<Home size={20} />
+			</button>
+
 
                         {/* Notifications */}
                         {/* Imported from Notification.jsx */}
