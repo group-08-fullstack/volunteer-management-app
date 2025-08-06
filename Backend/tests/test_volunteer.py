@@ -96,6 +96,28 @@ class TestVolunteerDashboardBasic:
 
         # Create a working volunteer user and get real token
         user_data = {"email": "test@example.com", "password": "test123", "role": "volunteer"}
+
+        # Manually insert verficaiton code and set verified to true
+        with client.application.app_context():
+            conn = get_db()
+            cursor = conn.cursor()
+
+            code = 1111
+            verified = 1 # True
+            email = user_data["email"]
+        
+        try:
+            cursor.execute(
+                "INSERT INTO verification_codes (email, code, verified) VALUES (%s, %s, %s)",
+                (email, code, verified)
+            )
+            conn.commit()
+        except Exception as e:
+                conn.rollback()
+                raise RuntimeError(f"Failed to insert verification code: {e}")
+        finally:
+            cursor.close()
+            conn.close()
         
         # Register user
         register_response = client.post("/api/auth/register/", json=user_data)

@@ -53,7 +53,6 @@ def user_volunteer(client):
 
 @pytest.fixture
 def access_token_admin(client, user_admin):
-    register_response = client.post("/api/auth/register/", json=user_admin)
     # Manually insert verficaiton code and set verified to true
     with client.application.app_context():
         conn = get_db()
@@ -75,16 +74,24 @@ def access_token_admin(client, user_admin):
     finally:
         cursor.close()
         conn.close()
+    
+    # Register account
+    register_response = client.post("/api/auth/register/", json=user_admin)
     assert register_response.status_code == 201
+
+    # Login
     login_response = client.post("/api/auth/login/", json=user_admin)
-    assert login_response.status_code == 200
+    login_data = None
+    # While loop needed to wait for insert statement to register in test database
+    while login_response.status_code != 200: 
+        login_response = client.post("/api/auth/login/", json=user_admin)
+        
     login_data = login_response.get_json()
     return login_data['tokens']['access_token']
 
 @pytest.fixture
 def access_token_volunteer(client, user_volunteer):
-    register_response = client.post("/api/auth/register/", json=user_volunteer)
-        # Manually insert verficaiton code and set verified to true
+       # Manually insert verficaiton code and set verified to true
     with client.application.app_context():
         conn = get_db()
         cursor = conn.cursor()
@@ -105,8 +112,18 @@ def access_token_volunteer(client, user_volunteer):
     finally:
         cursor.close()
         conn.close()
+    
+    # Register account
+    register_response = client.post("/api/auth/register/", json=user_volunteer)
     assert register_response.status_code == 201
+
+    # Login
     login_response = client.post("/api/auth/login/", json=user_volunteer)
-    assert login_response.status_code == 200
+    login_data = None
+
+    # While loop needed to wait for insert statement to register in test database
+    while login_response.status_code != 200: 
+        login_response = client.post("/api/auth/login/", json=user_volunteer)
+        
     login_data = login_response.get_json()
     return login_data['tokens']['access_token']
