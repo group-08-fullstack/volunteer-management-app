@@ -74,6 +74,33 @@ export default function AllVolunteers() {
     navigate(`/volunteers/${volunteerId}`);
   };
 
+
+  const generateReport = (volunteerId, format) => {
+  const token = localStorage.getItem('access_token');
+  const url = `http://127.0.0.1:5000/api/volunteer/${volunteerId}/report/${format}`;
+
+  fetch(url, {
+    method: "GET",
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  })
+    .then(res => res.blob())
+    .then(blob => {
+      const url = window.URL.createObjectURL(new Blob([blob]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `volunteer_report_${volunteerId}.${format}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    })
+    .catch(err => {
+      console.error(`Failed to download ${format} report:`, err);
+    });
+  };
+
+
   const renderStars = (rating) => {
     const numRating = parseFloat(rating) || 0;
     return (

@@ -66,6 +66,8 @@ def create_app(config_class):
     api.add_resource(volunteer.VolunteerUpcomingEvents, '/api/volunteer/events/')
     api.add_resource(volunteer.VolunteerProfile, '/api/volunteer/profile/')
     api.add_resource(volunteer.VolunteerEventDetail, '/api/volunteer/events/<int:event_id>/')
+    api.add_resource(volunteer.VolunteerReportCSV, '/api/volunteer/<int:volunteer_id>/report/csv')
+    api.add_resource(volunteer.VolunteerReportPDF, '/api/volunteer/<int:volunteer_id>/report/pdf')
     api.add_resource(eventlist.EventStatistics, '/api/eventlist/statistics/')
     api.add_resource(eventlist.EventsByStatus, '/api/eventlist/status/<string:status>')
     api.add_resource(eventlist.EventStatus, '/api/eventlist/<int:event_id>/status/')

@@ -1,9 +1,13 @@
 from flask_restful import Resource
 from datetime import datetime, date
-from flask import request
+from flask import request, Response
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from .db import get_db
 from decimal import Decimal
+import io
+import csv
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
 
 
 def convert_decimal(obj):
@@ -541,3 +545,98 @@ class VolunteerEventDetail(Resource):
         finally:
             cursor.close()
             conn.close()
+
+class VolunteerReportCSV(Resource):
+    @jwt_required()
+    def get(self, volunteer_id):
+        conn = get_db()
+        cursor = conn.cursor()
+
+        query = """
+            SELECT 
+                ed.event_name AS event,
+                ed.date,
+                ed.event_duration AS hours,
+                ed.location_name AS location,
+                vh.participation_status AS status,
+                vh.performance AS rating
+            FROM volunteerhistory vh
+            JOIN eventdetails ed ON vh.event_id = ed.event_id
+            WHERE vh.volunteer_id = %s
+            ORDER BY ed.date DESC
+        """
+        cursor.execute(query, (volunteer_id,))
+        data = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        if not data:
+            return {"error": "No data found"}, 404
+
+        output = io.StringIO()
+        writer = csv.DictWriter(output, fieldnames=data[0].keys())
+        writer.writeheader()
+        writer.writerows(data)
+
+        return Response(
+            output.getvalue(),
+            mimetype='text/csv',
+            headers={"Content-Disposition": f"attachment; filename=volunteer_{volunteer_id}_report.csv"}
+        )
+
+
+class VolunteerReportPDF(Resource):
+    @jwt_required()
+    def get(self, volunteer_id):
+        conn = get_db()
+        cursor = conn.cursor()
+
+        query = """
+            SELECT 
+                ed.event_name AS event,
+                ed.date,
+                ed.event_duration AS hours,
+                ed.location_name AS location,
+                vh.participation_status AS status,
+                vh.performance AS rating
+            FROM volunteerhistory vh
+            JOIN eventdetails ed ON vh.event_id = ed.event_id
+            WHERE vh.volunteer_id = %s
+            ORDER BY ed.date DESC
+        """
+        cursor.execute(query, (volunteer_id,))
+        data = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        if not data:
+            return {"error": "No data found"}, 404
+
+        buffer = io.BytesIO()
+        pdf = canvas.Canvas(buffer, pagesize=letter)
+        width, height = letter
+        y = height - 40
+        pdf.setFont("Helvetica", 12)
+        pdf.drawString(40, y, f"Volunteer Report - ID: {volunteer_id}")
+        y -= 30
+
+        for item in data:
+            line = f"{item['event']} | {item['date']} | {item['location']} | {item['hours']}h | Rating: {item['rating'] or 'N/A'}"
+            pdf.drawString(40, y, line)
+            y -= 20
+            if y < 40:
+                pdf.showPage()
+                y = height - 40
+
+        pdf.save()
+        print(f"Generating PDF for volunteer_id={volunteer_id}, {len(data)} records")
+        buffer.seek(0)
+        print(f"PDF size in bytes: {len(buffer.getvalue())}")
+
+        return Response(
+            buffer.getvalue(),
+            mimetype='application/pdf',
+            headers={"Content-Disposition": f"attachment; filename=volunteer_{volunteer_id}_report.pdf"}
+        )
