@@ -4,7 +4,7 @@ from api import config
 from api.db import get_db
 import uuid
 
-# Helper function
+# Helper function to clear test database
 def clear_db():
     conn = get_db()
     cursor = conn.cursor()
