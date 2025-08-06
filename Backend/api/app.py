@@ -80,6 +80,7 @@ def create_app(config_class):
     api.add_resource(matching.VolunteerEventAssignments, "/api/matching/assignments/")
     api.add_resource(matching.FilteredVolunteers, '/api/matching/volunteers/<int:event_id>')
     api.add_resource(matching.FinalizeEvent, '/api/matching/finalize/<int:event_id>')
+    api.add_resource(eventreview.CompleteEvent, '/api/eventreview/<int:event_id>/complete')
 
     return app
 
