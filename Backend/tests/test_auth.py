@@ -1,5 +1,8 @@
 import pytest
 from flask_jwt_extended import decode_token
+from unittest.mock import patch, MagicMock
+from api.db import get_db
+from . import db
 
 def test_register_success(client, user_admin):
     response = client.post("/api/auth/register/", json=user_admin)
@@ -7,12 +10,7 @@ def test_register_success(client, user_admin):
     assert response.get_json()["message"] == "Registration successful!"
 
 
-def test_register_duplicate_verified(client, user_admin):
-    """Test duplicate registration with verified user - hits lines 47"""
-    # First register the user
-def test_register_duplicate_verified(client, user_admin):
-    """Test duplicate registration with verified user - hits lines 47"""
-    # First register the user
+def test_register_duplicate(client, user_admin):
     client.post("/api/auth/register/", json=user_admin)
     
     # Try to register again (user already exists and is verified)
