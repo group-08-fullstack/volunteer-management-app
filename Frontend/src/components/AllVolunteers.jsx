@@ -11,6 +11,7 @@ export default function AllVolunteers() {
   const [currentPage, setCurrentPage] = useState(1);
   const [volunteersPerPage] = useState(15);
   const navigate = useNavigate();
+  const [openReportMenuId, setOpenReportMenuId] = useState(null);
 
   const extraLinks = [
     {
@@ -346,6 +347,16 @@ export default function AllVolunteers() {
           margin: 0 1rem;
         }
 
+        .report-button {
+          background-color: #10b981;
+          color: white;
+        }
+
+        .report-dropdown-button{
+        padding-left:12px;
+        padding-right: 12px;
+        }
+
         /* Dark mode support */
         @media (prefers-color-scheme: dark) {
           .volunteers-container {
@@ -416,6 +427,9 @@ export default function AllVolunteers() {
           .pagination-info {
             color: #d1d5db !important;
           }
+
+
+
         }
 
         @media (max-width: 768px) {
@@ -489,12 +503,13 @@ export default function AllVolunteers() {
                       <th>Rating</th>
                       <th>Hours</th>
                       <th>Expertise</th>
+                      <th>Report</th>
                     </tr>
                   </thead>
                   <tbody>
                     {currentVolunteers.map((volunteer) => (
-                      <tr 
-                        key={volunteer.id} 
+                      <tr
+                        key={volunteer.id}
                         className="table-row"
                         onClick={() => handleVolunteerClick(volunteer.id)}
                       >
@@ -518,11 +533,32 @@ export default function AllVolunteers() {
                           </div>
                         </td>
                         <td className="table-cell">
-                          <div 
-                            className="expertise-cell" 
+                          <div
+                            className="expertise-cell"
                             title={volunteer.expertise || 'No expertise listed'}
                           >
                             {volunteer.expertise || 'No skills listed'}
+                          </div>
+                        </td>
+
+                        <td className="table-cell report-cell">
+                          <div className="report-menu-container">
+                            <button
+                              className="report-button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenReportMenuId(volunteer.id === openReportMenuId ? null : volunteer.id);
+                              }}
+                            >
+                              Generate Report
+                            </button>
+
+                            {openReportMenuId === volunteer.id && (
+                              <div>
+                                <button className="report-dropdown-button"   onClick={() => generateReport(volunteer.id, 'pdf')}>As PDF</button>
+                                <button className="report-dropdown-button"   onClick={() => generateReport(volunteer.id, 'csv')}>As CSV</button>
+                              </div>
+                            )}
                           </div>
                         </td>
                       </tr>
