@@ -11,6 +11,7 @@ import EventForm from './components/EventForm';
 import EventManagement from './components/EventManagement';
 import ViewAllEvents from './components/ViewAllEvents';
 import EventReview from './components/EventReview'
+import EvetnReport from './components/EventReport';
 
 
 import AllVolunteers from './components/AllVolunteers'
@@ -35,8 +36,7 @@ function App() {
         <Route path="/viewallevents" element={<ViewAllEvents />}/>
         <Route path="/events/edit/:eventId" element={<EventForm />} />
         <Route path="/eventreview" element={<EventReview />}/>
-        
-
+        <Route path="/eventreport" element={<EvetnReport />} />
          <Route path="/volunteers" element={<AllVolunteers />}/>
 
       </Routes>
