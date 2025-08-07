@@ -588,65 +588,30 @@ class TestVolunteerWithRealAuth:
             pytest.skip(f"Test setup failed: {e}")
 
 class TestReportCSV:
-    def test_get_no_data(self,client,access_token_admin,access_token_volunteer,user_volunteer):
-
-        user_id = None
-        
-        try:
-            # Establish connection
-            conn = get_db()
-
-            # Create cursor
-            cursor = conn.cursor()
-            # Get the user_id from UserCredentials table using email
-            cursor.execute(
-                "SELECT user_id FROM usercredentials WHERE email = %s", 
-                (user_volunteer["email"],)
-            )
-            user_result = cursor.fetchone()
-
-            if not user_result:
-                raise AssertionError("No user_result")
-            
-            else:
-                user_id = user_result['user_id']
-
-        except Exception as e:
-            print(f"Database error: {e}")
-        
-        #Close the cursor and db connection
-        cursor.close()
-        conn.close()
-                
-
-
-        response = client.get(f"/api/volunteer/{user_id}/report/csv",  headers={"Authorization": f"Bearer {access_token_admin}"})
-        
-        assert response.status_code == 404
-
     def test_get_success(self,client,access_token_admin,access_token_volunteer,user_volunteer):
 
         user_id = None
-        
-        try:
-            # Establish connection
-            conn = get_db()
+        with client.application.app_context():
+            conn = None
+            cursor = None
 
-            # Create cursor
-            cursor = conn.cursor()
+            try:
+                # Establish connection
+                conn = get_db()
 
+                # Create cursor
+                cursor = conn.cursor()
 
-            # Get the user_id from UserCredentials table using email
-            cursor.execute(
-                "SELECT user_id FROM usercredentials WHERE email = %s", 
-                (user_volunteer["email"],)
-            )
-            user_result = cursor.fetchone()
+                # Get the user_id from UserCredentials table using email
+                cursor.execute(
+                    "SELECT user_id FROM usercredentials WHERE email = %s", 
+                    (user_volunteer["email"],)
+                )
+                user_result = cursor.fetchone()
 
-            if not user_result:
-                raise AssertionError("No user_result")
-            
-            else:
+                if not user_result:
+                    raise AssertionError("No user_result")
+                
                 user_id = user_result['user_id']
 
                 # Populate database with test data
@@ -671,7 +636,7 @@ class TestReportCSV:
                 """
 
                 values = (
-                    6,
+                    101,
                     'Health Awareness Campaign',
                     'Public Speaking',
                     '',
@@ -690,22 +655,56 @@ class TestReportCSV:
 
                 cursor.execute(sql, values)
 
-                cursor.execute("INSERT INTO volunteerhistory (volunteer_id, event_id, participation_status) VALUES(%s,%s,%s)", 
-                        (user_id, 6, 'Volunteered'))
+                sql = """
+                INSERT INTO userprofile (
+                    volunteer_id,
+                    full_name,
+                    address1,
+                    address2,
+                    city,
+                    state_name,
+                    zipcode,
+                    preferences,
+                    date_of_birth,
+                    phone_number
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """
+
+                values = (
+                    user_id,
+                    "John Doe",
+                    "123 Main St",
+                    "Apt 4B",
+                    "Houston",
+                    "TX",
+                    "77001",
+                    "Weekends preferred",
+                    "1980-07-10",   # format: YYYY-MM-DD
+                    "5551234567"
+                )
+
+                cursor.execute(sql, values)
                 
+
+                cursor.execute(
+                    "INSERT INTO volunteerhistory (volunteer_id, event_id, participation_status) VALUES (%s, %s, %s)", 
+                    (user_id, 101, 'Volunteered')
+                )
+
                 conn.commit()
 
-        except Exception as e:
-            print(f"Database error: {e}")
-        
-        #Close the cursor and db connection
-        cursor.close()
-        conn.close()
+            except Exception as e:
+                print(f"Database error: {e}")
+
+            finally:
+                cursor.close()
+                conn.close()
+
                 
 
 
         response = client.get(f"/api/volunteer/{user_id}/report/csv",  headers={"Authorization": f"Bearer {access_token_admin}"})
-      
+        
         # Assert MIME type
         assert response.mimetype == "text/csv"
 
@@ -714,8 +713,6 @@ class TestReportCSV:
         expected_filename = f"attachment; filename=volunteer_{user_id}_report.csv"
         assert expected_filename in content_disposition
 
-
-class TestReportPDF:
     def test_get_no_data(self,client,access_token_admin,access_token_volunteer,user_volunteer):
 
         user_id = None
@@ -748,11 +745,13 @@ class TestReportPDF:
                 
 
 
-        response = client.get(f"/api/volunteer/{user_id}/report/pdf",  headers={"Authorization": f"Bearer {access_token_admin}"})
+        response = client.get(f"/api/volunteer/{user_id}/report/csv",  headers={"Authorization": f"Bearer {access_token_admin}"})
         
         assert response.status_code == 404
 
-    
+
+
+class TestReportPDF:
     def test_get_success(self,client,access_token_admin,access_token_volunteer,user_volunteer):
 
         user_id = None
@@ -819,6 +818,42 @@ class TestReportPDF:
 
                 cursor.execute(sql, values)
 
+                sql = """
+                INSERT INTO userprofile (
+                    volunteer_id,
+                    full_name,
+                    address1,
+                    address2,
+                    city,
+                    state_name,
+                    zipcode,
+                    preferences,
+                    date_of_birth,
+                    phone_number
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """
+
+                values = (
+                    user_id,
+                    "John Doe",
+                    "123 Main St",
+                    "Apt 4B",
+                    "Houston",
+                    "TX",
+                    "77001",
+                    "Weekends preferred",
+                    "1980-07-10",   # format: YYYY-MM-DD
+                    "5551234567"
+                )
+
+                cursor.execute(sql, values)
+
+                cursor.execute(
+                    "INSERT INTO volunteerhistory (volunteer_id, event_id, participation_status) VALUES (%s, %s, %s)", 
+                    (user_id, 101, 'Volunteered')
+                )
+
+
                 cursor.execute("INSERT INTO volunteerhistory (volunteer_id, event_id, participation_status) VALUES(%s,%s,%s)", 
                         (user_id, 6, 'Volunteered'))
                 
@@ -834,7 +869,6 @@ class TestReportPDF:
 
 
         response = client.get(f"/api/volunteer/{user_id}/report/pdf",  headers={"Authorization": f"Bearer {access_token_admin}"})
-      
         # Assert MIME type
         assert response.mimetype == "application/pdf"
 
@@ -842,3 +876,39 @@ class TestReportPDF:
         content_disposition = response.headers.get("Content-Disposition", "")
         expected_filename = f"attachment; filename=volunteer_{user_id}_report.pdf"
         assert expected_filename in content_disposition
+
+    def test_get_no_data(self,client,access_token_admin,access_token_volunteer,user_volunteer):
+
+        user_id = None
+        
+        try:
+            # Establish connection
+            conn = get_db()
+
+            # Create cursor
+            cursor = conn.cursor()
+            # Get the user_id from UserCredentials table using email
+            cursor.execute(
+                "SELECT user_id FROM usercredentials WHERE email = %s", 
+                (user_volunteer["email"],)
+            )
+            user_result = cursor.fetchone()
+
+            if not user_result:
+                raise AssertionError("No user_result")
+            
+            else:
+                user_id = user_result['user_id']
+
+        except Exception as e:
+            print(f"Database error: {e}")
+        
+        finally:
+            cursor.close()
+            conn.close()
+                
+
+
+        response = client.get(f"/api/volunteer/{user_id}/report/pdf",  headers={"Authorization": f"Bearer {access_token_admin}"})
+        
+        assert response.status_code == 404
