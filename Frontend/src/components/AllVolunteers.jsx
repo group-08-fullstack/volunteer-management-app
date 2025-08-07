@@ -76,29 +76,29 @@ export default function AllVolunteers() {
 
 
   const generateReport = (volunteerId, format) => {
-  const token = localStorage.getItem('access_token');
-  const url = `http://127.0.0.1:5000/api/volunteer/${volunteerId}/report/${format}`;
+    const token = localStorage.getItem('access_token');
+    const url = `http://127.0.0.1:5000/api/volunteer/${volunteerId}/report/${format}`;
 
-  fetch(url, {
-    method: "GET",
-    headers: {
-      'Authorization': `Bearer ${token}`
-    }
-  })
-    .then(res => res.blob())
-    .then(blob => {
-      const url = window.URL.createObjectURL(new Blob([blob]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `volunteer_report_${volunteerId}.${format}`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+    fetch(url, {
+      method: "GET",
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
     })
-    .catch(err => {
-      console.error(`Failed to download ${format} report:`, err);
-    });
+      .then(res => {
+        if (!res.ok) throw new Error(`Network response was not ok: ${res.statusText}`);
+        return res.blob();
+      })
+      .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        setTimeout(() => window.URL.revokeObjectURL(url), 10000);
+      })
+      .catch(err => {
+        console.error(`Failed to open ${format} report:`, err);
+      });
   };
+
 
 
   const renderStars = (rating) => {
@@ -582,8 +582,26 @@ export default function AllVolunteers() {
 
                             {openReportMenuId === volunteer.id && (
                               <div>
-                                <button className="report-dropdown-button"   onClick={() => generateReport(volunteer.id, 'pdf')}>As PDF</button>
-                                <button className="report-dropdown-button"   onClick={() => generateReport(volunteer.id, 'csv')}>As CSV</button>
+                                <button
+                                  className="report-dropdown-button"
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    generateReport(volunteer.id, 'pdf');
+                                  }}
+                                >
+                                  As PDF
+                                </button>
+
+                                <button className="report-dropdown-button"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    generateReport(volunteer.id, 'csv')
+                                  }}>
+                                  As CSV
+                                </button>
                               </div>
                             )}
                           </div>

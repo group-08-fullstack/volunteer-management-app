@@ -651,41 +651,43 @@ class VolunteerReportPDF(Resource):
         # Fetch all necessary data
         query = """
         SELECT 
-            ed.event_name AS event,
-            ed.date,
-            ed.event_duration AS hours,
-            ed.location_name AS location,
-            vh.participation_status AS status,
-            vh.performance AS rating,
-            up.full_name AS name,
-            uc.email,
-            up.address1,
-            IFNULL(up.address2, 'N/A') AS address2,
-            up.city,
-            up.state_name,
-            up.zipcode,
-            GROUP_CONCAT(DISTINCT s.skill_name SEPARATOR ', ') AS skills,
-            IFNULL(va.dates, 'N/A') AS preferences
-            FROM volunteerhistory vh
-            JOIN eventdetails ed ON vh.event_id = ed.event_id
-            JOIN userprofile up ON vh.volunteer_id = up.volunteer_id
-            JOIN usercredentials uc ON up.volunteer_id = uc.user_id
-            LEFT JOIN volunteer_skills vs ON vh.volunteer_id = vs.volunteer_id
-            LEFT JOIN skills s ON vs.skill_id = s.skills_id
-            LEFT JOIN (
-            SELECT 
-             volunteer_id, 
-             GROUP_CONCAT(DATE_FORMAT(date_available, '%%Y-%%m-%%d') ORDER BY date_available SEPARATOR ', ') AS dates
-             FROM volunteer_availability
-             GROUP BY volunteer_id
-             ) va ON vh.volunteer_id = va.volunteer_id
-            WHERE vh.volunteer_id = %s
-            GROUP BY 
-            ed.event_name, ed.date, ed.event_duration, ed.location_name,
-            vh.participation_status, vh.performance,
-            up.full_name, uc.email, up.address1, up.address2,
-            up.city, up.state_name, up.zipcode, va.dates
-            ORDER BY ed.date DESC;
+    IFNULL(ed.event_name, 'N/A') AS event,
+    IFNULL(DATE_FORMAT(ed.date, '%%Y-%%m-%%d'), 'N/A') AS date,
+    IFNULL(ed.event_duration, -1) AS hours,  -- We'll handle -1 as "N/A" in Python
+    IFNULL(ed.location_name, 'N/A') AS location,
+    IFNULL(vh.participation_status, 'N/A') AS status,
+    IFNULL(vh.performance, -1) AS rating,    -- Same here: handle -1 as "N/A"
+    IFNULL(up.full_name, 'N/A') AS name,
+    IFNULL(uc.email, 'N/A') AS email,
+    IFNULL(up.address1, 'N/A') AS address1,
+    IFNULL(up.address2, 'N/A') AS address2,
+    IFNULL(up.city, 'N/A') AS city,
+    IFNULL(up.state_name, 'N/A') AS state_name,
+    IFNULL(up.zipcode, 'N/A') AS zipcode,
+    IFNULL(GROUP_CONCAT(DISTINCT s.skill_name SEPARATOR ', '), 'N/A') AS skills,
+    IFNULL(va.dates, 'N/A') AS preferences
+FROM volunteerhistory vh
+JOIN eventdetails ed ON vh.event_id = ed.event_id
+JOIN userprofile up ON vh.volunteer_id = up.volunteer_id
+JOIN usercredentials uc ON up.volunteer_id = uc.user_id
+LEFT JOIN volunteer_skills vs ON vh.volunteer_id = vs.volunteer_id
+LEFT JOIN skills s ON vs.skill_id = s.skills_id
+LEFT JOIN (
+    SELECT 
+        volunteer_id, 
+        GROUP_CONCAT(DATE_FORMAT(date_available, '%%Y-%%m-%%d') ORDER BY date_available SEPARATOR ', ') AS dates
+    FROM volunteer_availability
+    GROUP BY volunteer_id
+) va ON vh.volunteer_id = va.volunteer_id
+WHERE vh.volunteer_id = %s
+GROUP BY 
+    ed.event_name, ed.date, ed.event_duration, ed.location_name,
+    vh.participation_status, vh.performance,
+    up.full_name, uc.email, up.address1, up.address2,
+    up.city, up.state_name, up.zipcode, va.dates
+ORDER BY ed.date DESC;
+
+         
             """
         cursor.execute(query, (volunteer_id,))
         data = cursor.fetchall()
@@ -706,6 +708,8 @@ class VolunteerReportPDF(Resource):
         zipcode = row['zipcode']
         skills = row['skills']
         preferences = row['preferences']
+        rating = row.get('rating', -1)
+        rating_str = str(rating) if rating != -1 else 'N/A'
 
         # Generate PDF
         buffer = io.BytesIO()
@@ -717,7 +721,12 @@ class VolunteerReportPDF(Resource):
         pdf.drawString(40, y, f"Volunteer Report - {name} (ID: {volunteer_id})")
         y -= 25
 
-        pdf.setFont("Helvetica", 12)
+     
+        pdf.setFont("Helvetica-Bold", 12)
+        pdf.drawString(40, y, "Volunteer information:")
+        y -= 20
+
+        pdf.setFont("Helvetica", 11)
         pdf.drawString(40, y, f"Email: {email}")
         y -= 20
         pdf.drawString(40, y, f"Address: {address1}, {address2}, {city}, {state}, {zipcode}")
@@ -725,20 +734,34 @@ class VolunteerReportPDF(Resource):
         pdf.drawString(40, y, f"Skills: {skills}")
         y -= 20
         pdf.drawString(40, y, f"Availability: {preferences}")
-        y -= 30
+        y -= 20
+        pdf.drawString(40, y, f"Rating: {rating_str}")
+        y -=30
+        
 
         pdf.setFont("Helvetica-Bold", 12)
-        pdf.drawString(40, y, "Event History:")
+        pdf.drawString(40, y, "Particpated Events:")
         y -= 20
 
         pdf.setFont("Helvetica", 11)
+
         for item in data:
-            line = f"{item['event']} | {item['date']} | {item['location']} | {item['hours']}h | {item['status']} | Rating: {item['rating'] or 'N/A'}"
-            pdf.drawString(40, y, line)
-            y -= 15
-            if y < 40:
-                pdf.showPage()
-                y = height - 40
+         event = item['event']
+         date = item['date']
+         location = item['location']
+         hours = item['hours']
+         hours_str = f"{hours}h" if hours != -1 else 'N/A'
+         status = item['status']
+
+         line = f"{event} | {date} | {location} | {hours_str} | {status}"
+         pdf.drawString(40, y, line)
+         y -= 15
+
+         if y < 40:
+          pdf.showPage()
+          y = height - 40
+
+
 
         pdf.save()
         buffer.seek(0)
