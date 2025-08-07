@@ -24,6 +24,7 @@ from . import profileForm
 from . import admin
 from . import volunteer
 from . import eventreview
+from . import eventreport
 
 
 def create_app(config_class):
@@ -83,6 +84,9 @@ def create_app(config_class):
     api.add_resource(matching.FilteredVolunteers, '/api/matching/volunteers/<int:event_id>')
     api.add_resource(matching.FinalizeEvent, '/api/matching/finalize/<int:event_id>')
     api.add_resource(eventreview.CompleteEvent, '/api/eventreview/<int:event_id>/complete')
+    api.add_resource(eventreport.CompletedEventsAPI, '/api/events/completed')
+    api.add_resource(eventreport.EventStatisticsAPI, '/api/events/statistics')
+    api.add_resource(eventreport.VolunteerPerformanceAPI, '/api/events/volunteer-performance')
 
     return app
 

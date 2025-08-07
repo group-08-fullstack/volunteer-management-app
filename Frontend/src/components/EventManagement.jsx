@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, MapPin, Users, X, UserCheck, History, Edit, ChevronLeft, ChevronRight, Settings, ClipboardCheck } from 'lucide-react';
+import { Calendar, MapPin, Users, X, UserCheck, Settings, History, Star, ChevronLeft, ChevronRight, ClipboardCheck, BarChart3, Edit } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import NavigationBar from './Navigation';
 import { createNotification } from '../helpers/notificationHelpers';
@@ -161,6 +161,10 @@ export default function EventManagementPage() {
   const handleEventEditing = (eventId) => {
     navigate(`/events/edit/${eventId}`);
   };
+
+  const handleCreateReport = () => {
+  navigate('/eventreport');
+};
 
   const handleRemoveEvent = async (eventId) => {
     const confirmed = window.confirm('Are you sure you want to remove this event?');
@@ -368,6 +372,15 @@ export default function EventManagementPage() {
           font-size: 0.875rem;
           font-weight: 500;
           transition: background-color 0.2s;
+        }
+
+        .report-button {
+          background-color: #3b82f6;
+          color: white;
+        }
+
+        .report-button:hover {
+          background-color: #2563eb;
         }
 
         .create-button {
@@ -804,6 +817,10 @@ export default function EventManagementPage() {
             <div className="page-actions">
               <button onClick={handleCreateEvent} className="action-button create-button">
                 Create Event
+              </button>
+              <button onClick={handleCreateReport} className="action-button report-button">
+                <BarChart3 size={16} />
+                Create Report
               </button>
               <button
                 onClick={() => setRemoveMode(!removeMode)}
