@@ -537,8 +537,8 @@ export default function AllVolunteers() {
                     {currentVolunteers.map((volunteer) => (
                       <tr
                         key={volunteer.id}
-                        className="table-row"
-                        onClick={() => handleVolunteerClick(volunteer.id)}
+                        //className="table-row"
+                        //onClick={() => handleVolunteerClick(volunteer.id)}
                       >
                         <td className="table-cell">
                           <div className="volunteer-name">{volunteer.name}</div>

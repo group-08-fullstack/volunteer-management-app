@@ -554,86 +554,119 @@ class VolunteerReportCSV(Resource):
 
         query = """
            SELECT 
-           ed.event_name AS event,
-           ed.date,
-           ed.event_duration AS hours,
-           ed.location_name AS location,
-           vh.participation_status AS status,
-           vh.performance AS rating,
-           up.full_name AS name,
-           uc.email AS email,
-           up.address1,
-           IFNULL(up.address2, 'N/A') AS address2,
-           up.city,
-           up.state_name,
-           up.zipcode,
-           GROUP_CONCAT(DISTINCT s.skill_name SEPARATOR ', ') AS skills,
-           IFNULL(va.dates, 'N/A') AS preferences
-           FROM volunteerhistory vh
-           JOIN eventdetails ed ON vh.event_id = ed.event_id
-           JOIN userprofile up ON vh.volunteer_id = up.volunteer_id
+               IFNULL(ed.event_name, 'N/A') AS event,
+               IFNULL(DATE_FORMAT(ed.date, '%%Y-%%m-%%d'), 'N/A') AS date,
+               IFNULL(ed.event_duration, -1) AS hours,
+               IFNULL(ed.location_name, 'N/A') AS location,
+               IFNULL(vh.participation_status, 'N/A') AS status,
+               IFNULL(vh.performance, -1) AS rating,
+               up.full_name AS name,
+               uc.email AS email,
+               up.address1,
+               IFNULL(up.address2, 'N/A') AS address2,
+               up.city,
+               up.state_name,
+               up.zipcode,
+               IFNULL(skill_list.skills, 'N/A') AS skills,
+               IFNULL(va.dates, 'N/A') AS preferences
+           FROM userprofile up
            JOIN usercredentials uc ON up.volunteer_id = uc.user_id
-           LEFT JOIN volunteer_skills vs ON vh.volunteer_id = vs.volunteer_id
-           LEFT JOIN skills s ON vs.skill_id = s.skills_id
+           LEFT JOIN volunteerhistory vh ON vh.volunteer_id = up.volunteer_id
+           LEFT JOIN eventdetails ed ON vh.event_id = ed.event_id
            LEFT JOIN (
-           SELECT 
-           volunteer_id, 
-           GROUP_CONCAT(DATE_FORMAT(date_available, '%%Y-%%m-%%d') ORDER BY date_available SEPARATOR ', ') AS dates
-           FROM volunteer_availability
-           GROUP BY volunteer_id
-           ) va ON vh.volunteer_id = va.volunteer_id
-           WHERE vh.volunteer_id = %s
+               SELECT volunteer_id, GROUP_CONCAT(skill_name SEPARATOR ', ') AS skills
+               FROM volunteer_skills vs
+               JOIN skills s ON vs.skill_id = s.skills_id
+               GROUP BY volunteer_id
+           ) skill_list ON up.volunteer_id = skill_list.volunteer_id
+           LEFT JOIN (
+               SELECT 
+                   volunteer_id, 
+                   GROUP_CONCAT(DATE_FORMAT(date_available, '%%Y-%%m-%%d') ORDER BY date_available SEPARATOR ', ') AS dates
+               FROM volunteer_availability
+               GROUP BY volunteer_id
+           ) va ON up.volunteer_id = va.volunteer_id
+           WHERE up.volunteer_id = %s
+           AND ed.event_id IS NOT NULL
            GROUP BY 
-           ed.event_name, ed.date, ed.event_duration, ed.location_name,
-           vh.participation_status, vh.performance,
-           up.full_name, uc.email, up.address1, up.address2,
-           up.city, up.state_name, up.zipcode, va.dates
+               ed.event_name, ed.date, ed.event_duration, ed.location_name,
+               vh.participation_status, vh.performance,
+               up.full_name, uc.email, up.address1, up.address2,
+               up.city, up.state_name, up.zipcode, skill_list.skills, va.dates
            ORDER BY ed.date DESC;
         """
         cursor.execute(query, (volunteer_id,))
         data = cursor.fetchall()
-
-        
-
         cursor.close()
         conn.close()
 
         if not data:
             return {"error": "No data found"}, 404
-        
-        field_order = [
-       'name', 'email', 'state_name','city', 'address1', 'address2',  'zipcode',
-       'skills', 'preferences', 'event', 'date', 'hours', 'location', 'status', 'rating']
-        
 
-        csv_headers = {
-       'name': 'Name',
-       'email': 'Email Address',
-       'address1': 'Address Line 1',
-       'address2': 'Address Line 2',
-       'city': 'City',
-       'state_name': 'State',
-       'zipcode': 'ZIP Code',
-       'skills': 'Skills',
-       'preferences': 'Availability Dates',
-       'event': 'Event Name',
-       'date': 'Event Date',
-       'hours': 'Duration (Hours)',
-       'location': 'Location',
-       'status': 'Participation Status',
-       'rating': 'Performance Rating'
-      }
+        total_hours = sum(row['hours'] if row['hours'] != -1 else 0 for row in data)
+        total_events = sum(1 for row in data if row['event'] != 'N/A')
+        rating = data[0].get('rating', -1)
+        rating_val = rating if rating != -1 else 0
+
+        is_zero_data = (total_hours == 0) and (total_events == 0) and (rating_val == 0)
+
+        basic_fields = ['name', 'email', 'state_name', 'city', 'address1', 'address2', 'zipcode', 'skills', 'preferences']
+        basic_headers = {
+            'name': 'Name',
+            'email': 'Email Address',
+            'address1': 'Address Line 1',
+            'address2': 'Address Line 2',
+            'city': 'City',
+            'state_name': 'State',
+            'zipcode': 'ZIP Code',
+            'skills': 'Skills',
+            'preferences': 'Availability Dates'
+        }
+
+        full_fields = [
+            'name', 'email', 'state_name', 'city', 'address1', 'address2', 'zipcode',
+            'skills', 'preferences', 'event', 'date', 'hours', 'location', 'status', 'rating'
+        ]
+        full_headers = {
+            'name': 'Name',
+            'email': 'Email Address',
+            'address1': 'Address Line 1',
+            'address2': 'Address Line 2',
+            'city': 'City',
+            'state_name': 'State',
+            'zipcode': 'ZIP Code',
+            'skills': 'Skills',
+            'preferences': 'Availability Dates',
+            'event': 'Event Name',
+            'date': 'Event Date',
+            'hours': 'Duration (Hours)',
+            'location': 'Location',
+            'status': 'Participation Status',
+            'rating': 'Performance Rating'
+        }
+
         output = io.StringIO()
-        writer = csv.DictWriter(output, fieldnames=field_order)
-        #writer.writeheader()
-
+        if is_zero_data:
+          # Only write basic volunteer info row
+          writer = csv.DictWriter(output, fieldnames=basic_fields)
+          writer.writeheader()
+          basic_row = {field: data[0].get(field, '') for field in basic_fields}
+          writer.writerow(basic_row)
+        else:
+          writer = csv.DictWriter(output, fieldnames=full_fields)
+          writer.writeheader()
+          for row in data:
+            # Skip empty event rows with no real participation
+            if row['event'] == 'N/A' and row['status'] != 'Registered':
+             continue
         
-        writer.writerow({field: csv_headers[field] for field in field_order})
-        for row in data:
-         if not row.get('address2'):
-          row['address2'] = 'N/A'
-        writer.writerow({field: row.get(field, '') for field in field_order})
-         
+             # Normalize address2 and fix hours/rating for display
+            if not row.get('address2'):
+             row['address2'] = ''
+            row['hours'] = row['hours'] if row['hours'] != -1 else ''
+            row['rating'] = row['rating'] if row['rating'] != -1 else ''
+        writer.writerow({field: row.get(field, '') for field in full_fields})
+
 
         return Response(
             output.getvalue(),
@@ -642,53 +675,57 @@ class VolunteerReportCSV(Resource):
         )
 
 
+
+
 class VolunteerReportPDF(Resource):
     @jwt_required()
     def get(self, volunteer_id):
         conn = get_db()
         cursor = conn.cursor()
 
-        # Fetch all necessary data
         query = """
         SELECT 
-    IFNULL(ed.event_name, 'N/A') AS event,
-    IFNULL(DATE_FORMAT(ed.date, '%%Y-%%m-%%d'), 'N/A') AS date,
-    IFNULL(ed.event_duration, -1) AS hours,  -- We'll handle -1 as "N/A" in Python
-    IFNULL(ed.location_name, 'N/A') AS location,
-    IFNULL(vh.participation_status, 'N/A') AS status,
-    IFNULL(vh.performance, -1) AS rating,    -- Same here: handle -1 as "N/A"
-    IFNULL(up.full_name, 'N/A') AS name,
-    IFNULL(uc.email, 'N/A') AS email,
-    IFNULL(up.address1, 'N/A') AS address1,
-    IFNULL(up.address2, 'N/A') AS address2,
-    IFNULL(up.city, 'N/A') AS city,
-    IFNULL(up.state_name, 'N/A') AS state_name,
-    IFNULL(up.zipcode, 'N/A') AS zipcode,
-    IFNULL(GROUP_CONCAT(DISTINCT s.skill_name SEPARATOR ', '), 'N/A') AS skills,
-    IFNULL(va.dates, 'N/A') AS preferences
-FROM volunteerhistory vh
-JOIN eventdetails ed ON vh.event_id = ed.event_id
-JOIN userprofile up ON vh.volunteer_id = up.volunteer_id
-JOIN usercredentials uc ON up.volunteer_id = uc.user_id
-LEFT JOIN volunteer_skills vs ON vh.volunteer_id = vs.volunteer_id
-LEFT JOIN skills s ON vs.skill_id = s.skills_id
-LEFT JOIN (
-    SELECT 
-        volunteer_id, 
-        GROUP_CONCAT(DATE_FORMAT(date_available, '%%Y-%%m-%%d') ORDER BY date_available SEPARATOR ', ') AS dates
-    FROM volunteer_availability
-    GROUP BY volunteer_id
-) va ON vh.volunteer_id = va.volunteer_id
-WHERE vh.volunteer_id = %s
-GROUP BY 
-    ed.event_name, ed.date, ed.event_duration, ed.location_name,
-    vh.participation_status, vh.performance,
-    up.full_name, uc.email, up.address1, up.address2,
-    up.city, up.state_name, up.zipcode, va.dates
-ORDER BY ed.date DESC;
+            IFNULL(ed.event_name, 'N/A') AS event,
+            IFNULL(DATE_FORMAT(ed.date, '%%Y-%%m-%%d'), 'N/A') AS date,
+            IFNULL(ed.event_duration, -1) AS hours,
+            IFNULL(ed.location_name, 'N/A') AS location,
+            IFNULL(vh.participation_status, 'N/A') AS status,
+            IFNULL(vh.performance, -1) AS rating,
+            IFNULL(up.full_name, 'N/A') AS name,
+            IFNULL(uc.email, 'N/A') AS email,
+            IFNULL(up.address1, 'N/A') AS address1,
+            IFNULL(up.address2, 'N/A') AS address2,
+            IFNULL(up.city, 'N/A') AS city,
+            IFNULL(up.state_name, 'N/A') AS state_name,
+            IFNULL(up.zipcode, 'N/A') AS zipcode,
+            IFNULL(skill_list.skills, 'N/A') AS skills,
+            IFNULL(va.dates, 'N/A') AS preferences
+        FROM userprofile up
+        JOIN usercredentials uc ON up.volunteer_id = uc.user_id
+        LEFT JOIN volunteerhistory vh ON vh.volunteer_id = up.volunteer_id
+        LEFT JOIN eventdetails ed ON vh.event_id = ed.event_id
+        LEFT JOIN (
+            SELECT volunteer_id, GROUP_CONCAT(skill_name SEPARATOR ', ') AS skills
+            FROM volunteer_skills vs
+            JOIN skills s ON vs.skill_id = s.skills_id
+            GROUP BY volunteer_id
+        ) skill_list ON up.volunteer_id = skill_list.volunteer_id
+        LEFT JOIN (
+            SELECT 
+                volunteer_id, 
+                GROUP_CONCAT(DATE_FORMAT(date_available, '%%Y-%%m-%%d') ORDER BY date_available SEPARATOR ', ') AS dates
+            FROM volunteer_availability
+            GROUP BY volunteer_id
+        ) va ON up.volunteer_id = va.volunteer_id
+        WHERE up.volunteer_id = %s
+        GROUP BY 
+            ed.event_name, ed.date, ed.event_duration, ed.location_name,
+            vh.participation_status, vh.performance,
+            up.full_name, uc.email, up.address1, up.address2,
+            up.city, up.state_name, up.zipcode, skill_list.skills, va.dates
+        ORDER BY ed.date DESC;
+        """
 
-         
-            """
         cursor.execute(query, (volunteer_id,))
         data = cursor.fetchall()
         cursor.close()
@@ -697,7 +734,7 @@ ORDER BY ed.date DESC;
         if not data:
             return {"error": "No data found"}, 404
 
-        # Extract single values from first row
+        # Extract info from first row
         row = data[0]
         name = row['name']
         email = row['email']
@@ -708,61 +745,110 @@ ORDER BY ed.date DESC;
         zipcode = row['zipcode']
         skills = row['skills']
         preferences = row['preferences']
-        rating = row.get('rating', -1)
-        rating_str = str(rating) if rating != -1 else 'N/A'
 
-        # Generate PDF
+        # Calculate totals from data
+        total_hours = sum(item['hours'] if item['hours'] != -1 else 0 for item in data)
+        # Count only rows with a real event name
+        real_event_rows = [item for item in data if item['event'] != 'N/A']
+        total_events = len(real_event_rows)
+        rating = row.get('rating', -1)
+        rating_val = rating if rating != -1 else 0  # Treat -1 as 0 for your logic
+
+        # Condition to check zero stats
+        is_zero_data = (total_hours == 0) and (total_events == 0) and (rating_val == 0)
+
         buffer = io.BytesIO()
         pdf = canvas.Canvas(buffer, pagesize=letter)
         width, height = letter
         y = height - 40
 
-        pdf.setFont("Helvetica-Bold", 14)
+        # Header
+        pdf.setFont("Helvetica-Bold", 16)
         pdf.drawString(40, y, f"Volunteer Report - {name} (ID: {volunteer_id})")
-        y -= 25
 
-     
+        pdf.setFont("Helvetica", 10)
+        report_date = datetime.now().strftime("%Y-%m-%d %H:%M")
+        pdf.drawRightString(width - 40, y, f"Report Generated: {report_date}")
+        y -= 35
+
+        # Basic Info
         pdf.setFont("Helvetica-Bold", 12)
-        pdf.drawString(40, y, "Volunteer information:")
-        y -= 20
+        pdf.drawString(40, y, "Volunteer Information")
+        y -= 18
 
         pdf.setFont("Helvetica", 11)
-        pdf.drawString(40, y, f"Email: {email}")
-        y -= 20
-        pdf.drawString(40, y, f"Address: {address1}, {address2}, {city}, {state}, {zipcode}")
-        y -= 20
-        pdf.drawString(40, y, f"Skills: {skills}")
-        y -= 20
-        pdf.drawString(40, y, f"Availability: {preferences}")
-        y -= 20
-        pdf.drawString(40, y, f"Rating: {rating_str}")
-        y -=30
-        
+        pdf.drawString(50, y, f"Email: {email}")
+        y -= 15
+        pdf.drawString(50, y, f"Address: {address1}, {address2}, {city}, {state}, {zipcode}")
+        y -= 15
+        pdf.drawString(50, y, f"Skills: {skills}")
+        y -= 15
+        pdf.drawString(50, y, f"Availability: {preferences}")
+        y -= 15
 
-        pdf.setFont("Helvetica-Bold", 12)
-        pdf.drawString(40, y, "Particpated Events:")
-        y -= 20
+        # If zero data, skip events section, just show rating and note
+        if is_zero_data:
+            pdf.drawString(50, y, "Rating: N/A")
+            y -= 25
+            pdf.setFont("Helvetica-Oblique", 11)
+            pdf.drawString(50, y, "No event participation or ratings available for this volunteer.")
+        else:
+            rating_str = str(rating) if rating != -1 else 'N/A'
+            pdf.drawString(50, y, f"Rating: {rating_str}")
+            y -= 25
 
-        pdf.setFont("Helvetica", 11)
+            # Participated events section
+            pdf.setFont("Helvetica-Bold", 12)
+            pdf.drawString(40, y, "Participated Events")
+            y -= 18
 
-        for item in data:
-         event = item['event']
-         date = item['date']
-         location = item['location']
-         hours = item['hours']
-         hours_str = f"{hours}h" if hours != -1 else 'N/A'
-         status = item['status']
+            # Table header
+            pdf.setFont("Helvetica-Bold", 10)
+            pdf.drawString(50, y, "Event")
+            pdf.drawString(220, y, "Date")
+            pdf.drawString(300, y, "Location")
+            pdf.drawString(420, y, "Hours")
+            pdf.drawString(470, y, "Status")
+            y -= 3
+            pdf.line(40, y, width - 40, y)
+            y -= 12
 
-         line = f"{event} | {date} | {location} | {hours_str} | {status}"
-         pdf.drawString(40, y, line)
-         y -= 15
+            # Table content
+            pdf.setFont("Helvetica", 10)
+            for item in data:
+                # Skip empty event rows if there are real event rows
+                if item['event'] == 'N/A' and total_events > 0:
+                    continue
 
-         if y < 40:
-          pdf.showPage()
-          y = height - 40
+                event = item['event']
+                date = item['date']
+                location = item['location']
+                hours = item['hours']
+                hours_str = f"{hours}h" if hours != -1 else ''
+                status = item['status']
 
+                pdf.drawString(50, y, event)
+                pdf.drawString(220, y, date)
+                pdf.drawString(300, y, location)
+                pdf.drawString(420, y, hours_str)
+                pdf.drawString(470, y, status)
 
+                y -= 12
+                if y < 50:
+                    pdf.showPage()
+                    y = height - 40
+                    pdf.setFont("Helvetica-Bold", 10)
+                    pdf.drawString(50, y, "Event")
+                    pdf.drawString(220, y, "Date")
+                    pdf.drawString(300, y, "Location")
+                    pdf.drawString(420, y, "Hours")
+                    pdf.drawString(470, y, "Status")
+                    y -= 3
+                    pdf.line(40, y, width - 40, y)
+                    y -= 12
+                    pdf.setFont("Helvetica", 10)
 
+        # Save PDF
         pdf.save()
         buffer.seek(0)
 
@@ -771,5 +857,7 @@ ORDER BY ed.date DESC;
             mimetype='application/pdf',
             headers={"Content-Disposition": f"attachment; filename=volunteer_{volunteer_id}_report.pdf"}
         )
+
+
 
 
