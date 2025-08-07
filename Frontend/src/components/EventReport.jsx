@@ -139,25 +139,218 @@ export default function ReportsPage() {
     }
   };
 
-  const generatePDF = () => {
-    const eventsToExport = selectedEvents.length > 0 
-      ? filteredEvents.filter(event => selectedEvents.includes(event.id))
-      : filteredEvents;
+// Replace your generatePDF function with this updated version:
+const generatePDF = () => {
+  const eventsToExport = selectedEvents.length > 0 
+    ? filteredEvents.filter(event => selectedEvents.includes(event.id))
+    : filteredEvents;
 
-    // Mock PDF generation - replace with actual PDF library
-    console.log('Generating PDF for events:', eventsToExport);
-    alert(`PDF report generated for ${eventsToExport.length} events!`);
-  };
+  if (eventsToExport.length === 0) {
+    alert('No events selected for PDF generation.');
+    return;
+  }
 
-  const generateCSV = () => {
-    const eventsToExport = selectedEvents.length > 0 
-      ? filteredEvents.filter(event => selectedEvents.includes(event.id))
-      : filteredEvents;
+  try {
+    // Create new PDF
+    const doc = new jsPDF();
+    
+    // Add title and header
+    doc.setFontSize(20);
+    doc.setTextColor(40);
+    doc.text('Volunteer Events Report', 20, 25);
+    
+    doc.setFontSize(12);
+    doc.setTextColor(100);
+    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 35);
+    doc.text(`Total Events: ${eventsToExport.length}`, 20, 45);
+    
+    // Draw a line
+    doc.setLineWidth(0.5);
+    doc.line(20, 50, 190, 50);
+    
+    let yPosition = 60;
+    
+    // Add events data with volunteer details
+    eventsToExport.forEach((event, index) => {
+      // Check if we need a new page
+      if (yPosition > 220) {
+        doc.addPage();
+        yPosition = 20;
+      }
+      
+      // Event header
+      doc.setFontSize(14);
+      doc.setTextColor(40);
+      doc.text(`${index + 1}. ${event.event_name || 'Unnamed Event'}`, 20, yPosition);
+      yPosition += 8;
+      
+      // Event details
+      doc.setFontSize(10);
+      doc.setTextColor(80);
+      
+      doc.text(`Date: ${event.date ? new Date(event.date).toLocaleDateString() : 'N/A'}`, 25, yPosition);
+      yPosition += 6;
+      
+      doc.text(`Location: ${event.location_name || 'N/A'}, ${event.city || 'N/A'}, ${event.state || 'N/A'}`, 25, yPosition);
+      yPosition += 6;
+      
+      doc.text(`Volunteers: ${event.volunteers_registered || 0}/${event.volunteers_needed || 0} registered, ${event.volunteers_attended || 0} attended`, 25, yPosition);
+      yPosition += 6;
+      
+      doc.text(`Attendance Rate: ${event.attendance_rate || 0}%`, 25, yPosition);
+      yPosition += 6;
+      
+      doc.text(`Duration: ${event.event_duration || 0} hours`, 25, yPosition);
+      yPosition += 6;
+      
+      doc.text(`Urgency: ${event.urgency || 'N/A'}`, 25, yPosition);
+      yPosition += 10;
+      
+      // Add volunteer details if available
+      if (event.volunteers && event.volunteers.length > 0) {
+        doc.setFontSize(11);
+        doc.setTextColor(60);
+        doc.text('Assigned Volunteers:', 25, yPosition);
+        yPosition += 8;
+        
+        doc.setFontSize(9);
+        doc.setTextColor(80);
+        
+        event.volunteers.forEach((volunteer, volIndex) => {
+          // Check if we need a new page for volunteers
+          if (yPosition > 270) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          
+          const status = volunteer.participation_status || 'N/A';
+          const rating = volunteer.performance ? ` (${volunteer.performance}/5)` : '';
+          const location = volunteer.city && volunteer.state ? ` - ${volunteer.city}, ${volunteer.state}` : '';
+          
+          doc.text(`   • ${volunteer.name || 'Unknown'}${location}`, 30, yPosition);
+          yPosition += 5;
+          doc.text(`     Email: ${volunteer.email || 'N/A'} | Status: ${status}${rating}`, 30, yPosition);
+          yPosition += 5;
+          
+          if (volunteer.notes && volunteer.notes.trim()) {
+            doc.text(`     Notes: ${volunteer.notes.substring(0, 60)}${volunteer.notes.length > 60 ? '...' : ''}`, 30, yPosition);
+            yPosition += 5;
+          }
+          yPosition += 2;
+        });
+        
+        yPosition += 5;
+      } else {
+        doc.setFontSize(9);
+        doc.setTextColor(120);
+        doc.text('No volunteers assigned to this event.', 25, yPosition);
+        yPosition += 10;
+      }
+      
+      // Add a separator line
+      doc.setLineWidth(0.2);
+      doc.line(20, yPosition, 190, yPosition);
+      yPosition += 8;
+    });
+    
+    // Add summary on last page or new page
+    if (yPosition > 200) {
+      doc.addPage();
+      yPosition = 20;
+    }
+    
+    // Summary section
+    doc.setFontSize(16);
+    doc.setTextColor(40);
+    doc.text('Summary Statistics', 20, yPosition);
+    yPosition += 10;
+    
+    doc.setFontSize(11);
+    doc.setTextColor(60);
+    
+    const totalNeeded = eventsToExport.reduce((sum, event) => sum + (event.volunteers_needed || 0), 0);
+    const totalRegistered = eventsToExport.reduce((sum, event) => sum + (event.volunteers_registered || 0), 0);
+    const totalAttended = eventsToExport.reduce((sum, event) => sum + (event.volunteers_attended || 0), 0);
+    const totalDuration = eventsToExport.reduce((sum, event) => sum + (event.event_duration || 0), 0);
+    const avgAttendanceRate = eventsToExport.reduce((sum, event) => sum + (event.attendance_rate || 0), 0) / eventsToExport.length;
+    
+    // Count unique volunteers across all events
+    const allVolunteers = new Set();
+    eventsToExport.forEach(event => {
+      if (event.volunteers) {
+        event.volunteers.forEach(vol => allVolunteers.add(vol.volunteer_id));
+      }
+    });
+    
+    doc.text(`Total Events: ${eventsToExport.length}`, 20, yPosition);
+    yPosition += 8;
+    doc.text(`Total Event Duration: ${totalDuration} hours`, 20, yPosition);
+    yPosition += 8;
+    doc.text(`Unique Volunteers Involved: ${allVolunteers.size}`, 20, yPosition);
+    yPosition += 8;
+    doc.text(`Total Volunteers Needed: ${totalNeeded}`, 20, yPosition);
+    yPosition += 8;
+    doc.text(`Total Volunteers Registered: ${totalRegistered}`, 20, yPosition);
+    yPosition += 8;
+    doc.text(`Total Volunteers Attended: ${totalAttended}`, 20, yPosition);
+    yPosition += 8;
+    doc.text(`Overall Registration Rate: ${totalNeeded > 0 ? ((totalRegistered / totalNeeded) * 100).toFixed(1) : 0}%`, 20, yPosition);
+    yPosition += 8;
+    doc.text(`Overall Attendance Rate: ${totalRegistered > 0 ? ((totalAttended / totalRegistered) * 100).toFixed(1) : 0}%`, 20, yPosition);
+    yPosition += 8;
+    doc.text(`Average Event Attendance Rate: ${avgAttendanceRate.toFixed(1)}%`, 20, yPosition);
+    
+    // Add footer
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(150);
+      doc.text(
+        'Volunteer Management System Report - Confidential',
+        doc.internal.pageSize.width / 2,
+        doc.internal.pageSize.height - 10,
+        { align: 'center' }
+      );
+      doc.text(
+        `Page ${i} of ${pageCount}`,
+        doc.internal.pageSize.width - 20,
+        doc.internal.pageSize.height - 10,
+        { align: 'right' }
+      );
+    }
+    
+    // Save the PDF
+    const fileName = `volunteer_events_report_${new Date().toISOString().split('T')[0]}.pdf`;
+    doc.save(fileName);
+    
+    alert(`PDF "${fileName}" with volunteer details generated successfully!`);
+    
+  } catch (error) {
+    console.error('PDF Error:', error);
+    alert(`PDF generation failed: ${error.message}`);
+  }
+};
 
-    const headers = [
+const generateCSV = () => {
+  const eventsToExport = selectedEvents.length > 0 
+    ? filteredEvents.filter(event => selectedEvents.includes(event.id))
+    : filteredEvents;
+
+  if (eventsToExport.length === 0) {
+    alert('No events selected for CSV generation.');
+    return;
+  }
+
+  try {
+    // Create two separate CSV datasets: Events summary and Volunteer details
+    
+    // 1. Events Summary CSV
+    const eventHeaders = [
+      'Event ID',
       'Event Name',
       'Date',
-      'Location',
+      'Location Name',
       'City',
       'State',
       'Zipcode',
@@ -170,41 +363,139 @@ export default function ReportsPage() {
       'Attendance Rate (%)',
       'Average Rating',
       'Event Status',
-      'Required Skills'
+      'Required Skills',
+      'Total Unique Volunteers'
     ];
 
-    const csvContent = [
-      headers.join(','),
-      ...eventsToExport.map(event => [
-        `"${event.event_name}"`,
-        event.date,
-        `"${event.location_name || ''}"`,
-        `"${event.city || ''}"`,
-        `"${event.state || ''}"`,
-        `"${event.zipcode || ''}"`,
-        event.urgency,
-        event.event_duration || 0,
-        event.volunteers_needed || 0,
-        event.volunteers_registered || 0,
-        event.volunteers_attended || 0,
-        event.registration_rate || 0,
-        event.attendance_rate || 0,
-        event.avg_rating || 0,
-        event.event_status,
-        `"${Array.isArray(event.required_skills) ? event.required_skills.join('; ') : event.required_skills || ''}"`
-      ].join(','))
-    ].join('\n');
+    const eventRows = eventsToExport.map(event => [
+      event.id || '',
+      `"${(event.event_name || '').replace(/"/g, '""')}"`,
+      event.date ? `"${new Date(event.date).toLocaleDateString()}"` : '',
+      `"${(event.location_name || '').replace(/"/g, '""')}"`,
+      `"${(event.city || '').replace(/"/g, '""')}"`,
+      `"${(event.state || '').replace(/"/g, '""')}"`,
+      `"${(event.zipcode || '').replace(/"/g, '""')}"`,
+      event.urgency || '',
+      event.event_duration || 0,
+      event.volunteers_needed || 0,
+      event.volunteers_registered || 0,
+      event.volunteers_attended || 0,
+      event.registration_rate || 0,
+      event.attendance_rate || 0,
+      event.avg_rating || 0,
+      `"${(event.event_status || '').replace(/"/g, '""')}"`,
+      `"${Array.isArray(event.required_skills) ? event.required_skills.join('; ') : (event.required_skills || '').replace(/"/g, '""')}"`,
+      event.volunteers ? event.volunteers.length : 0
+    ]);
 
+    // 2. Volunteer Details CSV
+    const volunteerHeaders = [
+      'Event ID',
+      'Event Name',
+      'Event Date',
+      'Volunteer ID',
+      'Volunteer Name',
+      'Volunteer Email',
+      'Volunteer City',
+      'Volunteer State',
+      'Participation Status',
+      'Performance Rating',
+      'Notes'
+    ];
+
+    const volunteerRows = [];
+    eventsToExport.forEach(event => {
+      if (event.volunteers && event.volunteers.length > 0) {
+        event.volunteers.forEach(volunteer => {
+          volunteerRows.push([
+            event.id || '',
+            `"${(event.event_name || '').replace(/"/g, '""')}"`,
+            event.date || '',
+            volunteer.volunteer_id || '',
+            `"${(volunteer.name || '').replace(/"/g, '""')}"`,
+            `"${(volunteer.email || '').replace(/"/g, '""')}"`,
+            `"${(volunteer.city || '').replace(/"/g, '""')}"`,
+            `"${(volunteer.state || '').replace(/"/g, '""')}"`,
+            `"${(volunteer.participation_status || '').replace(/"/g, '""')}"`,
+            volunteer.performance || '',
+            `"${(volunteer.notes || '').replace(/"/g, '""')}"`
+          ]);
+        });
+      }
+    });
+
+    // 3. Summary Statistics
+    const totalNeeded = eventsToExport.reduce((sum, event) => sum + (event.volunteers_needed || 0), 0);
+    const totalRegistered = eventsToExport.reduce((sum, event) => sum + (event.volunteers_registered || 0), 0);
+    const totalAttended = eventsToExport.reduce((sum, event) => sum + (event.volunteers_attended || 0), 0);
+    const totalDuration = eventsToExport.reduce((sum, event) => sum + (event.event_duration || 0), 0);
+    const avgAttendanceRate = eventsToExport.length > 0 ? 
+      eventsToExport.reduce((sum, event) => sum + (event.attendance_rate || 0), 0) / eventsToExport.length : 0;
+
+    // Count unique volunteers across all events
+    const allVolunteers = new Set();
+    eventsToExport.forEach(event => {
+      if (event.volunteers) {
+        event.volunteers.forEach(vol => allVolunteers.add(vol.volunteer_id));
+      }
+    });
+
+    const summaryData = [
+      ['Metric', 'Value'],
+      ['Total Events', eventsToExport.length],
+      ['Total Event Duration (hours)', totalDuration],
+      ['Unique Volunteers Involved', allVolunteers.size],
+      ['Total Volunteers Needed', totalNeeded],
+      ['Total Volunteers Registered', totalRegistered],
+      ['Total Volunteers Attended', totalAttended],
+      ['Overall Registration Rate (%)', totalNeeded > 0 ? ((totalRegistered / totalNeeded) * 100).toFixed(1) : 0],
+      ['Overall Attendance Rate (%)', totalRegistered > 0 ? ((totalAttended / totalRegistered) * 100).toFixed(1) : 0],
+      ['Average Event Attendance Rate (%)', avgAttendanceRate.toFixed(1)],
+      ['Report Generated On', new Date().toLocaleDateString()]
+    ];
+
+    // Create comprehensive CSV content
+    const csvSections = [
+      '=== VOLUNTEER EVENTS SUMMARY ===',
+      '',
+      eventHeaders.join(','),
+      ...eventRows.map(row => row.join(',')),
+      '',
+      '',
+      '=== VOLUNTEER DETAILS ===',
+      '',
+      volunteerHeaders.join(','),
+      ...volunteerRows.map(row => row.join(',')),
+      '',
+      '',
+      '=== SUMMARY STATISTICS ===',
+      '',
+      ...summaryData.map(row => row.join(','))
+    ];
+
+    const csvContent = csvSections.join('\n');
+
+    // Create and download the file
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `volunteer_events_report_${new Date().toISOString().split('T')[0]}.csv`);
+    
+    const fileName = `volunteer_events_report_${new Date().toISOString().split('T')[0]}.csv`;
+    link.setAttribute('download', fileName);
     link.style.visibility = 'hidden';
+    
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  };
+    
+    alert(`CSV "${fileName}" with comprehensive volunteer details generated successfully!`);
+    
+  } catch (error) {
+    console.error('CSV Error:', error);
+    alert(`CSV generation failed: ${error.message}`);
+  }
+};
 
   const goBack = () => {
     navigate('/eventmanagement');
