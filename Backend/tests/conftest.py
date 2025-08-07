@@ -91,7 +91,7 @@ def access_token_admin(client, user_admin):
 
 @pytest.fixture
 def access_token_volunteer(client, user_volunteer):
-       # Manually insert verficaiton code and set verified to true
+    # Manually insert verficaiton code and set verified to true
     with client.application.app_context():
         conn = get_db()
         cursor = conn.cursor()

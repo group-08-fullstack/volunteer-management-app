@@ -586,3 +586,259 @@ class TestVolunteerWithRealAuth:
                 
         except Exception as e:
             pytest.skip(f"Test setup failed: {e}")
+
+class TestReportCSV:
+    def test_get_no_data(self,client,access_token_admin,access_token_volunteer,user_volunteer):
+
+        user_id = None
+        
+        try:
+            # Establish connection
+            conn = get_db()
+
+            # Create cursor
+            cursor = conn.cursor()
+            # Get the user_id from UserCredentials table using email
+            cursor.execute(
+                "SELECT user_id FROM usercredentials WHERE email = %s", 
+                (user_volunteer["email"],)
+            )
+            user_result = cursor.fetchone()
+
+            if not user_result:
+                raise AssertionError("No user_result")
+            
+            else:
+                user_id = user_result['user_id']
+
+        except Exception as e:
+            print(f"Database error: {e}")
+        
+        #Close the cursor and db connection
+        cursor.close()
+        conn.close()
+                
+
+
+        response = client.get(f"/api/volunteer/{user_id}/report/csv",  headers={"Authorization": f"Bearer {access_token_admin}"})
+        
+        assert response.status_code == 404
+
+    def test_get_success(self,client,access_token_admin,access_token_volunteer,user_volunteer):
+
+        user_id = None
+        
+        try:
+            # Establish connection
+            conn = get_db()
+
+            # Create cursor
+            cursor = conn.cursor()
+
+
+            # Get the user_id from UserCredentials table using email
+            cursor.execute(
+                "SELECT user_id FROM usercredentials WHERE email = %s", 
+                (user_volunteer["email"],)
+            )
+            user_result = cursor.fetchone()
+
+            if not user_result:
+                raise AssertionError("No user_result")
+            
+            else:
+                user_id = user_result['user_id']
+
+                # Populate database with test data
+                sql = """
+                INSERT INTO eventdetails (
+                    event_id,
+                    event_name,
+                    required_skills,
+                    address,
+                    state,
+                    city,
+                    zipcode,
+                    urgency,
+                    location_name,
+                    event_duration,
+                    event_description,
+                    date,
+                    created_at,
+                    event_status,
+                    volunteers_needed
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """
+
+                values = (
+                    6,
+                    'Health Awareness Campaign',
+                    'Public Speaking',
+                    '',
+                    'Connecticut',
+                    'detroit',
+                    '98765',
+                    'Medium',
+                    'south fulton',
+                    1,
+                    'Raising awareness about health issues and promoting healthy lifestyles.',
+                    '2025-08-06',
+                    '2025-08-05 06:17:35',
+                    'Pending',
+                    1
+                )
+
+                cursor.execute(sql, values)
+
+                cursor.execute("INSERT INTO volunteerhistory (volunteer_id, event_id, participation_status) VALUES(%s,%s,%s)", 
+                        (user_id, 6, 'Volunteered'))
+                
+                conn.commit()
+
+        except Exception as e:
+            print(f"Database error: {e}")
+        
+        #Close the cursor and db connection
+        cursor.close()
+        conn.close()
+                
+
+
+        response = client.get(f"/api/volunteer/{user_id}/report/csv",  headers={"Authorization": f"Bearer {access_token_admin}"})
+      
+        # Assert MIME type
+        assert response.mimetype == "text/csv"
+
+        # Assert content-disposition header
+        content_disposition = response.headers.get("Content-Disposition", "")
+        expected_filename = f"attachment; filename=volunteer_{user_id}_report.csv"
+        assert expected_filename in content_disposition
+
+
+class TestReportPDF:
+    def test_get_no_data(self,client,access_token_admin,access_token_volunteer,user_volunteer):
+
+        user_id = None
+        
+        try:
+            # Establish connection
+            conn = get_db()
+
+            # Create cursor
+            cursor = conn.cursor()
+            # Get the user_id from UserCredentials table using email
+            cursor.execute(
+                "SELECT user_id FROM usercredentials WHERE email = %s", 
+                (user_volunteer["email"],)
+            )
+            user_result = cursor.fetchone()
+
+            if not user_result:
+                raise AssertionError("No user_result")
+            
+            else:
+                user_id = user_result['user_id']
+
+        except Exception as e:
+            print(f"Database error: {e}")
+        
+        #Close the cursor and db connection
+        cursor.close()
+        conn.close()
+                
+
+
+        response = client.get(f"/api/volunteer/{user_id}/report/pdf",  headers={"Authorization": f"Bearer {access_token_admin}"})
+        
+        assert response.status_code == 404
+
+    
+    def test_get_success(self,client,access_token_admin,access_token_volunteer,user_volunteer):
+
+        user_id = None
+        
+        try:
+            # Establish connection
+            conn = get_db()
+
+            # Create cursor
+            cursor = conn.cursor()
+
+
+            # Get the user_id from UserCredentials table using email
+            cursor.execute(
+                "SELECT user_id FROM usercredentials WHERE email = %s", 
+                (user_volunteer["email"],)
+            )
+            user_result = cursor.fetchone()
+
+            if not user_result:
+                raise AssertionError("No user_result")
+            
+            else:
+                user_id = user_result['user_id']
+
+                # Populate database with test data
+                sql = """
+                INSERT INTO eventdetails (
+                    event_id,
+                    event_name,
+                    required_skills,
+                    address,
+                    state,
+                    city,
+                    zipcode,
+                    urgency,
+                    location_name,
+                    event_duration,
+                    event_description,
+                    date,
+                    created_at,
+                    event_status,
+                    volunteers_needed
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """
+
+                values = (
+                    6,
+                    'Health Awareness Campaign',
+                    'Public Speaking',
+                    '',
+                    'Connecticut',
+                    'detroit',
+                    '98765',
+                    'Medium',
+                    'south fulton',
+                    1,
+                    'Raising awareness about health issues and promoting healthy lifestyles.',
+                    '2025-08-06',
+                    '2025-08-05 06:17:35',
+                    'Pending',
+                    1
+                )
+
+                cursor.execute(sql, values)
+
+                cursor.execute("INSERT INTO volunteerhistory (volunteer_id, event_id, participation_status) VALUES(%s,%s,%s)", 
+                        (user_id, 6, 'Volunteered'))
+                
+                conn.commit()
+
+        except Exception as e:
+            print(f"Database error: {e}")
+        
+        #Close the cursor and db connection
+        cursor.close()
+        conn.close()
+                
+
+
+        response = client.get(f"/api/volunteer/{user_id}/report/pdf",  headers={"Authorization": f"Bearer {access_token_admin}"})
+      
+        # Assert MIME type
+        assert response.mimetype == "application/pdf"
+
+        # Assert content-disposition header
+        content_disposition = response.headers.get("Content-Disposition", "")
+        expected_filename = f"attachment; filename=volunteer_{user_id}_report.pdf"
+        assert expected_filename in content_disposition
