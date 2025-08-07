@@ -553,31 +553,87 @@ class VolunteerReportCSV(Resource):
         cursor = conn.cursor()
 
         query = """
-            SELECT 
-                ed.event_name AS event,
-                ed.date,
-                ed.event_duration AS hours,
-                ed.location_name AS location,
-                vh.participation_status AS status,
-                vh.performance AS rating
-            FROM volunteerhistory vh
-            JOIN eventdetails ed ON vh.event_id = ed.event_id
-            WHERE vh.volunteer_id = %s
-            ORDER BY ed.date DESC
+           SELECT 
+           ed.event_name AS event,
+           ed.date,
+           ed.event_duration AS hours,
+           ed.location_name AS location,
+           vh.participation_status AS status,
+           vh.performance AS rating,
+           up.full_name AS name,
+           uc.email AS email,
+           up.address1,
+           IFNULL(up.address2, 'N/A') AS address2,
+           up.city,
+           up.state_name,
+           up.zipcode,
+           GROUP_CONCAT(DISTINCT s.skill_name SEPARATOR ', ') AS skills,
+           IFNULL(va.dates, 'N/A') AS preferences
+           FROM volunteerhistory vh
+           JOIN eventdetails ed ON vh.event_id = ed.event_id
+           JOIN userprofile up ON vh.volunteer_id = up.volunteer_id
+           JOIN usercredentials uc ON up.volunteer_id = uc.user_id
+           LEFT JOIN volunteer_skills vs ON vh.volunteer_id = vs.volunteer_id
+           LEFT JOIN skills s ON vs.skill_id = s.skills_id
+           LEFT JOIN (
+           SELECT 
+           volunteer_id, 
+           GROUP_CONCAT(DATE_FORMAT(date_available, '%%Y-%%m-%%d') ORDER BY date_available SEPARATOR ', ') AS dates
+           FROM volunteer_availability
+           GROUP BY volunteer_id
+           ) va ON vh.volunteer_id = va.volunteer_id
+           WHERE vh.volunteer_id = %s
+           GROUP BY 
+           ed.event_name, ed.date, ed.event_duration, ed.location_name,
+           vh.participation_status, vh.performance,
+           up.full_name, uc.email, up.address1, up.address2,
+           up.city, up.state_name, up.zipcode, va.dates
+           ORDER BY ed.date DESC;
         """
         cursor.execute(query, (volunteer_id,))
         data = cursor.fetchall()
+
+        
 
         cursor.close()
         conn.close()
 
         if not data:
             return {"error": "No data found"}, 404
+        
+        field_order = [
+       'name', 'email', 'state_name','city', 'address1', 'address2',  'zipcode',
+       'skills', 'preferences', 'event', 'date', 'hours', 'location', 'status', 'rating']
+        
 
+        csv_headers = {
+       'name': 'Name',
+       'email': 'Email Address',
+       'address1': 'Address Line 1',
+       'address2': 'Address Line 2',
+       'city': 'City',
+       'state_name': 'State',
+       'zipcode': 'ZIP Code',
+       'skills': 'Skills',
+       'preferences': 'Availability Dates',
+       'event': 'Event Name',
+       'date': 'Event Date',
+       'hours': 'Duration (Hours)',
+       'location': 'Location',
+       'status': 'Participation Status',
+       'rating': 'Performance Rating'
+      }
         output = io.StringIO()
-        writer = csv.DictWriter(output, fieldnames=data[0].keys())
-        writer.writeheader()
-        writer.writerows(data)
+        writer = csv.DictWriter(output, fieldnames=field_order)
+        #writer.writeheader()
+
+        
+        writer.writerow({field: csv_headers[field] for field in field_order})
+        for row in data:
+         if not row.get('address2'):
+          row['address2'] = 'N/A'
+        writer.writerow({field: row.get(field, '') for field in field_order})
+         
 
         return Response(
             output.getvalue(),
@@ -592,51 +648,105 @@ class VolunteerReportPDF(Resource):
         conn = get_db()
         cursor = conn.cursor()
 
+        # Fetch all necessary data
         query = """
-            SELECT 
-                ed.event_name AS event,
-                ed.date,
-                ed.event_duration AS hours,
-                ed.location_name AS location,
-                vh.participation_status AS status,
-                vh.performance AS rating
+        SELECT 
+            ed.event_name AS event,
+            ed.date,
+            ed.event_duration AS hours,
+            ed.location_name AS location,
+            vh.participation_status AS status,
+            vh.performance AS rating,
+            up.full_name AS name,
+            uc.email,
+            up.address1,
+            IFNULL(up.address2, 'N/A') AS address2,
+            up.city,
+            up.state_name,
+            up.zipcode,
+            GROUP_CONCAT(DISTINCT s.skill_name SEPARATOR ', ') AS skills,
+            IFNULL(va.dates, 'N/A') AS preferences
             FROM volunteerhistory vh
             JOIN eventdetails ed ON vh.event_id = ed.event_id
+            JOIN userprofile up ON vh.volunteer_id = up.volunteer_id
+            JOIN usercredentials uc ON up.volunteer_id = uc.user_id
+            LEFT JOIN volunteer_skills vs ON vh.volunteer_id = vs.volunteer_id
+            LEFT JOIN skills s ON vs.skill_id = s.skills_id
+            LEFT JOIN (
+            SELECT 
+             volunteer_id, 
+             GROUP_CONCAT(DATE_FORMAT(date_available, '%%Y-%%m-%%d') ORDER BY date_available SEPARATOR ', ') AS dates
+             FROM volunteer_availability
+             GROUP BY volunteer_id
+             ) va ON vh.volunteer_id = va.volunteer_id
             WHERE vh.volunteer_id = %s
-            ORDER BY ed.date DESC
-        """
+            GROUP BY 
+            ed.event_name, ed.date, ed.event_duration, ed.location_name,
+            vh.participation_status, vh.performance,
+            up.full_name, uc.email, up.address1, up.address2,
+            up.city, up.state_name, up.zipcode, va.dates
+            ORDER BY ed.date DESC;
+            """
         cursor.execute(query, (volunteer_id,))
         data = cursor.fetchall()
-
         cursor.close()
         conn.close()
 
         if not data:
             return {"error": "No data found"}, 404
 
+        # Extract single values from first row
+        row = data[0]
+        name = row['name']
+        email = row['email']
+        address1 = row['address1']
+        address2 = row['address2']
+        city = row['city']
+        state = row['state_name']
+        zipcode = row['zipcode']
+        skills = row['skills']
+        preferences = row['preferences']
+
+        # Generate PDF
         buffer = io.BytesIO()
         pdf = canvas.Canvas(buffer, pagesize=letter)
         width, height = letter
         y = height - 40
+
+        pdf.setFont("Helvetica-Bold", 14)
+        pdf.drawString(40, y, f"Volunteer Report - {name} (ID: {volunteer_id})")
+        y -= 25
+
         pdf.setFont("Helvetica", 12)
-        pdf.drawString(40, y, f"Volunteer Report - ID: {volunteer_id}")
+        pdf.drawString(40, y, f"Email: {email}")
+        y -= 20
+        pdf.drawString(40, y, f"Address: {address1}, {address2}, {city}, {state}, {zipcode}")
+        y -= 20
+        pdf.drawString(40, y, f"Skills: {skills}")
+        y -= 20
+        pdf.drawString(40, y, f"Availability: {preferences}")
         y -= 30
 
+        pdf.setFont("Helvetica-Bold", 12)
+        pdf.drawString(40, y, "Event History:")
+        y -= 20
+
+        pdf.setFont("Helvetica", 11)
         for item in data:
-            line = f"{item['event']} | {item['date']} | {item['location']} | {item['hours']}h | Rating: {item['rating'] or 'N/A'}"
+            line = f"{item['event']} | {item['date']} | {item['location']} | {item['hours']}h | {item['status']} | Rating: {item['rating'] or 'N/A'}"
             pdf.drawString(40, y, line)
-            y -= 20
+            y -= 15
             if y < 40:
                 pdf.showPage()
                 y = height - 40
 
         pdf.save()
-        print(f"Generating PDF for volunteer_id={volunteer_id}, {len(data)} records")
         buffer.seek(0)
-        print(f"PDF size in bytes: {len(buffer.getvalue())}")
 
         return Response(
             buffer.getvalue(),
             mimetype='application/pdf',
             headers={"Content-Disposition": f"attachment; filename=volunteer_{volunteer_id}_report.pdf"}
         )
+
+
