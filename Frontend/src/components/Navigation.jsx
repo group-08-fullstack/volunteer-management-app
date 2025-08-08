@@ -127,7 +127,7 @@ export default function NavigationBar({ extraLinks, title }) {
                         </button>
 
                         {/* Notifications */}
-                        <NotificationButton />
+                        {role == "volunteer" ? < NotificationButton /> : null}
 
                         {/* Account dropdown */}
                         <div className="dropdown-container" ref={dropdownRef}>
