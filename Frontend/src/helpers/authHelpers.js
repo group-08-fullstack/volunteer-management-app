@@ -80,7 +80,7 @@ export async function verifyEmail(data){
 
       const parsed = await response.json();
 
-      if (parsed.message == "Verification code sent successfully" || parsed.message == "A verification code has already been issued. Please refer to your previous email" ){
+      if (parsed.message == "Verification code sent successfully" || parsed.message == "A code has already been issued. Please refer to your previous email" ){
         // Email was successfully sent
         alert(parsed.message);
         return true;
