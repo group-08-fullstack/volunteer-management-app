@@ -18,11 +18,11 @@ export async function login(data){
     if(parsed.message == "Login successful"){
       alert(parsed.message);
       // Set user data in local storage
-      localStorage.setItem("access_token", parsed.tokens.access_token);
-      localStorage.setItem("refresh_token", parsed.tokens.refresh_token);
-      localStorage.setItem("user_id", parsed.user.user_id);
-      localStorage.setItem("user_email", parsed.user.email);
-      localStorage.setItem("user_role", parsed.user.role);
+      sessionStorage.setItem("access_token", parsed.tokens.access_token);
+      sessionStorage.setItem("refresh_token", parsed.tokens.refresh_token);
+      sessionStorage.setItem("user_id", parsed.user.user_id);
+      sessionStorage.setItem("user_email", parsed.user.email);
+      sessionStorage.setItem("user_role", parsed.user.role);
 
       // Login was successful
       return true;
@@ -133,8 +133,8 @@ export async function confirmCode(data){
 export async function checkTokenTime(){
 
     // Grab tokens from local storage
-    const token = localStorage.getItem("access_token");
-    const refresh_token = localStorage.getItem("refresh_token");
+    const token = sessionStorage.getItem("access_token");
+    const refresh_token = sessionStorage.getItem("refresh_token");
 
     if (!token || !refresh_token) {
       console.log("Missing tokens");
@@ -174,7 +174,7 @@ export async function checkTokenTime(){
 
         if(parsed.message == "New token created"){
           // Set user data in local storage
-          localStorage.setItem("access_token", parsed.access_token);
+          sessionStorage.setItem("access_token", parsed.access_token);
     
         }
       }

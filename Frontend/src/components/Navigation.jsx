@@ -54,18 +54,18 @@ export default function NavigationBar({ extraLinks, title }) {
         };
     }, []);
 
-    const role = localStorage.getItem("user_role");
+    const role = sessionStorage.getItem("user_role");
 
     const handleLogout = () => {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        localStorage.removeItem('user_email');
-        localStorage.removeItem('user_role');
+        sessionStorage.removeItem('access_token');
+        sessionStorage.removeItem('refresh_token');
+        sessionStorage.removeItem('user_email');
+        sessionStorage.removeItem('user_role');
         navigate('/login');
     };
 
     const handleDeleteAccount = async () => {
-        const accessToken = localStorage.getItem("access_token");
+        const accessToken = sessionStorage.getItem("access_token");
 
         if (!window.confirm("Are you sure you want to delete your account? This cannot be undone.")) return;
 
@@ -81,7 +81,7 @@ export default function NavigationBar({ extraLinks, title }) {
 
             if (response.ok) {
                 alert(data.message);
-                localStorage.clear();
+                sessionStorage.clear();
                 window.location.href = "/login";
             } else {
                 alert(data.message || "Failed to delete account");

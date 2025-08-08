@@ -7,7 +7,7 @@ import { checkTokenTime } from "../helpers/authHelpers";
 
 // Notification helper
 async function sendNotification(volunteer, event_id) {
-  const token = localStorage.getItem("access_token");
+  const token = sessionStorage.getItem("access_token");
   await checkTokenTime();
 
   // Grab event via id
@@ -93,7 +93,7 @@ export default function EventManagementPage() {
       setLoading(true);
       setError(null);
 
-      const token = localStorage.getItem("access_token");
+      const token = sessionStorage.getItem("access_token");
       await checkTokenTime();
 
       const response = await fetch("http://localhost:5000/api/eventlist/", {
@@ -171,7 +171,7 @@ export default function EventManagementPage() {
     if (!confirmed) return;
 
     try {
-      const token = localStorage.getItem("access_token");
+      const token = sessionStorage.getItem("access_token");
       await checkTokenTime();
 
       let response  = await fetch(`http://localhost:5000/api/eventreview/${eventId}/volunteers`, {

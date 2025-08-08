@@ -58,11 +58,11 @@ export default function Login({ users, setLoggedInUser }) {
     console.log('3. Login result:', result);
 
     if (result) {
-      console.log('4. Login successful, getting token from localStorage');
+      console.log('4. Login successful, getting token from sessionStorage');
       
-      // Your login helper already stores the token in localStorage
-      const accessToken = localStorage.getItem('access_token');
-      console.log('5. Access token from localStorage:', accessToken ? 'Token found' : 'No token');
+      // Your login helper already stores the token in sessionStorage
+      const accessToken = sessionStorage.getItem('access_token');
+      console.log('5. Access token from sessionStorage:', accessToken ? 'Token found' : 'No token');
       
       if (accessToken) {
         console.log('6. Token found, setting user and checking profile');
@@ -90,7 +90,7 @@ export default function Login({ users, setLoggedInUser }) {
           navigate("/admindash");
         }
       } else {
-        console.error('No access token found in localStorage');
+        console.error('No access token found in sessionStorage');
         alert('Login error: No token stored');
       }
     } else {

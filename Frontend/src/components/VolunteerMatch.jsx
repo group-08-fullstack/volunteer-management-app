@@ -51,7 +51,7 @@ const extraLinks = [
 
   useEffect(() => {
     const fetchData = async () => {
-      const token = localStorage.getItem('access_token');
+      const token = sessionStorage.getItem('access_token');
       await checkTokenTime();
 
       try {
@@ -120,7 +120,7 @@ const extraLinks = [
 
     try {
       setLoadingVolunteers(true);
-      const token = localStorage.getItem('access_token');
+      const token = sessionStorage.getItem('access_token');
 
       console.log(`Fetching volunteers for event ${event.id}`);
 
@@ -175,7 +175,7 @@ const extraLinks = [
       return;
     }
 
-    const token = localStorage.getItem('access_token');
+    const token = sessionStorage.getItem('access_token');
     await checkTokenTime();
 
     if (!token) {
@@ -222,7 +222,7 @@ const extraLinks = [
       return;
     }
 
-    const token = localStorage.getItem('access_token');
+    const token = sessionStorage.getItem('access_token');
     await checkTokenTime();
 
     if (!token) {

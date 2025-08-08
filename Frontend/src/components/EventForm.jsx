@@ -94,7 +94,7 @@ useEffect(() => {
   const loadFormOptions = async () => {
     try {
       console.log('🔄 Loading form options...');
-      const token = localStorage.getItem("access_token");
+      const token = sessionStorage.getItem("access_token");
       
       // Load both skills and states in parallel
       const [skillsResponse, statesResponse] = await Promise.all([
@@ -143,7 +143,7 @@ useEffect(() => {
   const loadEventData = async () => {
     try {
       setIsLoading(true);
-      const token = localStorage.getItem("access_token");
+      const token = sessionStorage.getItem("access_token");
       
       if (!token) {
         alert('Please log in to edit events.');
@@ -300,7 +300,7 @@ useEffect(() => {
 
     setIsSubmitting(true);
 
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
 
     if (!token) {
       alert('Please log in to manage events.');

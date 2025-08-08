@@ -10,7 +10,7 @@ export async function createNotification(data){
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            "Authorization" : `Bearer ${localStorage.getItem("access_token")}`
+            "Authorization" : `Bearer ${sessionStorage.getItem("access_token")}`
         },
         body: JSON.stringify(data)
     });
@@ -25,7 +25,7 @@ export async function getUserNotifications(){
     const response = await fetch(`http://127.0.0.1:5000/api/notification/`, {
         method: "GET",
         headers: {
-            "Authorization" : `Bearer ${localStorage.getItem("access_token")}`
+            "Authorization" : `Bearer ${sessionStorage.getItem("access_token")}`
         },
     });
 
@@ -45,7 +45,7 @@ export async function FlipReadStatus(notificationId,data){
         method: "PATCH",
         headers: {
             "Content-Type": "application/json",
-            "Authorization" : `Bearer ${localStorage.getItem("access_token")}`
+            "Authorization" : `Bearer ${sessionStorage.getItem("access_token")}`
 
         },
         body : JSON.stringify({ "read": !data["read"] })
@@ -63,7 +63,7 @@ export async function deleteNotification(notificationId) {
     const response = await fetch(`http://127.0.0.1:5000/api/notification/?notiId=${notificationId}`, {
         method: "DELETE",
          headers: {
-            "Authorization" : `Bearer ${localStorage.getItem("access_token")}`
+            "Authorization" : `Bearer ${sessionStorage.getItem("access_token")}`
         }
     });
 }

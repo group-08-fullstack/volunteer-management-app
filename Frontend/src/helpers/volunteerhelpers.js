@@ -8,7 +8,7 @@ export async function getVolunteerDashboard(){
     const response = await fetch(`http://127.0.0.1:5000/api/volunteer/dashboard/`, {
         method: "GET",
         headers: {
-            "Authorization" : `Bearer ${localStorage.getItem("access_token")}`
+            "Authorization" : `Bearer ${sessionStorage.getItem("access_token")}`
         },
     });
 
@@ -36,7 +36,7 @@ export async function getVolunteerHistory(options = {}){
     const response = await fetch(url, {
         method: "GET",
         headers: {
-            "Authorization" : `Bearer ${localStorage.getItem("access_token")}`
+            "Authorization" : `Bearer ${sessionStorage.getItem("access_token")}`
         },
     });
 
@@ -64,7 +64,7 @@ export async function getUpcomingVolunteerEvents(options = {}){
     const response = await fetch(url, {
         method: "GET",
         headers: {
-            "Authorization" : `Bearer ${localStorage.getItem("access_token")}`
+            "Authorization" : `Bearer ${sessionStorage.getItem("access_token")}`
         },
     });
 
@@ -84,7 +84,7 @@ export async function getVolunteerProfile(){
     const response = await fetch(`http://127.0.0.1:5000/api/volunteer/profile/`, {
         method: "GET",
         headers: {
-            "Authorization" : `Bearer ${localStorage.getItem("access_token")}`
+            "Authorization" : `Bearer ${sessionStorage.getItem("access_token")}`
         },
     });
 
@@ -104,7 +104,7 @@ export async function getVolunteerEventDetail(eventId){
     const response = await fetch(`http://127.0.0.1:5000/api/volunteer/events/${eventId}/`, {
         method: "GET",
         headers: {
-            "Authorization" : `Bearer ${localStorage.getItem("access_token")}`
+            "Authorization" : `Bearer ${sessionStorage.getItem("access_token")}`
         },
     });
 
@@ -126,7 +126,7 @@ export async function registerForEvent(eventId){
     const response = await fetch(`http://127.0.0.1:5000/api/volunteer/events/${eventId}/register/`, {
         method: "POST",
         headers: {
-            "Authorization" : `Bearer ${localStorage.getItem("access_token")}`
+            "Authorization" : `Bearer ${sessionStorage.getItem("access_token")}`
         },
     });
 
@@ -147,7 +147,7 @@ export async function unregisterFromEvent(eventId){
     const response = await fetch(`http://127.0.0.1:5000/api/volunteer/events/${eventId}/register/`, {
         method: "DELETE",
         headers: {
-            "Authorization" : `Bearer ${localStorage.getItem("access_token")}`
+            "Authorization" : `Bearer ${sessionStorage.getItem("access_token")}`
         },
     });
 

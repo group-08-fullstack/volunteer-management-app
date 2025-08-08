@@ -65,7 +65,7 @@ const extraLinks = [
       setLoading(true);
       setError(null);
 
-      const token = localStorage.getItem("access_token");
+      const token = sessionStorage.getItem("access_token");
       await checkTokenTime();
 
       const response = await fetch("http://localhost:5000/api/eventreview/finalized", {
@@ -93,7 +93,7 @@ const extraLinks = [
 
   const loadVolunteers = async (eventId) => {
     try {
-      const token = localStorage.getItem("access_token");
+      const token = sessionStorage.getItem("access_token");
 
       const response = await fetch(`http://localhost:5000/api/eventreview/${eventId}/volunteers`, {
         method: "GET",
@@ -149,7 +149,7 @@ const extraLinks = [
     }
 
     try {
-      const token = localStorage.getItem("access_token");
+      const token = sessionStorage.getItem("access_token");
 
       const response = await fetch(`http://localhost:5000/api/eventreview/${selectedEvent.id}/volunteer/${reviewingVolunteer.volunteerId}`, {
         method: "PUT",
@@ -188,7 +188,7 @@ const extraLinks = [
     if (!confirmed) return;
 
     try {
-      const token = localStorage.getItem("access_token");
+      const token = sessionStorage.getItem("access_token");
 
       const response = await fetch(`http://localhost:5000/api/eventreview/${selectedEvent.id}/complete`, {
         method: "PUT",

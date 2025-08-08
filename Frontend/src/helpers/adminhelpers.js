@@ -8,7 +8,7 @@ export async function getAdminDashboard(){
     const response = await fetch(`http://127.0.0.1:5000/api/admin/dashboard/`, {
         method: "GET",
         headers: {
-            "Authorization" : `Bearer ${localStorage.getItem("access_token")}`
+            "Authorization" : `Bearer ${sessionStorage.getItem("access_token")}`
         },
     });
 
@@ -38,7 +38,7 @@ export async function getVolunteers(options = {}){
     const response = await fetch(url, {
         method: "GET",
         headers: {
-            "Authorization" : `Bearer ${localStorage.getItem("access_token")}`
+            "Authorization" : `Bearer ${sessionStorage.getItem("access_token")}`
         },
     });
 
@@ -66,7 +66,7 @@ export async function getEvents(options = {}){
     const response = await fetch(url, {
         method: "GET",
         headers: {
-            "Authorization" : `Bearer ${localStorage.getItem("access_token")}`
+            "Authorization" : `Bearer ${sessionStorage.getItem("access_token")}`
         },
     });
 
@@ -86,7 +86,7 @@ export async function getAdminStatistics(){
     const response = await fetch(`http://127.0.0.1:5000/api/admin/statistics/`, {
         method: "GET",
         headers: {
-            "Authorization" : `Bearer ${localStorage.getItem("access_token")}`
+            "Authorization" : `Bearer ${sessionStorage.getItem("access_token")}`
         },
     });
 
@@ -106,7 +106,7 @@ export async function getVolunteerDetail(volunteerId){
     const response = await fetch(`http://127.0.0.1:5000/api/admin/volunteers/${volunteerId}/`, {
         method: "GET",
         headers: {
-            "Authorization" : `Bearer ${localStorage.getItem("access_token")}`
+            "Authorization" : `Bearer ${sessionStorage.getItem("access_token")}`
         },
     });
 
@@ -128,7 +128,7 @@ export async function getEventDetail(eventId){
     const response = await fetch(`http://127.0.0.1:5000/api/admin/events/${eventId}/`, {
         method: "GET",
         headers: {
-            "Authorization" : `Bearer ${localStorage.getItem("access_token")}`
+            "Authorization" : `Bearer ${sessionStorage.getItem("access_token")}`
         },
     });
 

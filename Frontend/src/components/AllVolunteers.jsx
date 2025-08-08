@@ -43,7 +43,7 @@ export default function AllVolunteers() {
       setLoading(true);
       setError(null);
 
-      const token = localStorage.getItem('access_token');
+      const token = sessionStorage.getItem('access_token');
       await checkTokenTime();
 
       const response = await fetch('http://127.0.0.1:5000/api/admin/volunteers/', {
@@ -76,7 +76,7 @@ export default function AllVolunteers() {
 
 
   const generateReport = (volunteerId, format) => {
-    const token = localStorage.getItem('access_token');
+    const token = sessionStorage.getItem('access_token');
     const url = `http://127.0.0.1:5000/api/volunteer/${volunteerId}/report/${format}`;
 
     fetch(url, {

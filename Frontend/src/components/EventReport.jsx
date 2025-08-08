@@ -48,7 +48,7 @@ export default function ReportsPage() {
   const loadCompletedEvents = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("access_token");
+      const token = sessionStorage.getItem("access_token");
       await checkTokenTime();
       
       if (!token) {

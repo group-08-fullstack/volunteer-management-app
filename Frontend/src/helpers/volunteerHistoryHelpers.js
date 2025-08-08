@@ -6,10 +6,10 @@ export async function getVolunteerHistory(){
   await checkTokenTime();
 
   
- const response = await fetch(`http://127.0.0.1:5000/api/history/?user=${localStorage.getItem("user_email")}`, {
+ const response = await fetch(`http://127.0.0.1:5000/api/history/?user=${sessionStorage.getItem("user_email")}`, {
         method: "GET",
         headers: {
-          "Authorization" : `Bearer ${localStorage.getItem("access_token")}`
+          "Authorization" : `Bearer ${sessionStorage.getItem("access_token")}`
         }
         
     });
@@ -29,7 +29,7 @@ export async function addHistoryEntry(data){
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization" : `Bearer ${localStorage.getItem("access_token")}`
+          "Authorization" : `Bearer ${sessionStorage.getItem("access_token")}`
         },
         body: JSON.stringify(data)
     });

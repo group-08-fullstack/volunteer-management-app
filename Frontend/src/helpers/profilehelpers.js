@@ -8,7 +8,7 @@ export async function getUserProfile(){
     const response = await fetch(`http://127.0.0.1:5000/api/profile/`, {
         method: "GET",
         headers: {
-            "Authorization" : `Bearer ${localStorage.getItem("access_token")}`
+            "Authorization" : `Bearer ${sessionStorage.getItem("access_token")}`
         },
     });
 
@@ -31,7 +31,7 @@ export async function createProfile(profileData){
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            "Authorization" : `Bearer ${localStorage.getItem("access_token")}`
+            "Authorization" : `Bearer ${sessionStorage.getItem("access_token")}`
         },
         body: JSON.stringify(profileData)
     });
@@ -54,7 +54,7 @@ export async function updateProfile(profileData){
         method: "PUT",
         headers: {
             "Content-Type": "application/json",
-            "Authorization" : `Bearer ${localStorage.getItem("access_token")}`
+            "Authorization" : `Bearer ${sessionStorage.getItem("access_token")}`
         },
         body: JSON.stringify(profileData)
     });
@@ -76,7 +76,7 @@ export async function deleteProfile() {
     const response = await fetch(`http://127.0.0.1:5000/api/profile/`, {
         method: "DELETE",
         headers: {
-            "Authorization" : `Bearer ${localStorage.getItem("access_token")}`
+            "Authorization" : `Bearer ${sessionStorage.getItem("access_token")}`
         }
     });
 
@@ -94,7 +94,7 @@ export const getSkillsOptions = async () => {
     console.log('🔄 Fetching skills from API...');
     await checkTokenTime();
     
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
     const response = await fetch(`http://127.0.0.1:5000/api/profile/skills/`, {
       headers: {
         'Authorization': `Bearer ${token}`,
