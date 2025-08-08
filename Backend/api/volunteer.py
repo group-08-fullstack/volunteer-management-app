@@ -647,25 +647,27 @@ class VolunteerReportCSV(Resource):
 
         output = io.StringIO()
         if is_zero_data:
-          # Only write basic volunteer info row
-          writer = csv.DictWriter(output, fieldnames=basic_fields)
-          writer.writeheader()
-          basic_row = {field: data[0].get(field, '') for field in basic_fields}
-          writer.writerow(basic_row)
+         # Only write basic volunteer info row
+         writer = csv.DictWriter(output, fieldnames=basic_fields)
+         writer.writeheader()
+         basic_row = {field: data[0].get(field, '') for field in basic_fields}
+         writer.writerow(basic_row)
         else:
-          writer = csv.DictWriter(output, fieldnames=full_fields)
-          writer.writeheader()
-          for row in data:
-            # Skip empty event rows with no real participation
-            if row['event'] == 'N/A' and row['status'] != 'Registered':
-             continue
-        
-             # Normalize address2 and fix hours/rating for display
-            if not row.get('address2'):
-             row['address2'] = ''
-            row['hours'] = row['hours'] if row['hours'] != -1 else ''
-            row['rating'] = row['rating'] if row['rating'] != -1 else ''
-        writer.writerow({field: row.get(field, '') for field in full_fields})
+         writer = csv.DictWriter(output, fieldnames=full_fields)
+         writer.writeheader()
+        for row in data:
+         # Skip empty event rows with no real participation
+         if row['event'] == 'N/A' and row['status'] != 'Registered':
+            continue
+
+         # Normalize address2 and fix hours/rating for display
+         if not row.get('address2'):
+            row['address2'] = ''
+         row['hours'] = row['hours'] if row['hours'] != -1 else ''
+         row['rating'] = row['rating'] if row['rating'] != -1 else ''
+
+         writer.writerow({field: row.get(field, '') for field in full_fields})
+
 
 
         return Response(
