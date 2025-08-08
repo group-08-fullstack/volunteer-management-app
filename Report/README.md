@@ -9,9 +9,10 @@ This is a full-stack web application designed to manage volunteers and events fo
 ## 🗂 Project Structure
 
 - **Frontend**: React.js + Vite
-- **Backend**: Python (Flask/FastAPI)  
+- **Backend**: Python (Flask/FastAPI) Web Application Framework 
 - **Database**: MySQL 
-- **Authentication**: JWT  
+- **Authentication**: JWT(JSON Web Token) + bcrypt password hashing
+- **Notification**: Flask API
 - **Report Generation**: reportlab (PDF), csv (python built-in)
 -  **Unit testing**: pytest, coverage
 
