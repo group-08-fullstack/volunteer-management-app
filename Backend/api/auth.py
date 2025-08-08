@@ -261,3 +261,6 @@ class EmailCodeConfirmation(Resource):
         finally:
             cursor.close()
             conn.close()
+            
+
+
