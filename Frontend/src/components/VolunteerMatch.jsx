@@ -10,7 +10,7 @@ async function sendNotification(data) {
   const newNotification = {
     receiver: data.volunteer.email,
     message: `New event assigned: ${data.event.name}`,
-    date: data.event.date,
+    date: new Date().toISOString().split('T')[0],
     read: false
   };
   await createNotification(newNotification);

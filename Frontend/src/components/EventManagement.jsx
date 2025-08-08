@@ -29,7 +29,7 @@ async function sendNotification(volunteer, event_id) {
   const newNotification = {
     receiver: volunteer.email,
     message: `Assigned Event Deleted: ${selectedEvent.event_name}`,
-    date: selectedEvent.date,
+    date: new Date().toISOString().split('T')[0],
     read: false
   };
   await createNotification(newNotification);

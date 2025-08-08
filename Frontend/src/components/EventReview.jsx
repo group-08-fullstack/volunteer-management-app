@@ -9,8 +9,8 @@ import { checkTokenTime } from "../helpers/authHelpers";
 async function sendNotification(reviewingVolunteer,selectedEvent) {
   const newNotification = {
     receiver: reviewingVolunteer.email,
-    message: `Performance feedback added: ${selected,eventName}`,
-    date: selectedEvent.eventDate,
+    message: `Performance feedback added: ${selectedEvent.eventName}`,
+    date: new Date().toISOString().split('T')[0],
     read: false
   };
   await createNotification(newNotification);

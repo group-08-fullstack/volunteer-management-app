@@ -147,7 +147,7 @@ function NotificationItem({data, onToggleRead, onDelete}){
     return(
         <div key={data.notification_id} className="notification-item">
             <p>{data.message}</p>
-            <small>{data.date}</small>
+            <small>{data.event_date}</small>
 
             <div className="notification-read-toggle">
                 <label className="notification-label">Read</label>
