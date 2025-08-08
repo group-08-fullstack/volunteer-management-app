@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Lock, UserPlus, Mail } from 'lucide-react';
 import {register, verifyEmail,confirmCode} from '../helpers/authHelpers';
+import VerificationInput from './verification';
 
 
 export default function Register({ users, setUsers }) {
+  const [showVerification, setShowVerification] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('volunteer');
@@ -24,54 +26,15 @@ export default function Register({ users, setUsers }) {
     // Make API call to register endpoint
     const register_result = await register(UserRegister);
 
+    // Make API call to EmailVerfication endpoint to verify user email
     if(register_result){
-      // Make API call to EmailVerfication endpoint to verify user email
       const verify_result = await verifyEmail(UserRegister);
 
-      if(verify_result){
-          let code;
-          let UserWithCode;
-          let confirm_result = false;
-
-          do {
-            const input = prompt("Enter the verification code sent to your email");
-
-            // If user clicks cancel
-            if (input === null) {
-              break;
-            }
-
-            code = parseInt(input);
-
-            if (!isNaN(code)) {
-              UserWithCode = { ...UserRegister, code: code };
-              confirm_result = await confirmCode(UserWithCode); // Check with server
-              if (!confirm_result) {
-                alert("Incorrect verification code, please try again.");
-              }
-            } else {
-              alert("Please enter a valid number.");
-            }
-
-          } while (!confirm_result);
-
-          if (confirm_result) {
-            const newUser = { email, password, role };
-            setUsers([...users, newUser]);
-            navigate("/login");
-          }
-
-          else{
-            alert('Incorrect verfication code');
-          }
-        
-
+      // If successful, show the verification input
+      if (verify_result) {
+        setShowVerification(true);
       }
-      else{
-        alert('Verfication code could not be sent due to error');
-      }
-  }
-  
+    }
 
   };
 
@@ -257,7 +220,16 @@ export default function Register({ users, setUsers }) {
         }
       `}</style>
 
+
       <div className="login-container">
+
+         <div className='VerificaitionInput'>
+          {/* Show VerificationInput only if setShowVerification is true */}
+          {showVerification && (
+            <VerificationInput email={email} showVerification={showVerification} setshowVerification={setShowVerification} />
+          )}
+        </div>
+
         {/* Header */}
         <div className="login-header">
           <h1 className="login-brand">Volunteer Portal</h1>
@@ -270,6 +242,8 @@ export default function Register({ users, setUsers }) {
             <UserPlus color="#10b981" size={24} />
             <h2 className="card-title">Join Our Community</h2>
           </div>
+
+          
 
           <form className="login-form" onSubmit={handleRegister}>
             {/* Role Selection */}
